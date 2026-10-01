@@ -110,7 +110,7 @@ In test mode the real Keychain and the real `gh` are never invoked and `gh api u
 | SSH host key (trust on first use) | A network attacker could present their own key | The client shows the fingerprint and you compare it with the target screen; only that key is trusted, strict checking, never `StrictHostKeyChecking=no`. Pasting avoids the network. |
 | Inbox / bundle on the target | Plain file for a moment | 0700 dir owned by the target user, 0600 file, removed on read and by the exit trap; stale `ready` markers (dead pid) are refused. |
 | Secrets passed through the environment (`TS_AUTHKEY`, `GH_TOKEN`) | They stay in the process environment block of the installer (readable by the same user and root) and in shell history if typed inline | Prefer the hand-off. The script copies them to non-exported variables and unsets them first, but cannot scrub the parent shell's history or the original environment block. |
-| Failed delivery | A minted key that was not used | The client revokes it by id; otherwise it is single-use and expires in one hour. |
+| Failed delivery | A minted key that was not used | The client revokes it by id when the delivery fails or is not taken within 15 s, or when it is interrupted (INT/TERM). A bundle that the receiver TAKES but then rejects (for example a validation failure on the target) is NOT revoked: the unused single-use key stays valid for up to 1 hour, so revoke it in the admin console if you care. |
 
 Known limits of the hand-off (PARTIAL / ACCEPTED-RISK, from the final review round):
 
@@ -119,6 +119,8 @@ Known limits of the hand-off (PARTIAL / ACCEPTED-RISK, from the final review rou
 - **Hand-off while the target is at the `p` prompt (R5, ACCEPTED-RISK):** the receiver reads sequentially; a bundle pushed while the paste prompt is open waits until the prompt returns, and the client's 15 s wait may expire first, which removes the bundle and revokes the key. It fails safely; retry.
 - **`~/.ssh/config` is kept on purpose (L2, ACCEPTED-RISK):** the client does not use `-F /dev/null`, so key-based hosts keep their `IdentityFile`/`User`; proxies, local commands and forwarding are switched off on the command line (`ProxyCommand=none`, `ProxyJump=none`, `PermitLocalCommand=no`, `ClearAllForwardings=yes`).
 - **Helper download (L3, ACCEPTED-RISK):** `--client-setup --origin` fetches the helper in a second download over the same TLS origin as the piped script; a first install has no replace prompt (nothing to replace), later ones show both sha256 values and ask.
+- **Interrupted client leaves the bundle (UNRESOLVED-LOW, NI-2):** after a client interrupt the minted key is revoked, but the bundle (which contains the gh token) can stay in the target's 0700 inbox until the waiting receiver takes it or exits (the exit trap removes it). Only the target user and root can read it.
+- **`pacman --disable-sandbox` in containers:** when a container is detected (`/.dockerenv` or `/run/.containerenv`) the script runs pacman with `--disable-sandbox`, because pacman's sandbox fails inside containers. Real hosts are unaffected.
 - **Older helpers (contract):** the receiver requires the `END=1` line, so a `mac-bootstrap` helper older than this version produces bundles that are rejected; re-run `--client-setup`.
 - **Stopped Tailscale node on Linux (UNTESTED):** a rerun in the `Stopped` state runs plain `tailscale up --timeout=120s` (prefs persist) and sets the operator with `tailscale set --operator=<user>`; no real `up` was run.
 

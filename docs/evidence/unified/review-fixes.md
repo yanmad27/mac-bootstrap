@@ -43,3 +43,10 @@ New systemd evidence (native arm64, `--privileged`, `--skip-tailscale-up`, so no
 | P1 | no ED25519 fingerprint -> `ready` removed and the SSH hand-off closed, message says so | `handoff/22-no-fingerprint-receiver.txt`, `22-no-fingerprint-client.txt` (client refuses before minting) |
 
 Documented in `docs/handoff.md` section 8 (PARTIAL / ACCEPTED-RISK, with reasons): N1 pid reuse (bounded by the 15 s consume wait + revoke, PARTIAL); N4/R3 hidepid `/proc` with a root receiver fails closed, use paste (ACCEPTED-RISK); R5 hand-off while the target is at the `p` prompt fails safely (ACCEPTED-RISK); L2 `~/.ssh/config` kept on purpose, minus proxies/forwarding (ACCEPTED-RISK); L3 helper is a second download over the same TLS origin, first install has no prompt (ACCEPTED-RISK); `END=1` means older helpers are rejected (contract note).
+
+## UNRESOLVED-LOW (accepted for this PR; install.sh is frozen)
+
+- **NI-1:** the window between minting a key and setting the client's `HANDOFF_PENDING` flag is not covered by the interrupt trap: an interrupt in that instant leaves a minted, unrevoked single-use key (valid at most 1 hour; revoke in the admin console).
+- **NI-2:** an interrupted client revokes the key but does not remove the bundle from the target's inbox; it stays in the 0700 inbox until the waiting receiver takes it or exits.
+- **Commented-out NodeSource line:** `apt_nodesource_configured` matches any `nodesource.com` text in the apt sources, so a commented-out NodeSource line counts as configured; if no usable repo exists the installer then stops (before the Tailscale join) with the Node-version message instead of adding the repo. Fix: remove or uncomment the line.
+- Recorded behaviours (documented in `docs/handoff.md` section 8): a bundle taken but rejected by the receiver is not revoked (key valid up to 1 hour); `pacman --disable-sandbox` is used when a container is detected.
