@@ -61,7 +61,7 @@ OK      The script installs steps in this order: preflight, Homebrew, tailscale 
 OK      When it finishes, start Paseo: open Paseo.app (installed in /Applications by the  ->  <details> "Order of steps, sudo and Paseo" in [2. Run the install command]
 OK      3. The Tailscale auth key  ->  visible in [3. The Tailscale auth key]
 OK      Can login be non-interactive? Yes: tailscale up --auth-key=file:/path logs the n  ->  <details> "Can login be non-interactive?" in [3. The Tailscale auth key]
-OK      Generate the key  ->  <details> "Generate the key" in [3. The Tailscale auth key]
+OK      Generate the key  ->  visible in [3. The Tailscale auth key]
 OK      In the Tailscale admin console, Keys page, choose Generate auth key and set:  ->  <details> "Generate the key" in [3. The Tailscale auth key]
 OK      Reusable: off (one-off). A leaked copy is useless after first use.  ->  <details> "Generate the key" in [3. The Tailscale auth key]
 OK      Ephemeral: off. Ephemeral devices are removed from the tailnet when they go offl  ->  <details> "Generate the key" in [3. The Tailscale auth key]
@@ -112,4 +112,4 @@ OK      Check tailscale status on the bootstrapped Mac, then connect from your c
 OK      The scripts are served as plain text: open http://127.0.0.1:48217/install.sh to   ->  visible in [Done]
 
 blocks: 110, missing: 0
-old links (7 unique) subset of new links (8 unique): true
+old links (7 unique) subset of new links (9 unique): true

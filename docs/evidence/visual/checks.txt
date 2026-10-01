@@ -7,3 +7,6 @@ links inside <a href> to external sites are navigations, not loads; none were fo
 file:// placeholder: note="This page was opened from a local file, so commands show the placehold..." c-run="curl -fsSL "<your-site>/install.sh" | bash" -> true
 h2 order old==new: true
   ["1. Turn on Screen Sharing and Remote Login (by hand)","2. Run the install command","3. The Tailscale auth key","4. Optional: iTerm2 (both Macs)","Done"]
+button/text geometry @1280px: 10 blocks, text-rect/button-rect intersections: 0, pre right edge <= button left: true, pre scrolls inside own box: 4
+accessible names: 10 unique of 10, all start with "Copy": true
+button/text geometry @390px: 10 blocks, text-rect/button-rect intersections: 0, pre right edge <= button left: true, pre scrolls inside own box: 10
