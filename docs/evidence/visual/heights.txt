@@ -1,0 +1,7 @@
+Full-page heights in px (document.documentElement.scrollHeight), all <details> collapsed
+
+variant            before  after  reduction  after(all <details> expanded)
+1280px light         5864   3531    39.8%   7614
+1280px dark          5864   3531    39.8%   7614
+390px light          8892   5072    43.0%   12522
+390px dark           8892   5072    43.0%   12522

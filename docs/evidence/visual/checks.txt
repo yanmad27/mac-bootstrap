@@ -1,0 +1,13 @@
+copy buttons: 10 total, 10 clipboard==displayed text (5 of them inside <details>), mismatches: none
+live region #copy-status aria-live=polite, after last copy click text="Copied: client Mac iTerm2 command with SSH user" (expect "Copied: ...")
+commands built from location.origin (http://127.0.0.1:48217): true (6 checked)
+external requests (old+new page loads, all 8 variants + checks): 0
+links inside <a href> to external sites are navigations, not loads; none were followed.
+390px horizontal overflow: scrollWidth collapsed=390, expanded=390 (<=390: true)
+390px svg display:width = none:0 block:361 none:0 block:361 (narrow variants shown, wide hidden)
+file:// placeholder: note="This page was opened from a local file, so commands show the placehold..." c-run="curl -fsSL "<your-site>/install.sh" | bash" -> true
+h2 order old==new: true
+  ["1. Turn on Screen Sharing and Remote Login (by hand)","2. Run the install command","3. The Tailscale auth key","4. Optional: iTerm2 (both Macs)","Done"]
+button/text geometry @1280px: 10 blocks, text-rect/button-rect intersections: 0, pre right edge <= button left: true, pre scrolls inside own box: 4
+accessible names: 10 unique of 10, all start with "Copy": true
+button/text geometry @390px: 10 blocks, text-rect/button-rect intersections: 0, pre right edge <= button left: true, pre scrolls inside own box: 10
