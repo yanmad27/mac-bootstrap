@@ -1,0 +1,7 @@
+Every text block of the OLD page (main @ 2944991: h1-h3, p, li, td, th, summary, figcaption, crumbs, key tiles, code blocks, inline-SVG labels) must appear verbatim (whitespace-normalised, origin normalised) in the new page's text (visible or inside <details>).
+old blocks checked: 210
+missing: 0
+(the lone old SVG glyph U+2713 is skipped: it is now the CSS 'Done ✓' label on the Connect tile; old link to <origin>/install.sh compared with origin normalised)
+
+old links: 11 (9 unique); missing from new: 0 
+new link count: 13
