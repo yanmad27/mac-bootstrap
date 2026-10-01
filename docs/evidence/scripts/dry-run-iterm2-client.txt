@@ -26,6 +26,7 @@ exit=0
 plutil -convert exit=0
 
 ### default dir dry-run (no write)
+DRY-RUN: would write ~/Library/Application Support/iTerm2/DynamicProfiles/mac-bootstrap-mybox.json
 
 ### invalid inputs (all exit 2)
 args [--host a;b] exit=2 invalid --host (allowed: letters, digits, dots, hyphens)
@@ -45,12 +46,10 @@ DRY-RUN: would write /tmp/mb-p2/mac-bootstrap-mybox.json
       "Bound Hosts": ["mybox", "mybox.*", "alice@mybox", "alice@mybox.*"]
 DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://iterm2.com/shell_integration/zsh -o ~/.iterm2_shell_integration.zsh
 DRY-RUN would append to ~/.zshrc: test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh" # mac-bootstrap iterm2
-DRY-RUN: would write /tmp/mb-p2/mac-bootstrap-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-aa3f7cbe.json
-note: automatic profile switching also needs iTerm2 shell integration on this Mac (rerun with --shell-integration) and on aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.b.
-{
-DRY-RUN: would write /tmp/mb-p2/mac-bootstrap-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-aa3f7cbe.json
-note: automatic profile switching also needs iTerm2 shell integration on this Mac (rerun with --shell-integration) and on aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.b.
-filename length for 245-char host: 1 (< 255)
+long host length: 245 chars
+target path from stderr (middle elided): /tmp/mb-p2/mac-bootstrap-aaaaaaaaaaaaaaa...aaaaaaaaaaaaaaaa-aa3f7cbe.json
+filename byte length: 88 (< 255)
+JSON on stdout for the long host parses: yes
 64-char label rejected: exit=2
 ls: /tmp/mb-p2: No such file or directory
 
