@@ -1,7 +1,7 @@
 Each content block of the ORIGINAL page (c4ad352) -> where its exact text now lives
 
 OK      Bootstrap a Mac for remote access  ->  visible in [hero]
-OK      Four steps, in order: switch on Screen Sharing and Remote Login by hand, run one  ->  visible in [hero]
+REWORDED Four steps, in order: switch on Screen Sharing and Remote Login by hand, run one  ->  -
 OK      Commands below use this site's address: http://127.0.0.1:48217  ->  visible in [hero]
 OK      1. Turn on Screen Sharing and Remote Login (by hand)  ->  visible in [1. Turn on Screen Sharing and Remote Login (by hand)]
 OK      This project deliberately uses Apple's supported System Settings path for these   ->  <details> "Click path and settings (macOS Tahoe 26 and Sequoia 15)" in [1. Turn on Screen Sharing and Remote Login (by hand)]
@@ -111,5 +111,6 @@ OK      Done  ->  visible in [Done]
 OK      Check tailscale status on the bootstrapped Mac, then connect from your client wi  ->  visible in [Done]
 OK      The scripts are served as plain text: open http://127.0.0.1:48217/install.sh to   ->  visible in [Done]
 
+(REWORDED = hero lead sentence, deliberately reworded for auth-key ordering per review; same four steps, no content dropped)
 blocks: 110, missing: 0
 old links (7 unique) subset of new links (9 unique): true

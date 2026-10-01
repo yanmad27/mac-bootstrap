@@ -91,9 +91,10 @@ td code,th code{overflow-wrap:anywhere}
 </head>
 <body>
 <main>
+<div id="copy-status" class="sr" role="status" aria-live="polite"></div>
 <header class="hero">
 <h1>Bootstrap a Mac for remote access</h1>
-<p class="lead">Four steps, in order: switch on Screen Sharing and Remote Login by hand, run one install command, give Tailscale an auth key (or log in interactively), and optionally set up iTerm2 on both Macs.</p>
+<p class="lead">Four steps, in order: switch on Screen Sharing and Remote Login by hand, run one install command that brings Tailscale up (with a browser login URL, or with an auth key you generated beforehand), and optionally set up iTerm2 on both Macs.</p>
 <p id="origin-note" class="origin">Commands below are built from this page's address.</p>
 <noscript><p class="note">JavaScript is off, so commands show the literal placeholder <code>&lt;your-site&gt;</code>. Replace it with the address of this page.</p></noscript>
 <figure>
@@ -329,7 +330,11 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
   document.querySelectorAll("button[data-copy]").forEach(function (b) {
     b.addEventListener("click", function () {
       var text = document.getElementById(b.getAttribute("data-copy")).textContent;
+      var what = (b.getAttribute("aria-label") || "").replace(/^Copy /, "");
+      var status = document.getElementById("copy-status");
       var done = function (ok) {
+        status.textContent = "";
+        status.textContent = ok ? "Copied: " + what : "Copy failed, press Cmd+C: " + what;
         b.textContent = ok ? "Copied" : "Press Cmd+C";
         setTimeout(function () { b.textContent = "Copy"; }, 1800);
       };

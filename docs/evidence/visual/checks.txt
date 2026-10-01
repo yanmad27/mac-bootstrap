@@ -1,4 +1,5 @@
 copy buttons: 10 total, 10 clipboard==displayed text (5 of them inside <details>), mismatches: none
+live region #copy-status aria-live=polite, after last copy click text="Copied: client Mac iTerm2 command with SSH user" (expect "Copied: ...")
 commands built from location.origin (http://127.0.0.1:48217): true (6 checked)
 external requests (old+new page loads, all 8 variants + checks): 0
 links inside <a href> to external sites are navigations, not loads; none were followed.
