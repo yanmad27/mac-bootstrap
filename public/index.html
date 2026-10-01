@@ -35,18 +35,90 @@ summary{cursor:pointer;font-weight:600}
 .sr{position:absolute;left:-9999px}
 ol.steps>li{margin:.4rem 0}
 kbd{font:.85em ui-monospace,Menlo,monospace;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:.05em .35em}
+
+.hero p.lead{font-size:1.1rem}
+figure{margin:1.25rem 0}
+figcaption{font-size:.85rem;color:var(--muted);margin-top:.25rem}
+.dg{display:block;width:100%;height:auto;color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+.dg-narrow{display:none;max-width:24rem;margin:0 auto}
+.dg .bx{fill:var(--card);stroke:var(--line);stroke-width:1.5}
+.dg .bx.opt,.dg .it.opt{stroke-dasharray:5 4}
+.dg .bx.net{stroke:var(--accent)}
+.dg .it{fill:var(--bg);stroke:var(--line);stroke-width:1}
+.dg .bd{fill:var(--accent)}
+.dg .bn{fill:var(--bg);font-size:14px;font-weight:700}
+.dg .tt{fill:currentColor;font-size:16px;font-weight:700}
+.dg .st{fill:currentColor;font-size:13.5px}
+.dg .ar{stroke:var(--accent);stroke-width:2.5;fill:none}
+.dg .ah{stroke:var(--accent);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.step{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:10px;padding:0 1.1rem 1rem;margin:1.75rem 0}
+.step h2{margin:0;padding:1rem 0 .5rem;border-top:0;font-size:1.3rem}
+.step h3{margin:1rem 0 .2rem}
+.step p{margin:.4rem 0}
+.step .cmd pre{background:var(--code-bg)}
+.step code{background:var(--bg)}
+.step details{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.1rem .8rem;margin:.6rem 0}
+.step details>summary{padding:.45rem 0}
+.step details[open]>summary{margin-bottom:.3rem}
+.step details .cmd pre{background:var(--code-bg)}
+.step details code{background:var(--card)}
+.step details .cmd pre code{background:none}
+.crumb{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;margin:.6rem 0;font-size:.9rem}
+.crumb span.c{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:.15rem .7rem}
+.crumb span.s{color:var(--muted)}
+.mock{background:var(--bg);border:1px solid var(--line);border-radius:10px;max-width:22rem;margin:.5rem 0}
+.mock .row{display:flex;align-items:center;gap:.6rem;padding:.55rem .9rem;border-bottom:1px solid var(--line);font-size:.92rem}
+.mock .row:last-child{border-bottom:0}
+.mock .row b{flex:1;font-weight:600}
+.mock .i{width:1.25rem;height:1.25rem;border:1.5px solid var(--muted);border-radius:50%;font-size:.75rem;line-height:1.05rem;text-align:center;color:var(--muted);font-style:italic}
+.mock .tg{width:2.6rem;height:1.45rem;border-radius:999px;background:var(--accent);position:relative;color:var(--bg);font-size:.65rem;font-weight:700;line-height:1.45rem;padding-left:.35rem}
+.mock .tg::after{content:"";position:absolute;right:.15rem;top:.15rem;width:1.15rem;height:1.15rem;border-radius:50%;background:var(--bg)}
+.chips,.pipe{list-style:none;margin:.5rem 0;padding:0;display:flex;flex-wrap:wrap;gap:.35rem;counter-reset:c}
+.chips li{counter-increment:c;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:.1rem .65rem .1rem .35rem;font-size:.85rem;max-width:none}
+.chips li::before{content:counter(c);display:inline-block;min-width:1.25rem;height:1.25rem;line-height:1.25rem;text-align:center;border-radius:50%;background:var(--accent);color:var(--bg);font-size:.72rem;font-weight:700;margin-right:.35rem}
+.chips li.opt{border-style:dashed}
+.pipe li{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.2rem .6rem;font-size:.85rem;max-width:none}
+.pipe li+li::before{content:"\2192";color:var(--accent);font-weight:700;margin-right:.5rem}
+.keyset{list-style:none;margin:.5rem 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:.4rem}
+.keyset li{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.3rem .6rem;font-size:.85rem;max-width:none}
+.keyset b{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+td code,th code{overflow-wrap:anywhere}
+.lbl{margin:.9rem 0 0;font-weight:600;font-size:.95rem}
+.done{border-left-color:var(--muted)}
+@media (max-width:640px){.dg-wide{display:none}.dg-narrow{display:block}main{padding:1.25rem .9rem 3rem}h1{font-size:1.6rem}.step{padding:0 .8rem .8rem}.cmd pre{padding-right:4.8rem}}
 </style>
 </head>
 <body>
 <main>
+<header class="hero">
 <h1>Bootstrap a Mac for remote access</h1>
-<p>Four steps, in order: switch on Screen Sharing and Remote Login by hand, run one install command, give Tailscale an auth key (or log in interactively), and optionally set up iTerm2 on both Macs.</p>
+<p class="lead">Four steps, in order: switch on Screen Sharing and Remote Login by hand, run one install command, give Tailscale an auth key (or log in interactively), and optionally set up iTerm2 on both Macs.</p>
 <p id="origin-note" class="origin">Commands below are built from this page's address.</p>
 <noscript><p class="note">JavaScript is off, so commands show the literal placeholder <code>&lt;your-site&gt;</code>. Replace it with the address of this page.</p></noscript>
+<figure>
+<svg class="dg dg-wide" viewBox="0 0 900 118" role="img" aria-label="Process: 1 turn on Screen Sharing and Remote Login by hand, 2 run one install command, 3 Tailscale comes up with an auth key or a login URL, 4 optionally set up iTerm2 on both Macs, then connect with ssh or Screen Sharing."><title>Process flow</title><rect x="0" y="6" width="156" height="100" rx="10" class="bx"/><circle cx="20" cy="28" r="12" class="bd"/><text x="20" y="33" class="bn" text-anchor="middle">1</text><text x="40" y="33" class="tt" text-anchor="start">Sharing on</text><text x="14" y="58" class="st" text-anchor="start">Screen Sharing +</text><text x="14" y="77" class="st" text-anchor="start">Remote Login</text><path d="M156 56H184" class="ar"/><path d="M177 51L185 56L177 61" class="ah"/><rect x="186" y="6" width="156" height="100" rx="10" class="bx"/><circle cx="206" cy="28" r="12" class="bd"/><text x="206" y="33" class="bn" text-anchor="middle">2</text><text x="226" y="33" class="tt" text-anchor="start">One command</text><text x="200" y="58" class="st" text-anchor="start">curl | bash</text><text x="200" y="77" class="st" text-anchor="start">install.sh</text><path d="M342 56H370" class="ar"/><path d="M363 51L371 56L363 61" class="ah"/><rect x="372" y="6" width="156" height="100" rx="10" class="bx"/><circle cx="392" cy="28" r="12" class="bd"/><text x="392" y="33" class="bn" text-anchor="middle">3</text><text x="412" y="33" class="tt" text-anchor="start">Tailscale up</text><text x="386" y="58" class="st" text-anchor="start">auth key or</text><text x="386" y="77" class="st" text-anchor="start">login URL</text><path d="M528 56H556" class="ar"/><path d="M549 51L557 56L549 61" class="ah"/><rect x="558" y="6" width="156" height="100" rx="10" class="bx opt"/><circle cx="578" cy="28" r="12" class="bd"/><text x="578" y="33" class="bn" text-anchor="middle">4</text><text x="598" y="33" class="tt" text-anchor="start">iTerm2</text><text x="572" y="58" class="st" text-anchor="start">optional,</text><text x="572" y="77" class="st" text-anchor="start">both Macs</text><path d="M714 56H742" class="ar"/><path d="M735 51L743 56L735 61" class="ah"/><rect x="744" y="6" width="156" height="100" rx="10" class="bx"/><circle cx="764" cy="28" r="12" class="bd"/><text x="764" y="33" class="bn" text-anchor="middle">✓</text><text x="784" y="33" class="tt" text-anchor="start">Connect</text><text x="758" y="58" class="st" text-anchor="start">ssh or</text><text x="758" y="77" class="st" text-anchor="start">Screen Sharing</text></svg><svg class="dg dg-narrow" viewBox="0 0 360 436" role="img" aria-label="Process: 1 turn on Screen Sharing and Remote Login by hand, 2 run one install command, 3 Tailscale comes up with an auth key or a login URL, 4 optionally set up iTerm2 on both Macs, then connect with ssh or Screen Sharing."><title>Process flow</title><rect x="4" y="4" width="352" height="64" rx="10" class="bx"/><circle cx="30" cy="36" r="13" class="bd"/><text x="30" y="41" class="bn" text-anchor="middle">1</text><text x="54" y="32" class="tt" text-anchor="start">Sharing on</text><text x="54" y="53" class="st" text-anchor="start">Screen Sharing + Remote Login</text><path d="M180 68V92" class="ar"/><path d="M175 85L180 93L185 85" class="ah"/><rect x="4" y="94" width="352" height="64" rx="10" class="bx"/><circle cx="30" cy="126" r="13" class="bd"/><text x="30" y="131" class="bn" text-anchor="middle">2</text><text x="54" y="122" class="tt" text-anchor="start">One command</text><text x="54" y="143" class="st" text-anchor="start">curl | bash install.sh</text><path d="M180 158V182" class="ar"/><path d="M175 175L180 183L185 175" class="ah"/><rect x="4" y="184" width="352" height="64" rx="10" class="bx"/><circle cx="30" cy="216" r="13" class="bd"/><text x="30" y="221" class="bn" text-anchor="middle">3</text><text x="54" y="212" class="tt" text-anchor="start">Tailscale up</text><text x="54" y="233" class="st" text-anchor="start">auth key or login URL</text><path d="M180 248V272" class="ar"/><path d="M175 265L180 273L185 265" class="ah"/><rect x="4" y="274" width="352" height="64" rx="10" class="bx opt"/><circle cx="30" cy="306" r="13" class="bd"/><text x="30" y="311" class="bn" text-anchor="middle">4</text><text x="54" y="302" class="tt" text-anchor="start">iTerm2</text><text x="54" y="323" class="st" text-anchor="start">optional, both Macs</text><path d="M180 338V362" class="ar"/><path d="M175 355L180 363L185 355" class="ah"/><rect x="4" y="364" width="352" height="64" rx="10" class="bx"/><circle cx="30" cy="396" r="13" class="bd"/><text x="30" y="401" class="bn" text-anchor="middle">✓</text><text x="54" y="392" class="tt" text-anchor="start">Connect</text><text x="54" y="413" class="st" text-anchor="start">ssh or Screen Sharing</text></svg>
+<figcaption>The whole process: four steps, then connect.</figcaption>
+</figure>
+<figure>
+<svg class="dg dg-wide" viewBox="0 0 900 270" role="img" aria-label="Architecture: the client Mac runs iTerm2 with shell integration, ssh and the Screen Sharing app. It reaches the bootstrapped Mac over a private Tailscale tailnet. The bootstrapped Mac runs Remote Login (SSH, port 22), Screen Sharing (port 5900), the tailscaled system daemon installed with Homebrew, git, gh and Paseo, and optionally iTerm2 shell integration."><title>Architecture</title><rect x="2" y="20" width="262" height="150" rx="12" class="bx"/><text x="18" y="46" class="tt" text-anchor="start">Client Mac</text><rect x="16" y="58" width="234" height="28" rx="6" class="it"/><text x="26" y="77" class="st" text-anchor="start">iTerm2 + shell integration</text><rect x="16" y="92" width="234" height="28" rx="6" class="it"/><text x="26" y="111" class="st" text-anchor="start">ssh</text><rect x="16" y="126" width="234" height="28" rx="6" class="it"/><text x="26" y="145" class="st" text-anchor="start">Screen Sharing app</text><rect x="326" y="62" width="248" height="76" rx="38" class="bx net"/><text x="450" y="96" class="tt" text-anchor="middle">Tailscale tailnet</text><text x="450" y="118" class="st" text-anchor="middle">private, encrypted</text><path d="M264 100H324" class="ar"/><path d="M317 95L325 100L317 105" class="ah"/><path d="M574 100H634" class="ar"/><path d="M627 95L635 100L627 105" class="ah"/><rect x="636" y="2" width="262" height="262" rx="12" class="bx"/><text x="652" y="30" class="tt" text-anchor="start">Bootstrapped Mac</text><rect x="650" y="44" width="234" height="28" rx="6" class="it"/><text x="660" y="63" class="st" text-anchor="start">Remote Login (SSH) · :22</text><rect x="650" y="84" width="234" height="28" rx="6" class="it"/><text x="660" y="103" class="st" text-anchor="start">Screen Sharing · :5900</text><rect x="650" y="124" width="234" height="28" rx="6" class="it"/><text x="660" y="143" class="st" text-anchor="start">tailscaled · system daemon</text><rect x="650" y="164" width="234" height="28" rx="6" class="it"/><text x="660" y="183" class="st" text-anchor="start">git · gh · Paseo</text><rect x="650" y="204" width="234" height="28" rx="6" class="it opt"/><text x="660" y="223" class="st" text-anchor="start">iTerm2 integration (optional)</text><text x="295" y="88" class="st" text-anchor="middle">ssh · vnc</text><text x="605" y="88" class="st" text-anchor="middle">ssh · vnc</text></svg><svg class="dg dg-narrow" viewBox="0 0 360 500" role="img" aria-label="Architecture: the client Mac runs iTerm2 with shell integration, ssh and the Screen Sharing app. It reaches the bootstrapped Mac over a private Tailscale tailnet. The bootstrapped Mac runs Remote Login (SSH, port 22), Screen Sharing (port 5900), the tailscaled system daemon installed with Homebrew, git, gh and Paseo, and optionally iTerm2 shell integration."><title>Architecture</title><rect x="4" y="2" width="352" height="136" rx="12" class="bx"/><text x="18" y="28" class="tt" text-anchor="start">Client Mac</text><rect x="16" y="40" width="328" height="28" rx="6" class="it"/><text x="26" y="59" class="st" text-anchor="start">iTerm2 + shell integration</text><rect x="16" y="72" width="328" height="28" rx="6" class="it"/><text x="26" y="91" class="st" text-anchor="start">ssh</text><rect x="16" y="104" width="328" height="28" rx="6" class="it"/><text x="26" y="123" class="st" text-anchor="start">Screen Sharing app</text><path d="M180 138V174" class="ar"/><path d="M175 167L180 175L185 167" class="ah"/><text x="194" y="162" class="st" text-anchor="start">ssh · vnc</text><rect x="60" y="176" width="240" height="60" rx="30" class="bx net"/><text x="180" y="203" class="tt" text-anchor="middle">Tailscale tailnet</text><text x="180" y="223" class="st" text-anchor="middle">private, encrypted</text><path d="M180 236V272" class="ar"/><path d="M175 265L180 273L185 265" class="ah"/><rect x="4" y="274" width="352" height="224" rx="12" class="bx"/><text x="18" y="300" class="tt" text-anchor="start">Bootstrapped Mac</text><rect x="16" y="312" width="328" height="28" rx="6" class="it"/><text x="26" y="331" class="st" text-anchor="start">Remote Login (SSH) · :22</text><rect x="16" y="348" width="328" height="28" rx="6" class="it"/><text x="26" y="367" class="st" text-anchor="start">Screen Sharing · :5900</text><rect x="16" y="384" width="328" height="28" rx="6" class="it"/><text x="26" y="403" class="st" text-anchor="start">tailscaled · system daemon</text><rect x="16" y="420" width="328" height="28" rx="6" class="it"/><text x="26" y="439" class="st" text-anchor="start">git · gh · Paseo</text><rect x="16" y="456" width="328" height="28" rx="6" class="it opt"/><text x="26" y="475" class="st" text-anchor="start">iTerm2 integration (optional)</text></svg>
+<figcaption>What you end up with: the client Mac reaches the bootstrapped Mac over your Tailscale tailnet.</figcaption>
+</figure>
+</header>
 
+<section class="step" aria-labelledby="manual">
 <h2 id="manual">1. Turn on Screen Sharing and Remote Login (by hand)</h2>
+<p>Two switches in System Settings, on the Mac you are bootstrapping. You need an administrator account.</p>
+<div class="crumb" role="group" aria-label="Click path: System Settings, General, Sharing"><span class="c">System Settings</span><span class="s" aria-hidden="true">&rsaquo;</span><span class="c">General</span><span class="s" aria-hidden="true">&rsaquo;</span><span class="c">Sharing</span></div>
+<div class="mock" role="group" aria-label="Sketch: Screen Sharing and Remote Login both switched on, each with an info button">
+<div class="row"><b>Screen Sharing</b><span class="i" aria-hidden="true">i</span><span class="tg" aria-hidden="true">On</span></div>
+<div class="row"><b>Remote Login</b><span class="i" aria-hidden="true">i</span><span class="tg" aria-hidden="true">On</span></div>
+</div>
+<h3>Check they are on (no sudo)</h3>
+<div class="cmd"><pre><code id="c-nc">nc -z localhost 22 &amp;&amp; echo "Remote Login: listening"
+nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><button type="button" data-copy="c-nc">Copy</button></div>
+<details>
+<summary>Click path and settings (macOS Tahoe 26 and Sequoia 15)</summary>
 <p>This project deliberately uses Apple's supported System Settings path for these two switches rather than scripting them. Steps apply to macOS Tahoe 26 and Sequoia 15 (Apple documents the same <em>General &rsaquo; Sharing</em> location for both). You need an administrator account.</p>
-
 <h3>Screen Sharing</h3>
 <ol class="steps">
 <li>Apple menu &rsaquo; <strong>System Settings</strong> &rsaquo; <strong>General</strong> (sidebar) &rsaquo; <strong>Sharing</strong>.</li>
@@ -55,7 +127,6 @@ kbd{font:.85em ui-monospace,Menlo,monospace;background:var(--card);border:1px so
 <li><strong>VNC viewers may control screen with password</strong>: leave <strong>off</strong>. Over Tailscale you do not need a separate VNC password.</li>
 </ol>
 <p>Source: <a href="https://support.apple.com/guide/mac-help/turn-screen-sharing-on-or-off-mh11848/mac" rel="noopener noreferrer">Apple Support: Turn Screen Sharing on or off on Mac</a>.</p>
-
 <h3>Remote Login (SSH)</h3>
 <ol class="steps">
 <li>Same place: <strong>System Settings</strong> &rsaquo; <strong>General</strong> &rsaquo; <strong>Sharing</strong>.</li>
@@ -64,32 +135,38 @@ kbd{font:.85em ui-monospace,Menlo,monospace;background:var(--card);border:1px so
 <li><strong>Allow full disk access for remote users</strong>: leave <strong>off</strong> unless an SSH session genuinely needs it (for example reading protected folders). It widens what any remote login can read.</li>
 </ol>
 <p>Source: <a href="https://support.apple.com/guide/mac-help/allow-a-remote-computer-to-access-your-mac-mchlp1066/mac" rel="noopener noreferrer">Apple Support: Allow a remote computer to access your Mac</a>. Apple notes that enabling Remote Login reduces your Mac's security.</p>
-
-<h3>Check they are on (no sudo)</h3>
-<div class="cmd"><pre><code id="c-nc">nc -z localhost 22 &amp;&amp; echo "Remote Login: listening"
-nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><button type="button" data-copy="c-nc">Copy</button></div>
+</details>
+<details>
+<summary>How to read the check</summary>
 <p>Each line prints only when the port accepts a connection (22 = SSH, 5900 = Screen Sharing/VNC). No output means that switch is still off.</p>
+</details>
+</section>
 
+<section class="step" aria-labelledby="install">
 <h2 id="install">2. Run the install command</h2>
 <p>Run this in Terminal (zsh) <strong>on the Mac you are bootstrapping</strong>. It installs Homebrew (if missing), Tailscale (system daemon), git, gh and Paseo, then brings Tailscale up. It is safe to re-run.</p>
-
-<h3>First, a dry run</h3>
-<p>Prints what it would do and changes nothing:</p>
+<p class="lbl">First, a dry run. Prints what it would do and changes nothing:</p>
 <div class="cmd"><pre><code id="c-dry"></code></pre><button type="button" data-copy="c-dry">Copy</button></div>
-
-<h3>Then the real run, all defaults</h3>
-<p>Tailscale prints a login URL you open in a browser; GitHub auth is interactive and skippable.</p>
+<p class="lbl">Then the real run, all defaults: Tailscale prints a login URL you open in a browser; GitHub auth is interactive and skippable.</p>
 <div class="cmd"><pre><code id="c-run"></code></pre><button type="button" data-copy="c-run">Copy</button></div>
-
-<h3>Unattended: pass secrets without leaking them</h3>
+<p class="lbl">What it does, in order (dashed = optional):</p>
+<ol class="chips">
+<li>preflight</li><li>Homebrew</li><li>tailscale formula</li><li>tailscaled daemon</li><li>tailscale up</li><li>git · gh · Paseo</li><li>gh auth</li><li>git identity</li><li class="opt">iTerm2 integration</li><li>summary</li>
+</ol>
+<details id="secrets">
+<summary>Unattended: pass secrets without leaking them</summary>
 <p>Run these four commands <strong>one at a time</strong> (pasting them together would feed the later lines to the hidden prompts). Press Enter on a prompt to skip that secret.</p>
+<ol class="pipe" aria-label="Secret path: hidden read into shell variables that are not exported, handed to bash only, then unset">
+<li>hidden <code>read</code></li><li>shell variables, not exported</li><li><code>bash</code> only, never <code>curl</code></li><li><code>unset</code></li>
+</ol>
 <div class="cmd"><pre><code id="c-read1">read -rs "TS_AUTHKEY?Tailscale auth key: "; echo</code></pre><button type="button" data-copy="c-read1">Copy</button></div>
 <div class="cmd"><pre><code id="c-read2">read -rs "GH_TOKEN?GitHub token: "; echo</code></pre><button type="button" data-copy="c-read2">Copy</button></div>
 <div class="cmd"><pre><code id="c-secret"></code></pre><button type="button" data-copy="c-secret">Copy</button></div>
 <div class="cmd"><pre><code id="c-unset">unset TS_AUTHKEY GH_TOKEN</code></pre><button type="button" data-copy="c-unset">Copy</button></div>
 <p><strong>Why this shape:</strong> the hidden <code>read</code> keeps the secret out of your shell history (history records the literal <code>$TS_AUTHKEY</code>) and out of any command line (<code>ps</code> shows arguments, not variables); the variables are not exported, so only <code>bash</code> receives them, never <code>curl</code>. The script then removes them from its own environment before running anything else, so no child process (brew, curl, sudo) inherits them. This page never asks for a secret itself.</p>
-
-<h3>Optional variables and flags</h3>
+</details>
+<details>
+<summary>Optional variables and flags</summary>
 <table>
 <thead><tr><th>Name</th><th>What it does</th></tr></thead>
 <tbody>
@@ -105,11 +182,27 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 </tbody>
 </table>
 <p>Flags go after <code>bash -s --</code>, for example <code>... | bash -s -- --dry-run --skip-gh-auth</code>. Non-secret variables can be given the same way as the secrets: <code>TS_HOSTNAME=my-mac</code> placed before <code>bash</code>. Empty values count as unset.</p>
+</details>
+<details>
+<summary>Order of steps, sudo and Paseo</summary>
 <p>The script installs steps in this order: preflight, Homebrew, <code>tailscale</code> formula, tailscaled system daemon, <code>tailscale up</code>, git/gh/Paseo, gh auth, git identity, optional iTerm2 integration, summary. You may be asked for your Mac password more than once (<code>sudo</code>), for example to start the daemon.</p><p>When it finishes, start Paseo: open <strong>Paseo.app</strong> (installed in <code>/Applications</code> by the Homebrew cask), for example with <code>open -a Paseo</code>.</p>
+</details>
+</section>
 
+<section class="step" aria-labelledby="authkey">
 <h2 id="authkey">3. The Tailscale auth key</h2>
+<p>Optional, for a browser-free login: generate a one-off key in the Tailscale admin console, then hand it to the install command with the <a href="#secrets" data-open="secrets">unattended sequence in step 2</a>.</p>
+<p class="lbl">Key settings:</p>
+<ul class="keyset">
+<li><b>Reusable</b>off</li><li><b>Ephemeral</b>off</li><li><b>Pre-approved</b>on if your tailnet needs approval</li><li><b>Expiry</b>shortest that fits (1 day)</li><li><b>Tags</b>optional</li>
+</ul>
+<p><a href="https://login.tailscale.com/admin/settings/keys" rel="noopener noreferrer">Tailscale admin console, Keys page</a></p>
+<details>
+<summary>Can login be non-interactive?</summary>
 <p><strong>Can login be non-interactive?</strong> Yes: <code>tailscale up --auth-key=file:/path</code> logs the node in without a browser and the key never appears on a command line. Neither <code>tailscale</code> nor <code>tailscaled</code> reads <code>TS_AUTHKEY</code> (only Tailscale's container entrypoint does), so <code>install.sh</code> takes it from its environment, writes it to a private (<code>0600</code>) temporary file, passes only the <em>file path</em> to <code>tailscale up</code>, and deletes the file afterwards.</p>
-<h3>Generate the key</h3>
+</details>
+<details>
+<summary>Generate the key</summary>
 <p>In the <a href="https://login.tailscale.com/admin/settings/keys" rel="noopener noreferrer">Tailscale admin console, Keys page</a>, choose <em>Generate auth key</em> and set:</p>
 <ul>
 <li><strong>Reusable</strong>: <em>off</em> (one-off). A leaked copy is useless after first use.</li>
@@ -119,9 +212,13 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 <li><strong>Tags</strong>: optional. A tagged device is governed by your ACL <code>tagOwners</code> and its node key does not expire; an untagged device stays yours but its node key expires after 180 days by default and needs a re-login.</li>
 </ul>
 <p>Revoking a key does not remove devices already registered with it. Button and field names may differ slightly in the console; see Tailscale's <a href="https://tailscale.com/kb/1085/auth-keys" rel="noopener noreferrer">auth keys</a> doc.</p>
-<h3>Pass it safely</h3>
+</details>
+<details>
+<summary>Pass it safely</summary>
 <p>Use the unattended four-command sequence in step 2: hidden <code>read</code> into <code>TS_AUTHKEY</code>, pass to <code>bash</code> only, then <code>unset</code>. Never put the key in an <code>--auth-key=tskey-...</code> argument; arguments are visible to every local user through <code>ps</code>.</p>
-<h3>macOS caveats (Homebrew <code>tailscale</code> formula)</h3>
+</details>
+<details>
+<summary>macOS caveats (Homebrew <code>tailscale</code> formula)</summary>
 <ul>
 <li>This is the open-source <code>tailscaled</code> + CLI, not the Tailscale app. It must not coexist with <code>/Applications/Tailscale.app</code> or the <code>tailscale-app</code> cask; the script stops if it finds either. Variant differences: <a href="https://tailscale.com/kb/1065/macos-variants" rel="noopener noreferrer">Tailscale on macOS variants</a>.</li>
 <li><code>tailscaled</code> needs root on macOS, so the script starts it with <code>sudo brew services start tailscale</code>; expect a password prompt (possibly more than one). No reboot or System Settings approval is expected for this variant (not tested on a live Mac, so unconfirmed).</li>
@@ -129,17 +226,30 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 <li>The script always calls Homebrew's own <code>tailscale</code> by absolute path, in case an older copy elsewhere shadows it in <code>PATH</code>.</li>
 </ul>
 <p>Full write-up with source links: <a href="https://github.com/yanmad27/mac-bootstrap/blob/main/docs/tailscale-auth-key.md" rel="noopener noreferrer"><code>docs/tailscale-auth-key.md</code></a> in the repository.</p>
+</details>
+</section>
 
+<section class="step" aria-labelledby="iterm2">
 <h2 id="iterm2">4. Optional: iTerm2 (both Macs)</h2>
-<p>When you SSH from one Mac to the other, iTerm2 can show a hostname badge and switch profile automatically. This needs iTerm2 shell integration on <strong>every participating Mac</strong>: the remote reports its hostname to iTerm2, and the client needs it too so iTerm2 switches back to the original profile after the SSH session ends.</p>
+<p>iTerm2 shows a hostname badge and switches profile when you SSH. It needs shell integration on <strong>every participating Mac</strong>.</p>
 <h3>On the bootstrapped Mac</h3>
 <p>Re-run the install command with shell integration:</p>
 <div class="cmd"><pre><code id="c-iterm-host"></code></pre><button type="button" data-copy="c-iterm-host">Copy</button></div>
 <h3>On the client Mac (the one you SSH from)</h3>
-<p>Replace <code>my-mac</code> with the short hostname that <code>install.sh</code> prints in its final summary on the bootstrapped Mac (see below). <code>--shell-integration</code> installs iTerm2 shell integration on the client as well.</p>
+<p>Replace <code>my-mac</code> with the short hostname that <code>install.sh</code> prints in its final summary.</p>
 <div class="cmd"><pre><code id="c-iterm-client"></code></pre><button type="button" data-copy="c-iterm-client">Copy</button></div>
+<details>
+<summary>Why both Macs need it</summary>
+<p>When you SSH from one Mac to the other, iTerm2 can show a hostname badge and switch profile automatically. This needs iTerm2 shell integration on <strong>every participating Mac</strong>: the remote reports its hostname to iTerm2, and the client needs it too so iTerm2 switches back to the original profile after the SSH session ends.</p>
+</details>
+<details>
+<summary>Client command details and a different SSH user</summary>
+<p>Replace <code>my-mac</code> with the short hostname that <code>install.sh</code> prints in its final summary on the bootstrapped Mac (see below). <code>--shell-integration</code> installs iTerm2 shell integration on the client as well.</p>
 <p>If your SSH user differs from your client user, add <code>--user &lt;ssh-user&gt;</code>:</p>
 <div class="cmd"><pre><code id="c-iterm-client-user"></code></pre><button type="button" data-copy="c-iterm-client-user">Copy</button></div>
+</details>
+<details>
+<summary>Client options</summary>
 <table>
 <thead><tr><th>Client option</th><th>What it does</th></tr></thead>
 <tbody>
@@ -152,14 +262,20 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 <tr><td><code>-h</code>, <code>--help</code></td><td>Usage.</td></tr>
 </tbody>
 </table>
-<h3>Which name for <code>--host</code></h3>
+</details>
+<details>
+<summary>Which name for <code>--host</code></summary>
 <p>Use the short hostname (<code>hostname -s</code>) that <code>install.sh</code> prints in its final summary on the bootstrapped Mac, including its ready-made client command. iTerm2's shell integration reports the remote's <code>hostname -f</code>, usually <code>&lt;that-name&gt;.local</code>, and the profile rules match <code>&lt;host&gt;.*</code>, so the short name matches both <code>.local</code> and <code>*.ts.net</code> names. <code>--host</code> is <strong>not</strong> the Tailscale/MagicDNS name and not <code>TS_HOSTNAME</code>.</p>
 <p>If you no longer have the summary, <code>scutil --get LocalHostName</code> on that Mac is usually the same value, but it can differ when macOS <code>HostName</code> is set or DHCP supplies a name; prefer the printed value.</p>
 <p>This writes one Dynamic Profile, <code>mac-bootstrap-&lt;host&gt;.json</code>, into the profiles directory. <strong>What to expect:</strong> when a session SSHes into that host, iTerm2 switches to the profile automatically and shows the badge, and switches back when the SSH session ends.</p>
+</details>
+</section>
 
+<section class="step done" aria-labelledby="done">
 <h2 id="done">Done</h2>
 <p>Check <code>tailscale status</code> on the bootstrapped Mac, then connect from your client with <code>ssh &lt;user&gt;@&lt;tailscale-hostname&gt;</code> or Screen Sharing to <code>vnc://&lt;tailscale-hostname&gt;</code>.</p>
 <p class="origin">The scripts are served as plain text: open <code id="l-install"></code> to read exactly what you will run before running it.</p>
+</section>
 </main>
 <script>
 (function () {
@@ -202,6 +318,12 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
     document.body.removeChild(t);
     return ok;
   }
+  document.querySelectorAll("a[data-open]").forEach(function (a) {
+    a.addEventListener("click", function () {
+      var d = document.getElementById(a.getAttribute("data-open"));
+      if (d) d.open = true;
+    });
+  });
   document.querySelectorAll("button[data-copy]").forEach(function (b) {
     b.addEventListener("click", function () {
       var text = document.getElementById(b.getAttribute("data-copy")).textContent;

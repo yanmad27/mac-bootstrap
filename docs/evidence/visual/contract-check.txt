@@ -1,0 +1,21 @@
+install.sh        -fsSL                        present
+install.sh        -s                           present
+install.sh        --dry-run                    present
+install.sh        --skip-tailscale-up          present
+install.sh        --skip-gh-auth               present
+install.sh        --iterm2-shell-integration   present
+install.sh        -h                           present
+install.sh        --help                       present
+iterm2-client.sh  -fsSL                        present
+iterm2-client.sh  -s                           present
+iterm2-client.sh  --host                       present
+iterm2-client.sh  -f                           present
+iterm2-client.sh  --user                       present
+iterm2-client.sh  --badge                      present
+iterm2-client.sh  --shell-integration          present
+iterm2-client.sh  --profiles-dir               present
+iterm2-client.sh  --dry-run                    present
+iterm2-client.sh  -h                           present
+iterm2-client.sh  --help                       present
+
+total 19, missing 0
