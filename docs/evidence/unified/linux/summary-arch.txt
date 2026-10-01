@@ -1,0 +1,21 @@
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
+PASS arch dry-run exits 0 and shows the numbered flow
+PASS arch dry-run: dummy TS_AUTHKEY/GH_TOKEN absent from the output
+PASS arch dry-run changed nothing (no tailscale/gh/node installed)
+PASS arch installer exit status 3 (services not started, honestly reported)
+PASS arch gh login with the dummy token failed cleanly (script continued)
+PASS arch probes: all tools present (tailscale, sshd, git, gh, node >= 20, paseo) [gh binary installed; its run crashes: EMULATION LIMIT]
+PASS arch probes: sshd -t ok, git identity set, inbox removed
+PASS arch rerun is idempotent (everything already present -> skip, no reinstall)
+# ARCH NOTES (single attempt, amd64 under arm64 emulation; frozen install.sh as above, not edited):
+# - gh runtime: in THIS run `gh --version` ran (gh version 2.102.0) and `gh auth login --with-token` reached GitHub and failed with a real
+#   "HTTP 401: Bad credentials" (see real-arch.txt). The "[... crashes: EMULATION LIMIT]" text in the check label above is the harness's static label
+#   from earlier runs, where gh died with a Go runtime panic intermittently under emulation; it did not crash this time. gh behaviour under
+#   emulation is non-deterministic, so it is not verifiable here.
+# - sshd: `sshd -t` passed. The final summary printed "could not read the effective sshd settings (sshd -T needs root)" even though the run was root:
+#   `sshd -T` returned nothing under emulation (cause not investigated; sshd is known to fail to serve connections under emulation, exit 255).
+#   The sshd_policy report is verified on the native families (linux/systemd-*.txt), not on Arch.
+# - No SSH or paste hand-off was attempted (sshd cannot serve connections under emulation; --no-wait with dummy env secrets).
+# - The frozen script adds `pacman --disable-sandbox` when it detects a container (PACMAN_X, in_container); it is in the frozen file, not a harness flag. See dry-run-arch.txt.
+# - Native Arch (amd64 and arm64) is UNTESTED.
+

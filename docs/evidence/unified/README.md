@@ -14,6 +14,7 @@ Every current summary starts with that sha; evidence for earlier script versions
 | Bundle validator incl. `END=1` truncation guard | `handoff/bundle-negatives-*.txt` | 34/34 under bash 3.2 and 5 |
 | Shared core with stub tailscale/gh (key file, gh stdin, reruns, no-terminal behaviour) | `handoff/target-core-stub.txt` | pass |
 | Linux real installs without systemd, 4 families native arm64 + real SSH hand-off | `linux/real-*.txt`, `linux/summary-*.txt` | 9/9 each |
+| Arch real install under amd64 emulation (`--no-wait`, env secrets, no hand-off) + dry-run | `linux/real-arch.txt`, `linux/summary-arch.txt`, `linux/dry-run-arch.txt` | 8/8 checks as labelled; see Arch note below |
 | Linux installs in systemd-booted containers (tailscaled + ssh unit enabled/active by the installer, hand-off into it) | `linux/systemd-*.txt` | ubuntu 9/9, debian 9/9, rocky 8/8, fedora 7/7 (hand-off: CONTAINER LIMIT) |
 | Linux negative tests, detection matrix, review items C2/C3/C4/C8/C9 | `linux/negative-tests.txt`, `linux/fixes-tests.txt` | 11/11, 18/18 |
 | Page and README vs the final script surface | `integration/surface-check.txt` | 69/69 |
@@ -22,7 +23,7 @@ Every current summary starts with that sha; evidence for earlier script versions
 
 ## EMULATION / CONTAINER LIMITS
 
-- **Arch** only exists as linux/amd64. Its existing evidence (`superseded/real-arch.txt` etc.) is from an OLDER script sha (checkpoint B), not the frozen one, and hit an EMULATION LIMIT (gh Go panic, sshd exits 255, no hand-off). No Arch or amd64 run was repeated: Arch on the frozen script, native amd64 and Arch arm64 are UNTESTED.
+- **Arch** (only linux/amd64 exists): dry-run and package install verified on the final script under amd64 emulation (`linux/dry-run-arch.txt`, `linux/real-arch.txt`, `linux/summary-arch.txt`, stamped with the frozen sha); gh runtime and SSH hand-off not verifiable under emulation (gh ran in the final attempt but crashed intermittently in earlier ones; sshd cannot serve connections; `sshd -T` returned nothing); native Arch (amd64 and arm64) untested. The older checkpoint-B Arch files in `superseded/` are history only.
 - **Fedora in a systemd container**: sshd's PAM account check refuses every non-root login (CONTAINER LIMIT, `linux/systemd-fedora.txt` header); no hand-off into it.
 
 ## UNTESTED
@@ -34,7 +35,7 @@ Every current summary starts with that sha; evidence for earlier script versions
 - The real login Keychain write/read and the real `gh auth token` / `gh api user` (the `security -i` command form is unexercised).
 - A real Tailscale API mint (response shapes, the lowest accepted `expirySeconds`, the revoke endpoint); only the 127.0.0.1 mock ran.
 - A real macOS target run including Remote Login detection and opening System Settings (the receiver ran on Linux and as functions on the Mac).
-- Native amd64, Arch (arm64 and the frozen script), the Paseo daemon start, password SSH login.
+- Native amd64 and native Arch (amd64 and arm64), the Paseo daemon start, password SSH login.
 - Review items verified by code only: C5 (sudo refresh), the macOS Remote Login/`open` messages, S-M3, S-L4. The Linux Stopped-state `up`/`set` sequence is checked only with a stub tailscale (no real `up`).
 - Also not run: Debian 12, Ubuntu 22.04, RHEL 8/10, CentOS Stream, Oracle Linux, derivatives; firewalld/ufw on a real host; the apt Node candidate decision inside `--dry-run`.
 

@@ -10,6 +10,6 @@ Regenerate (repo root, colima running): `scripts/run_linux.py <ubuntu|debian|fed
 - `fixes-tests.txt`: review items C2, C3, C4, C8, C9 (see `../review-fixes.md`).
 - `bash32-linux-dry.txt`: the Linux flow functions in dry-run under macOS bash 3.2.
 
-Not here: **Arch**. It only exists as linux/amd64 and ran under emulation at an EARLIER script version (EMULATION LIMIT: gh Go panic, sshd exits 255, no hand-off); that evidence is in `../superseded/`. Arch on the frozen script, native amd64 and Arch arm64 are UNTESTED.
+**Arch** (`dry-run-arch.txt`, `real-arch.txt`, `summary-arch.txt`, stamped with the frozen sha): amd64 under arm64 emulation, one real run with `--no-wait` and dummy env secrets, no hand-off. Dry-run and package install are verified; gh runtime and SSH hand-off are not verifiable under emulation (see the notes at the end of `summary-arch.txt`); native Arch (amd64 and arm64) is untested.
 
 UNTESTED: `tailscale up` and a real tailnet join; real GitHub auth; sshd/tailscaled on a real host (only systemd-booted containers); Fedora hand-off into a systemd container; Debian 12, Ubuntu 22.04, RHEL 8/10, CentOS Stream, Oracle Linux, derivatives; firewalld/ufw on a real host; the apt Node candidate decision inside `--dry-run`; review items C5 (sudo refresh), the macOS `open` failure message, the Linux Stopped-state tag re-apply, S-P1's no-ED25519 branch (code only, see `../review-fixes.md`).
