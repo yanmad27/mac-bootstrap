@@ -5,7 +5,7 @@ Bootstraps a Mac for remote access over Tailscale: Screen Sharing and Remote Log
 - `public/index.html`: the walkthrough page (static, no framework, no external requests). Every command on it is built from the address it is served from.
 - `public/install.sh`: run on the Mac being bootstrapped.
 - `public/iterm2-client.sh`: run on the client Mac you SSH from.
-- `vercel.json`: no build; serves `public/`; scripts as `text/plain; charset=utf-8` with `nosniff` and revalidating cache; security headers (CSP, `X-Frame-Options`, `Referrer-Policy`) on the page.
+- `vercel.json`: no build; serves `public/`; scripts as `text/plain; charset=utf-8` with `nosniff` and revalidating cache; security headers on every path, and a CSP on `/` and `/index.html`.
 - `docs/tailscale-auth-key.md`: research behind the auth-key section (not served).
 
 ## One-time Vercel import

@@ -3,7 +3,8 @@ c-dry: shown==clipboard true | curl -fsSL "http://127.0.0.1:48765/install.sh" | 
 c-run: shown==clipboard true | curl -fsSL "http://127.0.0.1:48765/install.sh" | bash
 c-secret: shown==clipboard true | curl -fsSL "http://127.0.0.1:48765/install.sh" | TS_AUTHKEY="$TS_AUTHKEY" GH_TOKEN="$GH_TOKEN" bash
 c-iterm-host: shown==clipboard true | curl -fsSL "http://127.0.0.1:48765/install.sh" | bash -s -- --iterm2-shell-integration
-c-iterm-client: shown==clipboard true | curl -fsSL "http://127.0.0.1:48765/iterm2-client.sh" | bash -s -- --host my-mac
+c-iterm-client: shown==clipboard true | curl -fsSL "http://127.0.0.1:48765/iterm2-client.sh" | bash -s -- --host my-mac --shell-integration
+c-iterm-client-user: shown==clipboard true | curl -fsSL "http://127.0.0.1:48765/iterm2-client.sh" | bash -s -- --host my-mac --user your-ssh-user --shell-integration
 external requests: []
 file:// run: curl -fsSL "<your-site>/install.sh" | bash
 file:// note: This page was opened from a local file, so commands show the placeholder <your-site>. Replace it with your deployed site's address (for example https://example.vercel.app).

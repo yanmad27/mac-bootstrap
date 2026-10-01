@@ -1,0 +1,20 @@
+# flags/env in --help vs page (public/index.html)
+## install.sh
+ok   --dry-run
+ok   --help
+ok   --iterm2-shell-integration
+ok   --skip-gh-auth
+ok   --skip-tailscale-up
+ok   GH_TOKEN
+ok   GIT_USER_EMAIL
+ok   GIT_USER_NAME
+ok   TS_AUTHKEY
+ok   TS_HOSTNAME
+## iterm2-client.sh
+ok   --badge
+ok   --dry-run
+ok   --help
+ok   --host
+ok   --profiles-dir
+ok   --user
+client --shell-integration: NOT in merged ee91b8b script yet; page follows Lead contract
