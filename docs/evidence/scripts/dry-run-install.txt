@@ -49,7 +49,7 @@
 [10/10] Summary
     DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
     then: ssh <user>@<host>
-    name iTerm2 shell integration reports for this Mac: <this-mac-short-name> (hostname -f: <this-mac-fqdn>); independent of the Tailscale name
+    --host value for the client: <this-mac-short-name> (this Mac's 'hostname -s'); iTerm2 shell integration reports 'hostname -f' = <this-mac-fqdn>, which is independent of the Tailscale name and TS_HOSTNAME
     on the Mac you ssh from, for automatic profile switching:
       curl -fsSL "<origin>/iterm2-client.sh" | bash -s -- --host <this-mac-short-name> --user <ssh-user> --shell-integration
     start Paseo: open -a Paseo (desktop app), or run the paseo CLI the cask links
@@ -104,13 +104,13 @@ exit=0
     DRY-RUN would run: /opt/homebrew/bin/git config --global user.email dry@example.com
 
 [9/10] iTerm2 shell integration
-    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://iterm2.com/shell_integration/zsh -o /var/folders/p1/8rxjnfr52glb3jrnqf4kx2ch0000gn/T/tmp.V0OwvnKQko/home/.iterm2_shell_integration.zsh
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://iterm2.com/shell_integration/zsh -o /var/folders/p1/8rxjnfr52glb3jrnqf4kx2ch0000gn/T/tmp.iSSJQq9uRG/home/.iterm2_shell_integration.zsh
     DRY-RUN would append to ~/.zshrc: test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh" # mac-bootstrap iterm2
 
 [10/10] Summary
     DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
     then: ssh <user>@<host>
-    name iTerm2 shell integration reports for this Mac: <this-mac-short-name> (hostname -f: <this-mac-fqdn>); independent of the Tailscale name
+    --host value for the client: <this-mac-short-name> (this Mac's 'hostname -s'); iTerm2 shell integration reports 'hostname -f' = <this-mac-fqdn>, which is independent of the Tailscale name and TS_HOSTNAME
     on the Mac you ssh from, for automatic profile switching:
       curl -fsSL "<origin>/iterm2-client.sh" | bash -s -- --host <this-mac-short-name> --user <ssh-user> --shell-integration
     start Paseo: open -a Paseo (desktop app), or run the paseo CLI the cask links
@@ -167,7 +167,7 @@ exit=0
 [10/10] Summary
     DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
     then: ssh <user>@<host>
-    name iTerm2 shell integration reports for this Mac: <this-mac-short-name> (hostname -f: <this-mac-fqdn>); independent of the Tailscale name
+    --host value for the client: <this-mac-short-name> (this Mac's 'hostname -s'); iTerm2 shell integration reports 'hostname -f' = <this-mac-fqdn>, which is independent of the Tailscale name and TS_HOSTNAME
     on the Mac you ssh from, for automatic profile switching:
       curl -fsSL "<origin>/iterm2-client.sh" | bash -s -- --host <this-mac-short-name> --user <ssh-user> --shell-integration
     start Paseo: open -a Paseo (desktop app), or run the paseo CLI the cask links
@@ -225,7 +225,7 @@ exit=0
 [10/10] Summary
     DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
     then: ssh <user>@<host>
-    name iTerm2 shell integration reports for this Mac: <this-mac-short-name> (hostname -f: <this-mac-fqdn>); independent of the Tailscale name
+    --host value for the client: <this-mac-short-name> (this Mac's 'hostname -s'); iTerm2 shell integration reports 'hostname -f' = <this-mac-fqdn>, which is independent of the Tailscale name and TS_HOSTNAME
     on the Mac you ssh from, for automatic profile switching:
       curl -fsSL "<origin>/iterm2-client.sh" | bash -s -- --host <this-mac-short-name> --user <ssh-user> --shell-integration
     start Paseo: open -a Paseo (desktop app), or run the paseo CLI the cask links

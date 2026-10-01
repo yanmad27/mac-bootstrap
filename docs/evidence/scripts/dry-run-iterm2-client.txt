@@ -1,6 +1,9 @@
 ### dry-run with --user (profiles-dir /tmp/mb-profiles-test)
 exit=0
+-- stderr:
 DRY-RUN: would write /tmp/mb-profiles-test/mac-bootstrap-mybox.tail1234.ts.net.json
+note: automatic profile switching also needs iTerm2 shell integration on this Mac (rerun with --shell-integration) and on mybox.tail1234.ts.net.
+-- stdout (exactly the JSON, no extra lines):
 {
   "Profiles": [
     {
@@ -12,17 +15,17 @@ DRY-RUN: would write /tmp/mb-profiles-test/mac-bootstrap-mybox.tail1234.ts.net.j
     }
   ]
 }
-note: automatic profile switching also needs iTerm2 shell integration on this Mac (rerun with --shell-integration) and on mybox.tail1234.ts.net.
+
+### with --shell-integration: stdout is still pure JSON
+json.tool on stdout exit=0
+plutil -convert exit=0
 
 ### python3 -m json.tool
-Extra data: line 12 column 1 (char 361)
-exit=1
-### plutil -lint
-/tmp/ic.json: (Unexpected character { at line 1)
-exit=1
+exit=0
+### plutil (note: plutil -lint only accepts plist formats, so JSON is checked by parsing it with plutil -convert)
+plutil -convert exit=0
 
 ### default dir dry-run (no write)
-DRY-RUN: would write ~/Library/Application Support/iTerm2/DynamicProfiles/mac-bootstrap-mybox.json
 
 ### invalid inputs (all exit 2)
 args [--host a;b] exit=2 invalid --host (allowed: letters, digits, dots, hyphens)
@@ -31,9 +34,9 @@ args [--host a..b] exit=2 invalid --host (allowed: letters, digits, dots, hyphen
 args [--host a_b] exit=2 invalid --host (allowed: letters, digits, dots, hyphens)
 args [--host box --user a;b] exit=2 invalid --user (allowed: letters, digits, . _ -; max 32)
 args [--host box --user 1x] exit=2 invalid --user (allowed: letters, digits, . _ -; max 32)
-args [--host box --badge a	b] exit=2 unknown option: b
 args [--host] exit=2 invalid --host (allowed: letters, digits, dots, hyphens)
 args [--nope] exit=2 unknown option: --nope
+control char in --badge: exit=2 invalid --badge (max 64 chars, no control characters)
 no args:
 exit=2 --host is required
 
@@ -42,19 +45,25 @@ DRY-RUN: would write /tmp/mb-p2/mac-bootstrap-mybox.json
       "Bound Hosts": ["mybox", "mybox.*", "alice@mybox", "alice@mybox.*"]
 DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://iterm2.com/shell_integration/zsh -o ~/.iterm2_shell_integration.zsh
 DRY-RUN would append to ~/.zshrc: test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh" # mac-bootstrap iterm2
-DRY-RUN: would write /tmp/mb-p2/mac-bootstrap-aaaaaaaaaaaaaa...aaaaaaaaaaaaaaaaaaaaaaaaaa-aa3f7cbe.json
-filename length for 245-char host: 88 (< 255)
+DRY-RUN: would write /tmp/mb-p2/mac-bootstrap-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-aa3f7cbe.json
+note: automatic profile switching also needs iTerm2 shell integration on this Mac (rerun with --shell-integration) and on aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.b.
+{
+DRY-RUN: would write /tmp/mb-p2/mac-bootstrap-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-aa3f7cbe.json
+note: automatic profile switching also needs iTerm2 shell integration on this Mac (rerun with --shell-integration) and on aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.b.
+filename length for 245-char host: 1 (< 255)
 64-char label rejected: exit=2
 ls: /tmp/mb-p2: No such file or directory
 
 ### real write into a temp dir (not the real DynamicProfiles), twice (idempotent), then lint
+note: automatic profile switching also needs iTerm2 shell integration on this Mac (rerun with --shell-integration) and on mybox.
 run 1 exit=0
+note: automatic profile switching also needs iTerm2 shell integration on this Mac (rerun with --shell-integration) and on mybox.
 run 2 exit=0
   /tmp/mb-profiles-test:
   DynamicProfiles
   
   /tmp/mb-profiles-test/DynamicProfiles:
   mac-bootstrap-mybox.json
-/tmp/mb-profiles-test/DynamicProfiles/mac-bootstrap-mybox.json: (Unexpected character { at line 1)
+plutil -convert exit=0
 json.tool exit=0
 profile files=1 (expect 1)

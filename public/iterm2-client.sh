@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # mac-bootstrap iterm2-client.sh — writes an iTerm2 Dynamic Profile for SSH into a bootstrapped Mac.
 #
-#   curl -fsSL "<origin>/iterm2-client.sh" | bash -s -- --host <tailscale-hostname> \
+#   curl -fsSL "<origin>/iterm2-client.sh" | bash -s -- --host <short-hostname> \
 #       [--user <ssh-user>] [--badge <text>] [--shell-integration] [--dry-run] \
 #       [--profiles-dir <dir>] [-h|--help]
 #
@@ -12,9 +12,11 @@
 # switching: on the remote (install.sh --iterm2-shell-integration) to report user@host,
 # and on this client Mac to switch back after ssh exits. --shell-integration (opt-in)
 # installs it here with the same idempotent logic as install.sh step 9.
-# Shell integration reports user@`hostname -f` of the remote (usually <LocalHostName>.local),
-# which is independent of the Tailscale name, so use the remote's short name as --host
-# (install.sh prints it); the rules match <host> and <host>.* (.local, .ts.net, ...).
+# --host is the bootstrapped Mac's short hostname, exactly as install.sh step 10 prints it
+# (`hostname -s` on that Mac). It is NOT the Tailscale/MagicDNS name or TS_HOSTNAME: iTerm2
+# shell integration reports user@`hostname -f` of the remote (usually <LocalHostName>.local),
+# which can differ from those. The rules match <host> and <host>.* (.local, .ts.net, ...).
+# With --dry-run, stdout is exactly the JSON; all notes and the target path go to stderr.
 #
 # curl|bash hardening: the whole script is one `{ ... }` group whose closing brace is the
 # last line, so a truncated download is a syntax error and nothing executes. Residual
@@ -34,10 +36,12 @@ TMPS=""
 
 usage() {
   cat <<'EOF'
-Usage: curl -fsSL <origin>/iterm2-client.sh | bash -s -- --host <tailscale-hostname> [options]
+Usage: curl -fsSL <origin>/iterm2-client.sh | bash -s -- --host <short-hostname> [options]
 
 Options:
-  --host <name>          Tailscale hostname or MagicDNS name of the bootstrapped Mac (required)
+  --host <short-name>    short hostname of the bootstrapped Mac, as printed by install.sh step 10
+                         (`hostname -s` there); NOT its Tailscale/MagicDNS name or TS_HOSTNAME,
+                         because iTerm2 shell integration reports `hostname -f` (required)
   --user <name>          SSH user; adds user@host Bound Hosts rules
   --badge <text>         badge text (default: the host)
   --shell-integration    also install iTerm2 shell integration on this Mac (idempotent)
@@ -186,7 +190,8 @@ main() {
   shown="~${target#"$HOME"}"; [[ $target == "$HOME"/* ]] || shown=$target
   json=$(build_json)
   if ((DRY_RUN)); then
-    printf 'DRY-RUN: would write %s\n%s\n' "$shown" "$json"
+    printf 'DRY-RUN: would write %s\n' "$shown" >&2
+    printf '%s\n' "$json"
   else
     mkdir -p "$PROFILES_DIR"
     TMPF=$(umask 077; mktemp "$PROFILES_DIR/../.mac-bootstrap.XXXXXX")
@@ -197,9 +202,9 @@ main() {
     printf 'wrote %s\n' "$shown"
   fi
   if ((SHELL_INT)); then
-    install_shell_integration
+    if ((DRY_RUN)); then install_shell_integration >&2; else install_shell_integration; fi
   else
-    printf 'note: automatic profile switching also needs iTerm2 shell integration on this Mac (rerun with --shell-integration) and on %s.\n' "$HOST"
+    printf 'note: automatic profile switching also needs iTerm2 shell integration on this Mac (rerun with --shell-integration) and on %s.\n' "$HOST" >&2
   fi
 }
 
