@@ -1,0 +1,13 @@
+commit: c6d9287604ae6533fcabae76211115275ab7d096
+
+ShellCheck - shell script analysis tool
+version: 0.11.0
+license: GNU General Public License, version 3
+website: https://www.shellcheck.net
+
+shellcheck -s bash public/*.sh exit=0
+bash -n public/install.sh exit=0
+/bin/bash -n public/install.sh exit=0
+bash -n public/iterm2-client.sh exit=0
+/bin/bash -n public/iterm2-client.sh exit=0
+GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)

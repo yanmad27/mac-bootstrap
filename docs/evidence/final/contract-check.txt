@@ -1,0 +1,38 @@
+commit: c6d9287
+
+== public/install.sh --help vs public/index.html (flags: 6, env vars: 5)
+present  --dry-run
+present  --help
+present  --iterm2-shell-integration
+present  --skip-gh-auth
+present  --skip-tailscale-up
+present  -h
+present  TS_AUTHKEY
+present  GH_TOKEN
+present  TS_HOSTNAME
+present  GIT_USER_NAME
+present  GIT_USER_EMAIL
+
+== public/iterm2-client.sh --help vs public/index.html (flags: 8, env vars: 0)
+present  --badge
+present  --dry-run
+present  --help
+present  --host
+present  --profiles-dir
+present  --shell-integration
+present  --user
+present  -h
+
+missing total: 0
+
+== hardcoded deployment domain in public/index.html
+lines containing vercel.app: [172] (allowed: only the file:// placeholder note's example)
+https:// occurrences:
+  line 57: https://support.apple.com/guide/mac-help/turn-screen-sharing-on-or-off-mh11848/mac
+  line 66: https://support.apple.com/guide/mac-help/allow-a-remote-computer-to-access-your-mac-mchlp1066/mac
+  line 113: https://login.tailscale.com/admin/settings/keys
+  line 121: https://tailscale.com/kb/1085/auth-keys
+  line 126: https://tailscale.com/kb/1065/macos-variants
+  line 131: https://github.com/yanmad27/mac-bootstrap/blob/main/docs/tailscale-auth-key.md
+  line 172: https://example.vercel.app
+https:// or http:// inside command <code id=c-*> sources: 0
