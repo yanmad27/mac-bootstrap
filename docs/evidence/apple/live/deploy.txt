@@ -1,0 +1,13 @@
+$ npx -y vercel@62.1.0 ls mac-bootstrap --prod   (newest row)
+  mac-bootstrap-deam71q2v-yanmad27.vercel.app   ● Ready   Production   4s build
+
+$ npx -y vercel@62.1.0 api /v13/deployments/<id>   (read-only GET, fields selected)
+id                dpl_HF1wWMWjfNCejx5ERF96KVJMCVjv
+readyState        READY
+target            production
+source            git
+githubCommitSha   2a1e1ade5c61dc7a954c75e3433aa04afe6994c6
+githubCommitRef   main
+githubCommitMessage  Merge branch 'apple': Apple-clean restyle
+aliasAssigned     true
+aliases           mac-bootstrap-seven.vercel.app, mac-bootstrap-yanmad27.vercel.app, mac-bootstrap-git-main-yanmad27.vercel.app

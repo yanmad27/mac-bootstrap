@@ -1,0 +1,25 @@
+live URL https://mac-bootstrap-seven.vercel.app, Chromium (Playwright), prefers-reduced-motion: reduce, 2026-10-01
+[1280-light] details: 14 total, 0 open at screenshot; page height 5247px; scrollWidth 1280
+[1280-light] svg.dg elements 2; visible (non-zero box) 1: dg-wide 920x433 aria-label="Architecture: the client Mac runs iTerm2 with shell integration, ssh and the Screen Sharing app. It reaches the bootstrapped Mac over a private Tailscale tailnet. The bootstrapped Mac runs Remote Login (SSH, port 22), Screen Sharing (port 5900), the tailscaled system daemon installed with Homebrew, git, gh and Paseo, and optionally iTerm2 shell integration; the iTerm2 integration on both Macs is optional."
+[1280-light] hidden variants: dg-narrow
+[1280-light] flow tiles (ol.flow): 5 items, box 984x198, visible true
+[1280-light] copy buttons 11: clipboard==displayed 11/11; mismatches: none
+[1280-light] curl commands: 7; containing https://mac-bootstrap-seven.vercel.app/: 7/7; URLs not starting with origin: none; leftover <your-site>: 0
+[1280-light] copy-button aria-labels unique: 11/11
+[1280-dark] details: 14 total, 0 open at screenshot; page height 5247px; scrollWidth 1280
+[1280-dark] svg.dg elements 2; visible (non-zero box) 1: dg-wide 920x433 aria-label="Architecture: the client Mac runs iTerm2 with shell integration, ssh and the Screen Sharing app. It reaches the bootstrapped Mac over a private Tailscale tailnet. The bootstrapped Mac runs Remote Login (SSH, port 22), Screen Sharing (port 5900), the tailscaled system daemon installed with Homebrew, git, gh and Paseo, and optionally iTerm2 shell integration; the iTerm2 integration on both Macs is optional."
+[1280-dark] hidden variants: dg-narrow
+[1280-dark] flow tiles (ol.flow): 5 items, box 984x198, visible true
+[390-light] details: 14 total, 0 open at screenshot; page height 6756px; scrollWidth 390 (<=390: true)
+[390-light] svg.dg elements 2; visible (non-zero box) 1: dg-narrow 332x814 aria-label="Architecture: the client Mac runs iTerm2 with shell integration, ssh and the Screen Sharing app. It reaches the bootstrapped Mac over a private Tailscale tailnet. The bootstrapped Mac runs Remote Login (SSH, port 22), Screen Sharing (port 5900), the tailscaled system daemon installed with Homebrew, git, gh and Paseo, and optionally iTerm2 shell integration; the iTerm2 integration on both Macs is optional."
+[390-light] hidden variants: dg-wide
+[390-light] flow tiles (ol.flow): 5 items, box 361x538, visible true
+[390-light] copy buttons 11: clipboard==displayed 11/11; mismatches: none
+[390-light] curl commands: 7; containing https://mac-bootstrap-seven.vercel.app/: 7/7; URLs not starting with origin: none; leftover <your-site>: 0
+[390-light] copy-button aria-labels unique: 11/11
+[390-dark] details: 14 total, 0 open at screenshot; page height 6756px; scrollWidth 390 (<=390: true)
+[390-dark] svg.dg elements 2; visible (non-zero box) 1: dg-narrow 332x814 aria-label="Architecture: the client Mac runs iTerm2 with shell integration, ssh and the Screen Sharing app. It reaches the bootstrapped Mac over a private Tailscale tailnet. The bootstrapped Mac runs Remote Login (SSH, port 22), Screen Sharing (port 5900), the tailscaled system daemon installed with Homebrew, git, gh and Paseo, and optionally iTerm2 shell integration; the iTerm2 integration on both Macs is optional."
+[390-dark] hidden variants: dg-wide
+[390-dark] flow tiles (ol.flow): 5 items, box 361x538, visible true
+external (non same-origin) requests across 4 variants: 0
+console/page errors or warnings (incl. CSP): 0

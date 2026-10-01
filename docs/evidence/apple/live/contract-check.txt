@@ -1,0 +1,17 @@
+live page text from docs/evidence/apple/live (Chromium, https://mac-bootstrap-seven.vercel.app, details expanded)
+present  --badge
+present  --dry-run
+present  --help
+present  --host
+present  --iterm2-shell-integration
+present  --profiles-dir
+present  --shell-integration
+present  --skip-gh-auth
+present  --skip-tailscale-up
+present  --user
+present  TS_AUTHKEY
+present  GH_TOKEN
+present  TS_HOSTNAME
+present  GIT_USER_NAME
+present  GIT_USER_EMAIL
+missing: 0
