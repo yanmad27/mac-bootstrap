@@ -1,0 +1,7 @@
+Full-page heights in px (document.documentElement.scrollHeight), all <details> collapsed vs expanded. Informational: Apple-style whitespace (large rounded cards, big hero, big illustration) makes the page taller than before.
+
+variant            before  after  change   before(expanded)  after(expanded)
+1280px light         3531   5220    47.8%        7614            9712
+1280px dark          3531   5220    47.8%        7614            9712
+390px light          5072   6754    33.2%       12522           15183
+390px dark           5072   6754    33.2%       12522           15183

@@ -1,0 +1,28 @@
+copy buttons: 11 total (hero 1, details 5), clipboard==displayed text for all: true mismatches: none
+aria-labels unique: 11 of 11, all start "Copy": true
+#copy-status role=status aria-live=polite, text after last click="Copied: client Mac iTerm2 command with SSH user"
+commands built from location.origin (http://127.0.0.1:8877): true (7 checked)
+hero command: curl -fsSL "http://127.0.0.1:8877/install.sh" | bash
+external requests (all page loads in this script): 0 
+console/CSP/page errors: 0 
+h2 order: ["1. Turn on Screen Sharing and Remote Login (by hand)","2. Run the install command","3. The Tailscale auth key","4. Optional: iTerm2 (both Macs)","Done"]
+step icons: 5 (one per step card), flow icons: 5
+auth-key order: step 3 text "Optional, for a browser-free login. Generate the key before you run step 2 (the install command reads it at the start; with no key it falls back to the browser "
+rv/motion classes under reduced motion: .rv count=0; tube2 animation-name=none; scroll-behavior=auto
+390px horizontal overflow: scrollWidth collapsed=390, expanded=390 (<=390: true)
+390px svg display widths: wide=none narrow=332px
+390px button/text overlap: 0 overlapping of 11
+1280px button/text overlap: 0 overlapping
+file:// placeholder: note="This page was opened from a local file, so commands show the placehold..." c-run="curl -fsSL "<your-site>/install.sh" | bash" c-hero="curl -fsSL "<your-site>/install.sh" | bash" -> true
+JS disabled: elements with opacity 0/visibility hidden = 0; .rv count=0; steps rendered=5; h2 count=5; noscript note visible=true; details in DOM=14
+JS disabled commands: 8 of 8 generated commands show their <your-site> version (missing: none); visible Copy buttons = 0 (hidden via .no-js)
+  c-hero: curl -fsSL "<your-site>/install.sh" | bash
+  c-dry: curl -fsSL "<your-site>/install.sh" | bash -s -- --dry-run
+  c-run: curl -fsSL "<your-site>/install.sh" | bash
+  c-secret: curl -fsSL "<your-site>/install.sh" | TS_AUTHKEY="$TS_AUTHKEY" GH_TOKEN="$GH_TOKEN" bash
+  c-iterm-host: curl -fsSL "<your-site>/install.sh" | bash -s -- --iterm2-shell-integration
+  c-iterm-client: curl -fsSL "<your-site>/iterm2-client.sh" | bash -s -- --host my-mac --shell-integration
+  c-iterm-client-user: curl -fsSL "<your-site>/iterm2-client.sh" | bash -s -- --host my-mac --user your-ssh-user --shell-integration
+  l-install: <your-site>/install.sh
+JS enabled: html has no-js class: false; visible Copy buttons: 11
+motion enabled (no-preference): .rv elements below fold at load=6 (revealed before scroll=0); after scrolling through: .rv.in=6 of 6, any still opacity 0: 0; tube2 animation=flowd

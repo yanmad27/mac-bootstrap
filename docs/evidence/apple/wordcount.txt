@@ -1,0 +1,11 @@
+Visible words with every <details> collapsed (document.body.innerText, /tmp/wc/measure.js), light, reduced motion.
+Non-code = visible words minus words inside code/pre (the hero command is code, so it is not counted).
+
+                OLD 2944991            NEW (this commit)
+viewport   visible code non-code    visible code non-code
+1280x800     626   292    334         617   302    315
+390x844      623   292    331         617   302    315
+
+Target: non-code words at 1280 <= 334 (old). NEW 315 <= 334: met (-19 vs old; the previous candidate 5381c50 was 351).
+The hero lead is now a 10-word tagline; the full original sentence lives in the collapsed "What this does" <details> under the flow (content-check: 0 lost).
+Page height (px, collapsed): 1280: 3531 -> 5220; 390: 5072 -> 6754 (informational).
