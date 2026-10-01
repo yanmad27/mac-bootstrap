@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>mac-bootstrap: set up a Mac for remote access</title>
+<style>
+:root{--bg:#fff;--fg:#1d1d1f;--muted:#5b5b61;--card:#f5f5f7;--line:#d2d2d7;--accent:#0a58ca;--code-bg:#1e1e22;--code-fg:#f2f2f5;--warn:#8a4b00;--warn-bg:#fff4e0}
+@media (prefers-color-scheme:dark){:root{--bg:#161618;--fg:#f2f2f5;--muted:#a1a1a8;--card:#202024;--line:#38383d;--accent:#7ab3ff;--code-bg:#0d0d0f;--code-fg:#f2f2f5;--warn:#ffcf8a;--warn-bg:#33270f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+main{max-width:50rem;margin:0 auto;padding:2rem 1.25rem 4rem}
+h1{font-size:1.9rem;line-height:1.2;margin:0 0 .5rem}
+h2{font-size:1.35rem;margin:2.5rem 0 .75rem;padding-top:1rem;border-top:1px solid var(--line)}
+h3{font-size:1.05rem;margin:1.5rem 0 .4rem}
+p,li{max-width:46rem}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+code{font:.9em ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--card);padding:.1em .35em;border-radius:4px}
+.cmd{position:relative;margin:.75rem 0}
+.cmd pre{margin:0;background:var(--code-bg);color:var(--code-fg);padding:1rem 5.5rem 1rem 1rem;border-radius:8px;overflow-x:auto;font:.88rem/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre}
+.cmd pre code{background:none;padding:0;font:inherit}
+.cmd button{position:absolute;top:.5rem;right:.5rem;font:inherit;font-size:.8rem;padding:.3rem .7rem;border-radius:6px;border:1px solid #6b6b73;background:#2c2c31;color:#f2f2f5;cursor:pointer}
+.cmd button:hover{background:#3a3a41}
+.note{background:var(--warn-bg);color:var(--warn);border-left:4px solid var(--warn);padding:.6rem .9rem;border-radius:4px;margin:1rem 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:.25rem 1rem;margin:1rem 0}
+.origin{font-size:.9rem;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:.92rem;margin:.5rem 0}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .5rem;text-align:left;vertical-align:top}
+details{margin:.75rem 0}
+summary{cursor:pointer;font-weight:600}
+.sr{position:absolute;left:-9999px}
+ol.steps>li{margin:.4rem 0}
+kbd{font:.85em ui-monospace,Menlo,monospace;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:.05em .35em}
+</style>
+</head>
+<body>
+<main>
+<h1>Bootstrap a Mac for remote access</h1>
+<p>Four steps, in order: switch on Screen Sharing and Remote Login by hand, run one install command, give Tailscale an auth key (or log in interactively), and optionally set up iTerm2 on both Macs.</p>
+<p id="origin-note" class="origin">Commands below are built from this page's address.</p>
+<noscript><p class="note">JavaScript is off, so commands show the literal placeholder <code>&lt;your-site&gt;</code>. Replace it with the address of this page.</p></noscript>
+
+<h2 id="manual">1. Turn on Screen Sharing and Remote Login (by hand)</h2>
+<p>This project deliberately uses Apple's supported System Settings path for these two switches rather than scripting them. Steps apply to macOS Tahoe 26 and Sequoia 15 (Apple documents the same <em>General &rsaquo; Sharing</em> location for both). You need an administrator account.</p>
+
+<h3>Screen Sharing</h3>
+<ol class="steps">
+<li>Apple menu &rsaquo; <strong>System Settings</strong> &rsaquo; <strong>General</strong> (sidebar) &rsaquo; <strong>Sharing</strong>.</li>
+<li>Turn on <strong>Screen Sharing</strong>, then click the <strong>ⓘ</strong> button next to it.</li>
+<li><strong>Allow access for</strong>: choose <em>Only these users</em> and add just your account (safer), or <em>All users</em>.</li>
+<li><strong>VNC viewers may control screen with password</strong>: leave <strong>off</strong>. Over Tailscale you do not need a separate VNC password.</li>
+</ol>
+<p>Source: <a href="https://support.apple.com/guide/mac-help/turn-screen-sharing-on-or-off-mh11848/mac" rel="noopener noreferrer">Apple Support: Turn Screen Sharing on or off on Mac</a>.</p>
+
+<h3>Remote Login (SSH)</h3>
+<ol class="steps">
+<li>Same place: <strong>System Settings</strong> &rsaquo; <strong>General</strong> &rsaquo; <strong>Sharing</strong>.</li>
+<li>Turn on <strong>Remote Login</strong>, then click the <strong>ⓘ</strong> button next to it.</li>
+<li><strong>Allow access for</strong>: <em>Only these users</em> with your account, or <em>All users</em>.</li>
+<li><strong>Allow full disk access for remote users</strong>: leave <strong>off</strong> unless an SSH session genuinely needs it (for example reading protected folders). It widens what any remote login can read.</li>
+</ol>
+<p>Source: <a href="https://support.apple.com/guide/mac-help/allow-a-remote-computer-to-access-your-mac-mchlp1066/mac" rel="noopener noreferrer">Apple Support: Allow a remote computer to access your Mac</a>. Apple notes that enabling Remote Login reduces your Mac's security.</p>
+
+<h3>Check they are on (no sudo)</h3>
+<div class="cmd"><pre><code id="c-nc">nc -z localhost 22 &amp;&amp; echo "Remote Login: listening"
+nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><button type="button" data-copy="c-nc">Copy</button></div>
+<p>Each line prints only when the port accepts a connection (22 = SSH, 5900 = Screen Sharing/VNC). No output means that switch is still off.</p>
+
+<h2 id="install">2. Run the install command</h2>
+<p>Run this in Terminal (zsh) <strong>on the Mac you are bootstrapping</strong>. It installs Homebrew (if missing), Tailscale (system daemon), git, gh and Paseo, then brings Tailscale up. It is safe to re-run.</p>
+
+<h3>First, a dry run</h3>
+<p>Prints what it would do and changes nothing:</p>
+<div class="cmd"><pre><code id="c-dry"></code></pre><button type="button" data-copy="c-dry">Copy</button></div>
+
+<h3>Then the real run, all defaults</h3>
+<p>Tailscale prints a login URL you open in a browser; GitHub auth is interactive and skippable.</p>
+<div class="cmd"><pre><code id="c-run"></code></pre><button type="button" data-copy="c-run">Copy</button></div>
+
+<h3>Unattended: pass secrets without leaking them</h3>
+<p>Run these four commands <strong>one at a time</strong> (pasting them together would feed the later lines to the hidden prompts). Press Enter on a prompt to skip that secret.</p>
+<div class="cmd"><pre><code id="c-read1">read -rs "TS_AUTHKEY?Tailscale auth key: "; echo</code></pre><button type="button" data-copy="c-read1">Copy</button></div>
+<div class="cmd"><pre><code id="c-read2">read -rs "GH_TOKEN?GitHub token: "; echo</code></pre><button type="button" data-copy="c-read2">Copy</button></div>
+<div class="cmd"><pre><code id="c-secret"></code></pre><button type="button" data-copy="c-secret">Copy</button></div>
+<div class="cmd"><pre><code id="c-unset">unset TS_AUTHKEY GH_TOKEN</code></pre><button type="button" data-copy="c-unset">Copy</button></div>
+<p><strong>Why this shape:</strong> the hidden <code>read</code> keeps the secret out of your shell history (history records the literal <code>$TS_AUTHKEY</code>) and out of any command line (<code>ps</code> shows arguments, not variables); the variables are not exported, so only <code>bash</code> receives them, never <code>curl</code>. The script then removes them from its own environment before running anything else, so no child process (brew, curl, sudo) inherits them. This page never asks for a secret itself.</p>
+
+<h3>Optional variables and flags</h3>
+<table>
+<thead><tr><th>Name</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>TS_AUTHKEY</code></td><td>Tailscale auth key; logs in without a browser (see step 3). Unset: interactive login URL.</td></tr>
+<tr><td><code>GH_TOKEN</code></td><td>GitHub token for <code>gh auth</code>. Unset: interactive, skippable.</td></tr>
+<tr><td><code>TS_HOSTNAME</code></td><td>Tailscale machine name (letters, digits, hyphens; max 63).</td></tr>
+<tr><td><code>GIT_USER_NAME</code>, <code>GIT_USER_EMAIL</code></td><td>Sets the global git identity.</td></tr>
+<tr><td><code>--dry-run</code></td><td>Show the steps; change nothing.</td></tr>
+<tr><td><code>--skip-tailscale-up</code></td><td>Install Tailscale but do not log in.</td></tr>
+<tr><td><code>--skip-gh-auth</code></td><td>Skip GitHub login.</td></tr>
+<tr><td><code>--iterm2-shell-integration</code></td><td>Also install iTerm2 shell integration (step 4).</td></tr>
+<tr><td><code>-h</code>, <code>--help</code></td><td>Usage. An unknown flag prints usage and exits 2.</td></tr>
+</tbody>
+</table>
+<p>Flags go after <code>bash -s --</code>, for example <code>... | bash -s -- --dry-run --skip-gh-auth</code>. Non-secret variables can be given the same way as the secrets: <code>TS_HOSTNAME=my-mac</code> placed before <code>bash</code>. Empty values count as unset.</p>
+<p>The script installs steps in this order: preflight, Homebrew, <code>tailscale</code> formula, tailscaled system daemon, <code>tailscale up</code>, git/gh/Paseo, gh auth, git identity, optional iTerm2 integration, summary. You will be asked for your Mac password once (<code>sudo</code>) to start the daemon.</p>
+
+<h2 id="authkey">3. The Tailscale auth key</h2>
+<p><strong>Can login be non-interactive?</strong> Yes: <code>tailscale up --auth-key=file:/path</code> logs the node in without a browser and the key never appears on a command line. Neither <code>tailscale</code> nor <code>tailscaled</code> reads <code>TS_AUTHKEY</code> (only Tailscale's container entrypoint does), so <code>install.sh</code> takes it from its environment, writes it to a private (<code>0600</code>) temporary file, passes only the <em>file path</em> to <code>tailscale up</code>, and deletes the file afterwards.</p>
+<h3>Generate the key</h3>
+<p>In the <a href="https://login.tailscale.com/admin/settings/keys" rel="noopener noreferrer">Tailscale admin console, Keys page</a>, choose <em>Generate auth key</em> and set:</p>
+<ul>
+<li><strong>Reusable</strong>: <em>off</em> (one-off). A leaked copy is useless after first use.</li>
+<li><strong>Ephemeral</strong>: <em>off</em>. Ephemeral devices are removed from the tailnet when they go offline, which defeats long-term remote access to a Mac that sleeps.</li>
+<li><strong>Pre-approved</strong>: <em>on</em> if your tailnet requires device approval (otherwise the login waits for approval and times out).</li>
+<li><strong>Expiry</strong>: the shortest that fits (1 day). It only limits how long the key can register a device.</li>
+<li><strong>Tags</strong>: optional. A tagged device is governed by your ACL <code>tagOwners</code> and its node key does not expire; an untagged device stays yours but its node key expires after 180 days by default and needs a re-login.</li>
+</ul>
+<p>Revoking a key does not remove devices already registered with it. Button and field names may differ slightly in the console; see Tailscale's <a href="https://tailscale.com/kb/1085/auth-keys" rel="noopener noreferrer">auth keys</a> doc.</p>
+<h3>Pass it safely</h3>
+<p>Use the unattended four-command sequence in step 2: hidden <code>read</code> into <code>TS_AUTHKEY</code>, pass to <code>bash</code> only, then <code>unset</code>. Never put the key in an <code>--auth-key=tskey-...</code> argument; arguments are visible to every local user through <code>ps</code>.</p>
+<h3>macOS caveats (Homebrew <code>tailscale</code> formula)</h3>
+<ul>
+<li>This is the open-source <code>tailscaled</code> + CLI, not the Tailscale app. It must not coexist with <code>/Applications/Tailscale.app</code> or the <code>tailscale-app</code> cask; the script stops if it finds either. Variant differences: <a href="https://tailscale.com/kb/1065/macos-variants" rel="noopener noreferrer">Tailscale on macOS variants</a>.</li>
+<li><code>tailscaled</code> needs root on macOS, so the script starts it with <code>sudo brew services start tailscale</code>; the password prompt is the only human step. No reboot or System Settings approval is expected for this variant (not tested on a live Mac, so unconfirmed).</li>
+<li>If Tailscale is already <em>Running</em>, the script skips login and does not spend your key; with <code>TS_HOSTNAME</code> set it only renames the machine.</li>
+<li>The script always calls Homebrew's own <code>tailscale</code> by absolute path, in case an older copy elsewhere shadows it in <code>PATH</code>.</li>
+</ul>
+<p>Full write-up with source links: <a href="https://github.com/yanmad27/mac-bootstrap/blob/main/docs/tailscale-auth-key.md" rel="noopener noreferrer"><code>docs/tailscale-auth-key.md</code></a> in the repository.</p>
+
+<h2 id="iterm2">4. Optional: iTerm2 (both Macs)</h2>
+<p>When you SSH from one Mac to the other, iTerm2 can show a hostname badge and switch profile automatically.</p>
+<h3>On the bootstrapped Mac</h3>
+<p>Re-run the install command with shell integration:</p>
+<div class="cmd"><pre><code id="c-iterm-host"></code></pre><button type="button" data-copy="c-iterm-host">Copy</button></div>
+<h3>On the client Mac (the one you SSH from)</h3>
+<p>Replace <code>my-mac</code> with the bootstrapped Mac's Tailscale hostname; add <code>--user &lt;ssh-user&gt;</code> after <code>--host my-mac</code> if your SSH user differs; <code>--badge &lt;text&gt;</code> and <code>--dry-run</code> are optional.</p>
+<div class="cmd"><pre><code id="c-iterm-client"></code></pre><button type="button" data-copy="c-iterm-client">Copy</button></div>
+<p>This writes one Dynamic Profile, <code>mac-bootstrap-&lt;host&gt;.json</code>, into <code>~/Library/Application Support/iTerm2/DynamicProfiles</code> (override with <code>--profiles-dir</code>). <strong>What to expect:</strong> when a session SSHes into that host, iTerm2 switches to the profile automatically and shows the hostname as a badge. Automatic switching relies on the shell integration installed on the bootstrapped Mac (the host-side command above).</p>
+
+<h2 id="done">Done</h2>
+<p>Check <code>tailscale status</code> on the bootstrapped Mac, then connect from your client with <code>ssh &lt;user&gt;@&lt;tailscale-hostname&gt;</code> or Screen Sharing to <code>vnc://&lt;tailscale-hostname&gt;</code>.</p>
+<p class="origin">The scripts are served as plain text: open <code id="l-install"></code> to read exactly what you will run before running it.</p>
+</main>
+<script>
+(function () {
+  var p = location.protocol;
+  var real = p === "http:" || p === "https:";
+  var origin = real ? location.origin : "<your-site>";
+  var note = document.getElementById("origin-note");
+  note.textContent = real
+    ? "Commands below use this site's address: " + origin
+    : "This page was opened from a local file, so commands show the placeholder <your-site>. Replace it with your deployed site's address (for example https://example.vercel.app).";
+  if (!real) note.className = "note";
+
+  var inst = origin + "/install.sh";
+  var cli = origin + "/iterm2-client.sh";
+  var pipe = 'curl -fsSL "' + inst + '" | ';
+  var cmds = {
+    "c-dry": pipe + "bash -s -- --dry-run",
+    "c-run": pipe + "bash",
+    "c-secret": pipe + 'TS_AUTHKEY="$TS_AUTHKEY" GH_TOKEN="$GH_TOKEN" bash',
+    "c-iterm-host": pipe + "bash -s -- --iterm2-shell-integration",
+    "c-iterm-client": 'curl -fsSL "' + cli + '" | bash -s -- --host my-mac'
+  };
+  Object.keys(cmds).forEach(function (id) {
+    document.getElementById(id).textContent = cmds[id];
+  });
+  var l = document.getElementById("l-install");
+  if (real) {
+    var a = document.createElement("a");
+    a.href = inst; a.textContent = inst; a.rel = "noopener noreferrer";
+    l.replaceWith(a);
+  } else { l.textContent = inst; }
+
+  function fallbackCopy(text) {
+    var t = document.createElement("textarea");
+    t.value = text; t.className = "sr"; document.body.appendChild(t);
+    t.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(t);
+    return ok;
+  }
+  document.querySelectorAll("button[data-copy]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var text = document.getElementById(b.getAttribute("data-copy")).textContent;
+      var done = function (ok) {
+        b.textContent = ok ? "Copied" : "Press Cmd+C";
+        setTimeout(function () { b.textContent = "Copy"; }, 1800);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(fallbackCopy(text)); });
+      } else { done(fallbackCopy(text)); }
+    });
+  });
+})();
+</script>
+</body>
+</html>
