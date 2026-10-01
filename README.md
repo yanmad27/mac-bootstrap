@@ -10,6 +10,8 @@ Bootstraps a Mac for remote access over Tailscale: Screen Sharing and Remote Log
 
 ## One-time Vercel import
 
+This step has been completed for this repo (Vercel project `mac-bootstrap`); it is kept here for forks.
+
 No CLI needed; everything is in the dashboard. Source: [Managing projects](https://vercel.com/docs/projects/managing-projects).
 
 1. On the Vercel [dashboard](https://vercel.com/dashboard), pick the right team, click **Add New…** then **Project**.
@@ -19,18 +21,20 @@ No CLI needed; everything is in the dashboard. Source: [Managing projects](https
 
 Key names verified against [vercel.json reference](https://vercel.com/docs/project-configuration/vercel-json) (`framework`, `buildCommand`, `installCommand`, `outputDirectory`, `headers`; "To select 'Other' as the Framework Preset, use `null`").
 
-## Live checks (pending: no Vercel deployment exists yet)
+## Live site
 
-After the first deploy, with `<url>` the production URL (for example `https://<project>.vercel.app`):
+Production URL: https://mac-bootstrap-seven.vercel.app (alias https://mac-bootstrap-yanmad27.vercel.app). Pushes to main auto-deploy to production.
+
+Verified 2026-10-01 ([evidence](docs/evidence/live/README.md)):
 
 ```sh
-curl -sI <url>/install.sh | grep -i -E '^(HTTP|content-type|x-content-type-options|cache-control)'
+curl -sI https://mac-bootstrap-seven.vercel.app/install.sh | grep -i -E '^(HTTP|content-type|x-content-type-options|cache-control)'
 # expect: 200, content-type: text/plain; charset=utf-8, x-content-type-options: nosniff
-curl -fsSL <url>/install.sh | bash -s -- --dry-run
-curl -sI <url>/iterm2-client.sh | grep -i content-type
+curl -fsSL https://mac-bootstrap-seven.vercel.app/install.sh | bash -s -- --dry-run
+curl -sI https://mac-bootstrap-seven.vercel.app/iterm2-client.sh | grep -i content-type
 ```
 
-Then open `<url>/` and confirm the commands show `<url>`'s own address and the Copy buttons work. Until this is done, the plain-text content type on Vercel is unverified; only a local static server was used (which does not apply `vercel.json`).
+Open https://mac-bootstrap-seven.vercel.app/ to confirm the commands show the correct URL and Copy buttons work.
 
 ## Security notes
 
