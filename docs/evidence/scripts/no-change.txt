@@ -1,0 +1,29 @@
+== BEFORE
+brew list --versions: lines=95
+brew list --cask --versions: lines=15 sha=88ab543e44b5a7c1
+brew list --versions sha=3fa101a120e7c708
+brew services list (no sudo) sha=f99471d8b66bcf75
+tailscale BackendState: Running
+gh auth status exit: 0
+git config --global --list sha256: c5e28ad806ba10dd
+.zprofile sha256: fac3c2e34283394a
+.zshrc sha256: a9b0270841fde378
+.bashrc: missing
+.bash_profile: missing
+DynamicProfiles: entries=3 listing sha256=02be062fdb079d00
+
+== AFTER
+brew list --versions: lines=95
+brew list --cask --versions: lines=15 sha=88ab543e44b5a7c1
+brew list --versions sha=3fa101a120e7c708
+brew services list (no sudo) sha=f99471d8b66bcf75
+tailscale BackendState: Running
+gh auth status exit: 0
+git config --global --list sha256: c5e28ad806ba10dd
+.zprofile sha256: fac3c2e34283394a
+.zshrc sha256: a9b0270841fde378
+.bashrc: missing
+.bash_profile: missing
+DynamicProfiles: entries=3 listing sha256=02be062fdb079d00
+
+RESULT: identical

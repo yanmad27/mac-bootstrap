@@ -1,0 +1,219 @@
+### A. this Mac (real tools present): cat public/install.sh | TS_AUTHKEY=<dummy> GH_TOKEN=<dummy> GIT_USER_NAME='Dry Run' GIT_USER_EMAIL=dry@example.com /bin/bash -s -- --dry-run --iterm2-shell-integration (dummy secret values)
+
+[1/10] Preflight
+    macOS 26.6, arch arm64
+    mode: dry-run
+    TS_AUTHKEY: set
+    GH_TOKEN: set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: set
+    GIT_USER_EMAIL: set
+    done
+
+[2/10] Homebrew
+    already present -> skip (/opt/homebrew/bin/brew)
+    DRY-RUN would append to ~/.zprofile: eval "$(/opt/homebrew/bin/brew shellenv)"
+
+[3/10] Tailscale formula
+    already present -> skip
+
+[4/10] tailscaled system daemon
+    already present (socket /var/run/tailscaled.socket) -> skip
+
+[5/10] tailscale up
+    BackendState: Running
+    already present (Running) -> skip login; key not used
+
+[6/10] git, gh, paseo
+    gh: already present -> skip
+    DRY-RUN would run: /opt/homebrew/bin/brew install git
+    paseo: already present -> skip
+
+[7/10] gh auth
+    already present (stored credentials) -> skip login
+    DRY-RUN would run: gh auth setup-git
+
+[8/10] git identity
+    DRY-RUN would run: git config --global user.name Dry Run
+    DRY-RUN would run: git config --global user.email dry@example.com
+
+[9/10] iTerm2 shell integration
+    DRY-RUN would run: curl -fsSL https://iterm2.com/shell_integration/zsh -o ~/.iterm2_shell_integration.zsh
+    DRY-RUN would append to ~/.zshrc: test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh" # mac-bootstrap iterm2
+
+[10/10] Summary
+    DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
+    then: ssh <user>@<host>
+    still manual:
+      - Open a new terminal tab so iTerm2 shell integration loads (also install it on the Mac you ssh into for automatic profile switching)
+      - Enable Remote Login: System Settings > General > Sharing > Remote Login (needs the macOS UI)
+exit=0
+
+### B. fresh Mac mock: env -i HOME=<empty tmp> PATH=<empty tmp bin>:/usr/bin:/bin:/usr/sbin:/sbin MB_BREW_CANDIDATES=<nonexistent> ... /bin/bash public/install.sh --dry-run --iterm2-shell-integration (TS_HOSTNAME=my-mac)
+
+[1/10] Preflight
+    macOS 26.6, arch arm64
+    mode: dry-run
+    TS_AUTHKEY: set
+    GH_TOKEN: set
+    TS_HOSTNAME: set
+    GIT_USER_NAME: set
+    GIT_USER_EMAIL: set
+    done
+
+[2/10] Homebrew
+    Homebrew's installer needs sudo (it will ask for your password on the terminal)
+    DRY-RUN would run: sudo -v   (reason: cache credentials for the Homebrew installer)
+    DRY-RUN would run: curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o <temp>/brew-install.sh
+    DRY-RUN would run: env NONINTERACTIVE=1 /bin/bash <temp>/brew-install.sh
+    DRY-RUN would append to ~/.zprofile: eval "$(/opt/homebrew/bin/brew shellenv)"
+
+[3/10] Tailscale formula
+    DRY-RUN would run: brew install tailscale
+
+[4/10] tailscaled system daemon
+    sudo needed: tailscaled runs as root (LaunchDaemon)
+    DRY-RUN would run: sudo brew services start tailscale
+
+[5/10] tailscale up
+    BackendState: NoState
+    DRY-RUN would write the key to a 0600 temp file (umask 077), never to argv
+    DRY-RUN would run: /nonexistent-homebrew-prefix/opt/tailscale/bin/tailscale up --auth-key=file:/tmp/mac-bootstrap.XXXXXX/tskey --timeout=120s --hostname=my-mac
+    DRY-RUN would delete the key file right after
+
+[6/10] git, gh, paseo
+    DRY-RUN would run: brew install git gh
+    DRY-RUN would run: brew install --cask paseo
+
+[7/10] gh auth
+    DRY-RUN would run: printf <GH_TOKEN, masked> | env -u GH_TOKEN -u GITHUB_TOKEN gh auth login --with-token
+    DRY-RUN would run: gh auth setup-git
+
+[8/10] git identity
+    DRY-RUN would run: git config --global user.name Dry Run
+    DRY-RUN would run: git config --global user.email dry@example.com
+
+[9/10] iTerm2 shell integration
+    DRY-RUN would run: curl -fsSL https://iterm2.com/shell_integration/zsh -o ~/.iterm2_shell_integration.zsh
+    DRY-RUN would append to ~/.zshrc: test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh" # mac-bootstrap iterm2
+
+[10/10] Summary
+    DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
+    then: ssh <user>@<host>
+    still manual:
+      - Open a new terminal tab so iTerm2 shell integration loads (also install it on the Mac you ssh into for automatic profile switching)
+      - Enable Remote Login: System Settings > General > Sharing > Remote Login (needs the macOS UI)
+exit=0
+
+### C. fresh Mac, no secrets (interactive fallbacks, no tty in this run)
+
+[1/10] Preflight
+    macOS 26.6, arch arm64
+    mode: dry-run
+    TS_AUTHKEY: not set
+    GH_TOKEN: not set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+
+[2/10] Homebrew
+    Homebrew's installer needs sudo (it will ask for your password on the terminal)
+    DRY-RUN would run: sudo -v   (reason: cache credentials for the Homebrew installer)
+    DRY-RUN would run: curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o <temp>/brew-install.sh
+    DRY-RUN would run: env NONINTERACTIVE=1 /bin/bash <temp>/brew-install.sh
+    DRY-RUN would append to ~/.zprofile: eval "$(/opt/homebrew/bin/brew shellenv)"
+
+[3/10] Tailscale formula
+    DRY-RUN would run: brew install tailscale
+
+[4/10] tailscaled system daemon
+    sudo needed: tailscaled runs as root (LaunchDaemon)
+    DRY-RUN would run: sudo brew services start tailscale
+
+[5/10] tailscale up
+    BackendState: NoState
+    no TS_AUTHKEY: interactive login; open the printed URL in a browser
+    DRY-RUN would run: /nonexistent-homebrew-prefix/opt/tailscale/bin/tailscale up --timeout=300s
+
+[6/10] git, gh, paseo
+    DRY-RUN would run: brew install git gh
+    DRY-RUN would run: brew install --cask paseo
+
+[7/10] gh auth
+    skipped (--skip-gh-auth)
+
+[8/10] git identity
+    skipped (GIT_USER_NAME / GIT_USER_EMAIL not set)
+
+[9/10] iTerm2 shell integration
+    skipped (needs --iterm2-shell-integration)
+
+[10/10] Summary
+    DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
+    then: ssh <user>@<host>
+    still manual:
+      - Run: gh auth login && gh auth setup-git
+      - Set your git identity: git config --global user.name ... && git config --global user.email ...
+      - Enable Remote Login: System Settings > General > Sharing > Remote Login (needs the macOS UI)
+exit=0
+
+### D. EMPTY values (page passes "" when a prompt is skipped) must equal unset
+
+[1/10] Preflight
+    macOS 26.6, arch arm64
+    mode: dry-run
+    TS_AUTHKEY: not set
+    GH_TOKEN: not set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+
+[2/10] Homebrew
+    Homebrew's installer needs sudo (it will ask for your password on the terminal)
+    DRY-RUN would run: sudo -v   (reason: cache credentials for the Homebrew installer)
+    DRY-RUN would run: curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o <temp>/brew-install.sh
+    DRY-RUN would run: env NONINTERACTIVE=1 /bin/bash <temp>/brew-install.sh
+    DRY-RUN would append to ~/.zprofile: eval "$(/opt/homebrew/bin/brew shellenv)"
+
+[3/10] Tailscale formula
+    DRY-RUN would run: brew install tailscale
+
+[4/10] tailscaled system daemon
+    sudo needed: tailscaled runs as root (LaunchDaemon)
+    DRY-RUN would run: sudo brew services start tailscale
+
+[5/10] tailscale up
+    BackendState: NoState
+    no TS_AUTHKEY: interactive login; open the printed URL in a browser
+    DRY-RUN would run: /nonexistent-homebrew-prefix/opt/tailscale/bin/tailscale up --timeout=300s
+
+[6/10] git, gh, paseo
+    DRY-RUN would run: brew install git gh
+    DRY-RUN would run: brew install --cask paseo
+
+[7/10] gh auth
+    no GH_TOKEN and no terminal -> skip
+
+[8/10] git identity
+    skipped (GIT_USER_NAME / GIT_USER_EMAIL not set)
+
+[9/10] iTerm2 shell integration
+    skipped (needs --iterm2-shell-integration)
+
+[10/10] Summary
+    DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
+    then: ssh <user>@<host>
+    still manual:
+      - Run: gh auth login && gh auth setup-git
+      - Set your git identity: git config --global user.name ... && git config --global user.email ...
+      - Enable Remote Login: System Settings > General > Sharing > Remote Login (needs the macOS UI)
+exit=0
+
+### E. flags: unknown -> exit 2; invalid TS_HOSTNAME -> exit 1; --help -> exit 0
+unknown flag exit=2 stderr_first_line=unknown option: --bogus
+bad TS_HOSTNAME exit=1 stderr=error: TS_HOSTNAME must match ^[A-Za-z0-9-]{1,63}$
+help exit=0
+
+bash used: GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)
