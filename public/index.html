@@ -94,7 +94,7 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 <thead><tr><th>Name</th><th>What it does</th></tr></thead>
 <tbody>
 <tr><td><code>TS_AUTHKEY</code></td><td>Tailscale auth key; logs in without a browser (see step 3). Unset: interactive login URL.</td></tr>
-<tr><td><code>GH_TOKEN</code></td><td>GitHub token for <code>gh auth</code>. Unset: interactive, skippable.</td></tr>
+<tr><td><code>GH_TOKEN</code></td><td>GitHub token for <code>gh auth login --with-token</code>. Use a <strong>classic personal access token</strong> with scopes <code>repo</code>, <code>read:org</code> and <code>gist</code>, which is what <code>gh</code> documents. A fine-grained token may work but is not the documented path. Unset: interactive, skippable.</td></tr>
 <tr><td><code>TS_HOSTNAME</code></td><td>Tailscale machine name (letters, digits, hyphens; max 63).</td></tr>
 <tr><td><code>GIT_USER_NAME</code>, <code>GIT_USER_EMAIL</code></td><td>Sets the global git identity.</td></tr>
 <tr><td><code>--dry-run</code></td><td>Show the steps; change nothing.</td></tr>
@@ -105,7 +105,7 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 </tbody>
 </table>
 <p>Flags go after <code>bash -s --</code>, for example <code>... | bash -s -- --dry-run --skip-gh-auth</code>. Non-secret variables can be given the same way as the secrets: <code>TS_HOSTNAME=my-mac</code> placed before <code>bash</code>. Empty values count as unset.</p>
-<p>The script installs steps in this order: preflight, Homebrew, <code>tailscale</code> formula, tailscaled system daemon, <code>tailscale up</code>, git/gh/Paseo, gh auth, git identity, optional iTerm2 integration, summary. You will be asked for your Mac password once (<code>sudo</code>) to start the daemon.</p>
+<p>The script installs steps in this order: preflight, Homebrew, <code>tailscale</code> formula, tailscaled system daemon, <code>tailscale up</code>, git/gh/Paseo, gh auth, git identity, optional iTerm2 integration, summary. You may be asked for your Mac password more than once (<code>sudo</code>), for example to start the daemon.</p><p>When it finishes, start Paseo: open <strong>Paseo.app</strong> (installed in <code>/Applications</code> by the Homebrew cask), for example with <code>open -a Paseo</code>.</p>
 
 <h2 id="authkey">3. The Tailscale auth key</h2>
 <p><strong>Can login be non-interactive?</strong> Yes: <code>tailscale up --auth-key=file:/path</code> logs the node in without a browser and the key never appears on a command line. Neither <code>tailscale</code> nor <code>tailscaled</code> reads <code>TS_AUTHKEY</code> (only Tailscale's container entrypoint does), so <code>install.sh</code> takes it from its environment, writes it to a private (<code>0600</code>) temporary file, passes only the <em>file path</em> to <code>tailscale up</code>, and deletes the file afterwards.</p>
@@ -124,21 +124,37 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 <h3>macOS caveats (Homebrew <code>tailscale</code> formula)</h3>
 <ul>
 <li>This is the open-source <code>tailscaled</code> + CLI, not the Tailscale app. It must not coexist with <code>/Applications/Tailscale.app</code> or the <code>tailscale-app</code> cask; the script stops if it finds either. Variant differences: <a href="https://tailscale.com/kb/1065/macos-variants" rel="noopener noreferrer">Tailscale on macOS variants</a>.</li>
-<li><code>tailscaled</code> needs root on macOS, so the script starts it with <code>sudo brew services start tailscale</code>; the password prompt is the only human step. No reboot or System Settings approval is expected for this variant (not tested on a live Mac, so unconfirmed).</li>
+<li><code>tailscaled</code> needs root on macOS, so the script starts it with <code>sudo brew services start tailscale</code>; expect a password prompt (possibly more than one). No reboot or System Settings approval is expected for this variant (not tested on a live Mac, so unconfirmed).</li>
 <li>If Tailscale is already <em>Running</em>, the script skips login and does not spend your key; with <code>TS_HOSTNAME</code> set it only renames the machine.</li>
 <li>The script always calls Homebrew's own <code>tailscale</code> by absolute path, in case an older copy elsewhere shadows it in <code>PATH</code>.</li>
 </ul>
 <p>Full write-up with source links: <a href="https://github.com/yanmad27/mac-bootstrap/blob/main/docs/tailscale-auth-key.md" rel="noopener noreferrer"><code>docs/tailscale-auth-key.md</code></a> in the repository.</p>
 
 <h2 id="iterm2">4. Optional: iTerm2 (both Macs)</h2>
-<p>When you SSH from one Mac to the other, iTerm2 can show a hostname badge and switch profile automatically.</p>
+<p>When you SSH from one Mac to the other, iTerm2 can show a hostname badge and switch profile automatically. This needs iTerm2 shell integration on <strong>every participating Mac</strong>: the remote reports its hostname to iTerm2, and the client needs it too so iTerm2 switches back to the original profile after the SSH session ends.</p>
 <h3>On the bootstrapped Mac</h3>
 <p>Re-run the install command with shell integration:</p>
 <div class="cmd"><pre><code id="c-iterm-host"></code></pre><button type="button" data-copy="c-iterm-host">Copy</button></div>
 <h3>On the client Mac (the one you SSH from)</h3>
-<p>Replace <code>my-mac</code> with the bootstrapped Mac's Tailscale hostname; add <code>--user &lt;ssh-user&gt;</code> after <code>--host my-mac</code> if your SSH user differs; <code>--badge &lt;text&gt;</code> and <code>--dry-run</code> are optional.</p>
+<p>Replace <code>my-mac</code> with the remote Mac's short local hostname (see below). <code>--shell-integration</code> installs iTerm2 shell integration on the client as well.</p>
 <div class="cmd"><pre><code id="c-iterm-client"></code></pre><button type="button" data-copy="c-iterm-client">Copy</button></div>
-<p>This writes one Dynamic Profile, <code>mac-bootstrap-&lt;host&gt;.json</code>, into <code>~/Library/Application Support/iTerm2/DynamicProfiles</code> (override with <code>--profiles-dir</code>). <strong>What to expect:</strong> when a session SSHes into that host, iTerm2 switches to the profile automatically and shows the hostname as a badge. Automatic switching relies on the shell integration installed on the bootstrapped Mac (the host-side command above).</p>
+<p>If your SSH user differs from your client user, add <code>--user &lt;ssh-user&gt;</code>:</p>
+<div class="cmd"><pre><code id="c-iterm-client-user"></code></pre><button type="button" data-copy="c-iterm-client-user">Copy</button></div>
+<table>
+<thead><tr><th>Client option</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>--host &lt;name&gt;</code></td><td>Required. The remote Mac's short local hostname.</td></tr>
+<tr><td><code>--user &lt;name&gt;</code></td><td>SSH user; adds <code>user@host</code> rules.</td></tr>
+<tr><td><code>--badge &lt;text&gt;</code></td><td>Badge text (default: the host).</td></tr>
+<tr><td><code>--shell-integration</code></td><td>Also install iTerm2 shell integration on this client.</td></tr>
+<tr><td><code>--profiles-dir &lt;dir&gt;</code></td><td>Default <code>~/Library/Application Support/iTerm2/DynamicProfiles</code>.</td></tr>
+<tr><td><code>--dry-run</code></td><td>Print the profile JSON and target path; write nothing.</td></tr>
+<tr><td><code>-h</code>, <code>--help</code></td><td>Usage.</td></tr>
+</tbody>
+</table>
+<h3>Which name for <code>--host</code></h3>
+<p>iTerm2's shell integration reports the remote's <code>hostname -f</code>, usually <code>&lt;LocalHostName&gt;.local</code>. That is <strong>not</strong> the Tailscale/MagicDNS name or <code>TS_HOSTNAME</code>. Use the remote Mac's short local hostname: run <code>scutil --get LocalHostName</code> on it. The profile rules also match <code>&lt;host&gt;.*</code>, so both <code>.local</code> and <code>*.ts.net</code> names match.</p>
+<p>This writes one Dynamic Profile, <code>mac-bootstrap-&lt;host&gt;.json</code>, into the profiles directory. <strong>What to expect:</strong> when a session SSHes into that host, iTerm2 switches to the profile automatically and shows the badge, and switches back when the SSH session ends.</p>
 
 <h2 id="done">Done</h2>
 <p>Check <code>tailscale status</code> on the bootstrapped Mac, then connect from your client with <code>ssh &lt;user&gt;@&lt;tailscale-hostname&gt;</code> or Screen Sharing to <code>vnc://&lt;tailscale-hostname&gt;</code>.</p>
@@ -163,7 +179,8 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
     "c-run": pipe + "bash",
     "c-secret": pipe + 'TS_AUTHKEY="$TS_AUTHKEY" GH_TOKEN="$GH_TOKEN" bash',
     "c-iterm-host": pipe + "bash -s -- --iterm2-shell-integration",
-    "c-iterm-client": 'curl -fsSL "' + cli + '" | bash -s -- --host my-mac'
+    "c-iterm-client": 'curl -fsSL "' + cli + '" | bash -s -- --host my-mac --shell-integration',
+    "c-iterm-client-user": 'curl -fsSL "' + cli + '" | bash -s -- --host my-mac --user your-ssh-user --shell-integration'
   };
   Object.keys(cmds).forEach(function (id) {
     document.getElementById(id).textContent = cmds[id];

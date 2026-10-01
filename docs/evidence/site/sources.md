@@ -13,3 +13,5 @@ Untracked stubs `public/install.sh` and `public/iterm2-client.sh` were used for 
 `python3 -m http.server 48765 --bind 127.0.0.1 --directory public`, then a Playwright script (chromium) loaded the page,
 clicked each Copy button and compared clipboard to the displayed text: see playwright-check.txt.
 Not verified: vercel.json header application and the Vercel dashboard labels on a live deployment; Apple/Tailscale UI on a real Mac.
+
+Repair round (base ee91b8b): flags-vs-help in flags-vs-help.txt; Playwright check re-run on the repaired page; screenshots retaken.
