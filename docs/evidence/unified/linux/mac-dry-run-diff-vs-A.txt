@@ -1,0 +1,3 @@
+diff <(checkpoint A mac/dry-run-after.txt) <(checkpoint B), first line (header) ignored:
+IDENTICAL: the Mac dry-run is unchanged since checkpoint A
+fresh-Mac mock also identical

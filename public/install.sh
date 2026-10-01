@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# mac-bootstrap install.sh — one script, one URL: bootstraps a Mac (or, later, a Linux box) for
-# remote work over Tailscale, without ever opening a browser on the target.
+# mac-bootstrap install.sh — one script, one URL: bootstraps a Mac or a Linux box (Ubuntu/Debian,
+# Fedora/RHEL-compatible, Arch) for remote work over Tailscale, without ever opening a browser
+# on the target.
 #
 #   Target (default):
 #   curl -fsSL "<origin>/install.sh" | bash -s -- [--dry-run] [--skip-tailscale-up] \
@@ -21,8 +22,9 @@
 # stdin. An OAuth `tskey-client-` value in TS_AUTHKEY requires TS_TAGS; the query string
 # (?ephemeral=false&preauthorized=true) is written INSIDE the key file.
 #
-# Test seam: MB_BREW_CANDIDATES (colon-separated brew paths) overrides Homebrew discovery.
-# It is honoured only together with --dry-run and is inert otherwise. Client-mode test hooks
+# Test seams: MB_BREW_CANDIDATES (colon-separated brew paths) overrides Homebrew discovery and
+# MB_OS_RELEASE overrides the Linux os-release path. Both are honoured only together with
+# --dry-run (MB_OS_RELEASE also with MB_TEST=1) and are inert otherwise. Client-mode test hooks
 # (MB_TEST_*) are honoured only when MB_TEST=1 and use dummy values only; see docs/handoff.md.
 #
 # curl|bash hardening: the whole script is one `{ ... }` group whose closing brace is the
@@ -97,6 +99,19 @@ CM_SOCK=""
 CHOME=""
 API_BASE="$API_DEFAULT"
 NEXT_STEPS=()
+OS_ID=""
+OS_LIKE=""
+OS_VER=""
+OS_PRETTY=""
+LINUX_FAMILY=""
+APT_DISTRO=""
+APT_CODENAME=""
+RHEL_MAJOR=""
+NODE_PLAN=skip
+SUDO_CMD=()
+PACMAN_X=()
+SVC_OK=1
+INCOMPLETE=0
 
 usage() {
   cat <<'EOF'
@@ -106,7 +121,7 @@ Target options:
   --dry-run                    show every step and the exact commands; change nothing
   --skip-tailscale-up          do not run `tailscale up`
   --skip-gh-auth               do not authenticate gh
-  --iterm2-shell-integration   install iTerm2 shell integration for the login shell (macOS)
+  --iterm2-shell-integration   install iTerm2 shell integration for the login shell (macOS only)
   --no-wait                    never wait for a hand-off from your client Mac
   --reauth-tailscale           log in to Tailscale again even if already Running
   --reauth-gh                  log in to gh again even if already authenticated
@@ -561,7 +576,7 @@ paste_bundle() {
 # Called at the start of step 5: wait for credentials only if something needs them.
 maybe_handoff() {
   local st need_ts=0 need_gh=0 why=""
-  if ((!SKIP_TS_UP)) && [[ -z $TS_KEY ]]; then
+  if ((!SKIP_TS_UP && SVC_OK)) && [[ -z $TS_KEY ]]; then
     st=$(ts_state)
     case $st in
       Running | Stopped) if ((REAUTH_TS)); then need_ts=1; fi ;;
@@ -888,7 +903,14 @@ cmd_handoff() {
 step_preflight() {
   local re
   step 1 "Preflight"
-  command -v curl >/dev/null || die "curl not found"
+  if [[ $OS_KIND == macos ]]; then
+    command -v curl >/dev/null || die "curl not found"
+  else
+    linux_detect
+    note "detected: $OS_PRETTY ($LINUX_FAMILY family)"
+    linux_priv
+    linux_init
+  fi
   if [[ -n $TS_HOST && ! $TS_HOST =~ ^[A-Za-z0-9-]{1,63}$ ]]; then
     die "TS_HOSTNAME must match ^[A-Za-z0-9-]{1,63}\$"
   fi
@@ -909,6 +931,7 @@ step_preflight() {
     note "macOS $(sw_vers -productVersion 2>/dev/null || echo '?'), arch $(uname -m)"
   else
     note "Linux, arch $(uname -m), target user $TARGET_USER"
+    if ((EUID == 0)); then note "running as root: gh and git run as $TARGET_USER"; else note "not root: system changes use sudo"; fi
   fi
   note "mode: $( ((DRY_RUN)) && echo dry-run || echo apply )"
   note "TS_AUTHKEY: $(setstate "$TS_KEY")"
@@ -920,9 +943,385 @@ step_preflight() {
   say "    done"
 }
 
-# Linux install branch: checkpoint B.
-linux_install() {
-  die "the Linux install is not yet implemented in this install.sh"
+# ---------------------------------------------------------------------------------------
+# Target: Linux install path (Ubuntu/Debian apt, Fedora and RHEL-compatibles dnf, Arch pacman)
+# Third-party repos are configured as SIGNED repos (keyring/gpgcheck); no vendor setup script
+# is ever piped into a shell. Keys are fetched over HTTPS and are not pinned (accepted risk).
+# ---------------------------------------------------------------------------------------
+
+os_raw() { sed -n "s/^$2=//p" "$1" | head -n1 | tr -d "\"'" | tr -cd 'A-Za-z0-9 ._()/+:-'; }
+
+linux_family_of() {
+  case $1 in
+    ubuntu | debian) echo apt ;;
+    fedora) echo fedora ;;
+    rhel | centos | rocky | almalinux | ol) echo rhel ;;
+    arch) echo pacman ;;
+  esac
+}
+
+# Reads /etc/os-release (never sourced). MB_OS_RELEASE overrides the path ONLY with --dry-run
+# or MB_TEST=1; otherwise it is ignored.
+linux_detect() {
+  local f=/etc/os-release w
+  if [[ -n ${MB_OS_RELEASE-} ]] && { ((DRY_RUN)) || test_mode; }; then
+    f=$MB_OS_RELEASE
+    note "test override: reading os-release from $f"
+  fi
+  [[ -r $f ]] || die "cannot detect the Linux distribution: $f is missing or unreadable (nothing was changed)"
+  OS_ID=$(os_raw "$f" ID | tr '[:upper:]' '[:lower:]')
+  OS_LIKE=$(os_raw "$f" ID_LIKE | tr '[:upper:]' '[:lower:]')
+  OS_VER=$(os_raw "$f" VERSION_ID)
+  OS_PRETTY=$(os_raw "$f" PRETTY_NAME)
+  LINUX_FAMILY=""
+  if [[ $OS_ID != amzn ]]; then
+    LINUX_FAMILY=$(linux_family_of "$OS_ID")
+    if [[ -z $LINUX_FAMILY ]]; then
+      for w in $OS_LIKE; do
+        LINUX_FAMILY=$(linux_family_of "$w")
+        if [[ -n $LINUX_FAMILY ]]; then break; fi
+      done
+    fi
+  fi
+  if [[ -z $LINUX_FAMILY ]]; then
+    die "unsupported Linux distribution '${OS_ID:-unknown}' (ID_LIKE '${OS_LIKE:-none}'); supported: Ubuntu/Debian (apt), Fedora and RHEL-compatibles (dnf), Arch (pacman). Nothing was changed"
+  fi
+  if [[ $LINUX_FAMILY == apt ]]; then
+    case $OS_ID in
+      ubuntu) APT_DISTRO=ubuntu; APT_CODENAME=$(os_raw "$f" VERSION_CODENAME) ;;
+      debian) APT_DISTRO=debian; APT_CODENAME=$(os_raw "$f" VERSION_CODENAME) ;;
+      *)
+        case " $OS_LIKE " in
+          *" ubuntu "*) APT_DISTRO=ubuntu; APT_CODENAME=$(os_raw "$f" UBUNTU_CODENAME) ;;
+          *) APT_DISTRO=debian; APT_CODENAME=$(os_raw "$f" DEBIAN_CODENAME) ;;
+        esac
+        ;;
+    esac
+    [[ $APT_CODENAME =~ ^[a-z]+$ ]] || die "cannot determine the apt release codename from $f (nothing was changed)"
+  fi
+  if [[ $LINUX_FAMILY == rhel ]]; then
+    RHEL_MAJOR=${OS_VER%%.*}
+    [[ $RHEL_MAJOR =~ ^[0-9]+$ ]] || die "cannot determine the RHEL major version from $f (nothing was changed)"
+  fi
+}
+
+linux_priv() {
+  SUDO_CMD=()
+  if ((EUID != 0)); then
+    command -v sudo >/dev/null 2>&1 || die "this user is not root and sudo is not installed: run as root (name the user with --target-user) or install sudo first (nothing was changed)"
+    SUDO_CMD=(sudo)
+  fi
+}
+
+# priv <cmd...>: run as root (sudo when not root), or print in dry-run.
+priv() {
+  if ((DRY_RUN)); then
+    dry ${SUDO_CMD[@]+"${SUDO_CMD[@]}"} "$@"
+  else
+    ${SUDO_CMD[@]+"${SUDO_CMD[@]}"} "$@" </dev/null
+  fi
+}
+
+have_systemd() { [[ -d /run/systemd/system ]]; }
+
+in_container() { [[ -f /.dockerenv || -f /run/.containerenv ]]; }
+
+pkg_installed() {
+  case $LINUX_FAMILY in
+    apt) dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q 'install ok installed' ;;
+    fedora | rhel) rpm -q "$1" >/dev/null 2>&1 ;;
+    pacman) pacman -Q "$1" >/dev/null 2>&1 ;;
+  esac
+}
+
+pm_install() {
+  local missing=() p
+  for p in "$@"; do
+    if ! pkg_installed "$p"; then missing+=("$p"); fi
+  done
+  if ((${#missing[@]} == 0)); then
+    note "already present -> skip: $*"
+    return 0
+  fi
+  case $LINUX_FAMILY in
+    apt) priv env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${missing[@]}" ;;
+    fedora | rhel) priv dnf -y -q install "${missing[@]}" ;;
+    pacman) priv pacman ${PACMAN_X[@]+"${PACMAN_X[@]}"} -S --noconfirm --needed "${missing[@]}" ;;
+  esac
+}
+
+tmpref() { if ((DRY_RUN)); then printf '/tmp/mac-bootstrap.XXXXXX/%s' "$1"; else printf '%s/%s' "$TMPD" "$1"; fi; }
+
+# fetch <url> <name>: HTTPS download into the private temp dir; prints the sha256.
+fetch() {
+  if ((DRY_RUN)); then
+    dry "${CURL[@]}" "$1" -o "$(tmpref "$2")"
+  else
+    ensure_tmp
+    "${CURL[@]}" "$1" -o "$TMPD/$2" || die "download failed: $1"
+    [[ -s $TMPD/$2 ]] || die "empty download: $1"
+    note "fetched $2, sha256 $(sha256_of "$TMPD/$2") (unpinned HTTPS download)"
+  fi
+}
+
+sha256_of() { if command -v sha256sum >/dev/null 2>&1; then sha256sum <"$1" | cut -d' ' -f1; else shasum -a 256 <"$1" | cut -d' ' -f1; fi; }
+
+# expect_in <name> <fixed-string>: sanity-check a downloaded repo file before installing it.
+expect_in() {
+  if ((DRY_RUN)); then return 0; fi
+  grep -qF -- "$2" "$TMPD/$1" || die "the downloaded $1 does not look like the expected repo file (missing '$2'); refusing to install it"
+}
+
+node_major() {
+  local v
+  v=$(node --version 2>/dev/null || true)
+  v=${v#v}
+  v=${v%%.*}
+  if [[ $v =~ ^[0-9]+$ ]]; then echo "$v"; else echo 0; fi
+}
+
+node_ok() { command -v npm >/dev/null 2>&1 && (($(node_major) >= 20)); }
+
+apt_candidate_major() {
+  local c
+  c=$(apt-cache policy nodejs 2>/dev/null | sed -n 's/^ *Candidate: *//p' | head -n1)
+  c=${c#*:}
+  c=${c%%.*}
+  if [[ $c =~ ^[0-9]+$ ]]; then echo "$c"; else echo 0; fi
+}
+
+linux_init() {
+  PREFIX=/usr
+  TSBIN=/usr/bin
+  HAVE_BREW=1
+  PACMAN_X=()
+  if [[ $LINUX_FAMILY == pacman ]] && in_container; then PACMAN_X=(--disable-sandbox); fi
+}
+
+step_linux_repos() {
+  step 2 "Package repositories (signed)"
+  if ((!DRY_RUN)) && ((${#SUDO_CMD[@]})); then
+    if ! sudo -n true 2>/dev/null; then
+      have_tty || die "sudo needs a password and there is no terminal"
+      sudo -v
+    fi
+  fi
+  NODE_PLAN=skip
+  if node_ok; then
+    note "node $(node --version) and npm already present -> skip"
+  fi
+  case $LINUX_FAMILY in
+    apt)
+      priv env DEBIAN_FRONTEND=noninteractive apt-get update -qq
+      pm_install ca-certificates curl gnupg
+      if [[ $NODE_PLAN == skip ]] && ! node_ok; then
+        if (($(apt_candidate_major) >= 20)); then
+          NODE_PLAN=distro
+        else
+          NODE_PLAN=nodesource
+          if ((DRY_RUN)); then note "(package index is not loaded in dry-run: this assumes the distro nodejs is older than 20; the real run checks the candidate)"; fi
+        fi
+      fi
+      priv install -d -m 0755 /etc/apt/keyrings
+      if [[ -f /etc/apt/sources.list.d/tailscale.list ]]; then
+        note "tailscale apt repo already configured -> skip"
+      else
+        fetch "https://pkgs.tailscale.com/stable/$APT_DISTRO/$APT_CODENAME.noarmor.gpg" tailscale-archive-keyring.gpg
+        fetch "https://pkgs.tailscale.com/stable/$APT_DISTRO/$APT_CODENAME.tailscale-keyring.list" tailscale.list
+        expect_in tailscale.list "https://pkgs.tailscale.com/"
+        priv install -m 0644 "$(tmpref tailscale-archive-keyring.gpg)" /usr/share/keyrings/tailscale-archive-keyring.gpg
+        priv install -m 0644 "$(tmpref tailscale.list)" /etc/apt/sources.list.d/tailscale.list
+      fi
+      if [[ -f /etc/apt/sources.list.d/github-cli.list ]]; then
+        note "gh apt repo already configured -> skip"
+      else
+        fetch "https://cli.github.com/packages/githubcli-archive-keyring.gpg" githubcli-archive-keyring.gpg
+        if ((DRY_RUN)); then
+          note "DRY-RUN would write /etc/apt/sources.list.d/github-cli.list: deb [arch=<dpkg arch> signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+        else
+          printf 'deb [arch=%s signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n' "$(dpkg --print-architecture)" >"$TMPD/github-cli.list"
+        fi
+        priv install -m 0644 "$(tmpref githubcli-archive-keyring.gpg)" /etc/apt/keyrings/githubcli-archive-keyring.gpg
+        priv install -m 0644 "$(tmpref github-cli.list)" /etc/apt/sources.list.d/github-cli.list
+      fi
+      if [[ $NODE_PLAN == nodesource ]]; then
+        if [[ -f /etc/apt/sources.list.d/nodesource.list ]]; then
+          note "NodeSource apt repo already configured -> skip"
+        else
+          fetch "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" nodesource-repo.gpg.key
+          if ((DRY_RUN)); then
+            dry gpg --dearmor -o "$(tmpref nodesource.gpg)" "$(tmpref nodesource-repo.gpg.key)"
+            note "DRY-RUN would write /etc/apt/sources.list.d/nodesource.list: deb [arch=<dpkg arch> signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main"
+          else
+            gpg --dearmor -o "$TMPD/nodesource.gpg" "$TMPD/nodesource-repo.gpg.key" </dev/null
+            printf 'deb [arch=%s signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main\n' "$(dpkg --print-architecture)" >"$TMPD/nodesource.list"
+          fi
+          priv install -m 0644 "$(tmpref nodesource.gpg)" /usr/share/keyrings/nodesource.gpg
+          priv install -m 0644 "$(tmpref nodesource.list)" /etc/apt/sources.list.d/nodesource.list
+        fi
+      fi
+      priv env DEBIAN_FRONTEND=noninteractive apt-get update -qq
+      ;;
+    fedora | rhel)
+      if ! command -v curl >/dev/null 2>&1; then pm_install curl; fi
+      if [[ -f /etc/yum.repos.d/tailscale.repo ]]; then
+        note "tailscale dnf repo already configured -> skip"
+      else
+        if [[ $LINUX_FAMILY == fedora ]]; then
+          fetch "https://pkgs.tailscale.com/stable/fedora/tailscale.repo" tailscale.repo
+        else
+          fetch "https://pkgs.tailscale.com/stable/centos/$RHEL_MAJOR/tailscale.repo" tailscale.repo
+        fi
+        expect_in tailscale.repo "pkgs.tailscale.com"
+        priv install -m 0644 "$(tmpref tailscale.repo)" /etc/yum.repos.d/tailscale.repo
+      fi
+      if [[ $LINUX_FAMILY == rhel ]]; then
+        if [[ -f /etc/yum.repos.d/gh-cli.repo ]]; then
+          note "gh dnf repo already configured -> skip"
+        else
+          fetch "https://cli.github.com/packages/rpm/gh-cli.repo" gh-cli.repo
+          expect_in gh-cli.repo "cli.github.com"
+          priv install -m 0644 "$(tmpref gh-cli.repo)" /etc/yum.repos.d/gh-cli.repo
+        fi
+        if [[ $NODE_PLAN == skip ]] && ! node_ok; then
+          NODE_PLAN=distro
+          case $RHEL_MAJOR in
+            8 | 9)
+              priv dnf -y -q module enable nodejs:22
+              note "node: dnf module nodejs:22 (the default stream is older than 20)"
+              ;;
+          esac
+        fi
+      elif [[ $NODE_PLAN == skip ]] && ! node_ok; then
+        NODE_PLAN=distro
+      fi
+      ;;
+    pacman)
+      note "official repos only (tailscale, github-cli, nodejs, openssh); refreshing and upgrading the package database first (pacman -Syu)"
+      priv pacman ${PACMAN_X[@]+"${PACMAN_X[@]}"} -Syu --noconfirm --needed
+      if [[ $NODE_PLAN == skip ]] && ! node_ok; then NODE_PLAN=distro; fi
+      ;;
+  esac
+  say "    done"
+}
+
+step_linux_tailscale() {
+  step 3 "Tailscale package"
+  if pkg_installed tailscale; then
+    say "    already present -> skip"
+  else
+    pm_install tailscale
+    ((DRY_RUN)) || say "    done"
+  fi
+}
+
+firewall_report() {
+  local st
+  if command -v firewall-cmd >/dev/null 2>&1 && have_systemd && systemctl is-active --quiet firewalld 2>/dev/null; then
+    if firewall-cmd --query-service=ssh >/dev/null 2>&1; then
+      note "firewalld is active and allows the ssh service"
+    else
+      note "WARNING: firewalld is active but does not allow the ssh service; nothing was opened"
+      NEXT_STEPS+=("firewalld blocks SSH: sudo firewall-cmd --permanent --add-service=ssh && sudo firewall-cmd --reload (not done automatically)")
+    fi
+  else
+    note "firewalld: not active"
+  fi
+  if command -v ufw >/dev/null 2>&1; then
+    if ((DRY_RUN)); then
+      note "ufw is installed: its state is read in the real run (nothing is changed)"
+    else
+      st=$(${SUDO_CMD[@]+"${SUDO_CMD[@]}"} ufw status 2>/dev/null </dev/null | head -n1 || true)
+      note "ufw: ${st:-state unavailable} (not changed; if active, allow SSH yourself: ufw allow ssh)"
+    fi
+  fi
+}
+
+unit_exists() { systemctl list-unit-files --no-legend "$1" 2>/dev/null | grep -q .; }
+
+step_linux_services() {
+  step 4 "OpenSSH server and tailscaled services"
+  local sshd i sshunit
+  case $LINUX_FAMILY in
+    pacman) pm_install openssh ;;
+    *) pm_install openssh-server ;;
+  esac
+  sshd=$(command -v sshd 2>/dev/null || echo /usr/sbin/sshd)
+  if ((DRY_RUN)); then
+    note "would generate SSH host keys only if none exist (ssh-keygen -A), then validate with sshd -t"
+  else
+    if ! ls /etc/ssh/ssh_host_*_key >/dev/null 2>&1; then
+      priv ssh-keygen -A >/dev/null
+      note "generated missing SSH host keys"
+    fi
+    priv mkdir -p /run/sshd
+    priv "$sshd" -t || die "sshd -t failed: the SSH server configuration is invalid (not touched by this script)"
+    note "sshd -t: ok"
+  fi
+  if have_systemd; then
+    case $LINUX_FAMILY in
+      apt) sshunit=ssh ;;
+      *) sshunit=sshd ;;
+    esac
+    if ((DRY_RUN)); then
+      note "systemd is PID 1: would enable and start tailscaled and $sshunit"
+    fi
+    priv systemctl enable --now tailscaled
+    if [[ $LINUX_FAMILY == apt ]] && ! ((DRY_RUN)) && unit_exists ssh.socket; then
+      priv systemctl enable --now ssh.socket
+      priv systemctl enable ssh.service
+    elif [[ $LINUX_FAMILY == apt ]] && ((DRY_RUN)); then
+      dry systemctl enable --now ssh.socket "(only if the ssh.socket unit exists, e.g. Ubuntu 22.10+)"
+      dry systemctl enable --now ssh
+    else
+      priv systemctl enable --now "$sshunit"
+    fi
+    if ((!DRY_RUN)); then
+      for i in $(seq 1 30); do
+        if "$TSBIN/tailscale" status >/dev/null 2>&1 || [[ -S /var/run/tailscale/tailscaled.sock || -S /run/tailscale/tailscaled.sock ]]; then break; fi
+        sleep 1
+      done
+      note "systemd: tailscaled $(systemctl is-active tailscaled 2>/dev/null || true), $sshunit $(systemctl is-active "$sshunit" 2>/dev/null || true)$(if [[ $LINUX_FAMILY == apt ]] && unit_exists ssh.socket; then printf ', ssh.socket %s' "$(systemctl is-active ssh.socket 2>/dev/null || true)"; fi)"
+      say "    done"
+    fi
+  else
+    SVC_OK=0
+    INCOMPLETE=3
+    note "systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started"
+    note "packages are installed; start sshd and tailscaled yourself, or run this on a systemd host"
+  fi
+  firewall_report
+}
+
+step_linux_tools() {
+  step 6 "git, gh, node, paseo"
+  case $LINUX_FAMILY in
+    apt) pm_install git gh ;;
+    fedora | rhel) pm_install git gh ;;
+    pacman) pm_install git github-cli ;;
+  esac
+  if node_ok; then
+    note "node $(node --version): already present -> skip"
+  else
+    case $LINUX_FAMILY in
+      apt)
+        if [[ $NODE_PLAN == nodesource ]]; then pm_install nodejs; else pm_install nodejs npm; fi
+        ;;
+      *) pm_install nodejs npm ;;
+    esac
+    if ((!DRY_RUN)); then
+      (($(node_major) >= 20)) || die "node >= 20 is required by Paseo, found $(node --version 2>/dev/null || echo none)"
+    fi
+  fi
+  if command -v paseo >/dev/null 2>&1; then
+    note "paseo: already present -> skip ($(paseo --version 2>/dev/null || echo 'version unknown'))"
+  else
+    priv npm install -g --no-fund --no-audit @getpaseo/cli
+    if ((!DRY_RUN)); then
+      note "paseo $(paseo --version 2>/dev/null || echo 'installed, version unreadable') (npm @getpaseo/cli, latest; the daemon is not started)"
+    fi
+  fi
+  ((DRY_RUN)) || say "    done"
 }
 
 persist_shellenv() {
@@ -1042,7 +1441,11 @@ step_tailscaled() {
 
 ts_state() {
   local s=""
-  if ((HAVE_BREW)) && [[ -x $TSBIN/tailscale ]] && socket_up; then
+  if [[ $OS_KIND == linux ]]; then
+    if [[ -x $TSBIN/tailscale ]]; then
+      s=$("$TSBIN/tailscale" status --json 2>/dev/null | sed -n 's/^ *"BackendState": *"\([A-Za-z]*\)".*/\1/p' | head -n1 || true)
+    fi
+  elif ((HAVE_BREW)) && [[ -x $TSBIN/tailscale ]] && socket_up; then
     s=$("$TSBIN/tailscale" status --json 2>/dev/null | plutil -extract BackendState raw -o - - 2>/dev/null || true)
   fi
   echo "${s:-NoState}"
@@ -1050,7 +1453,7 @@ ts_state() {
 
 gh_authed() {
   local gh="$PREFIX/bin/gh"
-  if ((HAVE_BREW)) && [[ -x $gh ]] && "${GH_ENV[@]}" "$gh" auth status --active --hostname github.com >/dev/null 2>&1; then
+  if ((HAVE_BREW)) && [[ -x $gh ]] && as_target "${GH_ENV[@]}" "$gh" auth status --active --hostname github.com >/dev/null 2>&1 </dev/null; then
     return 0
   fi
   return 1
@@ -1064,10 +1467,18 @@ step_tailscale_up() {
     NEXT_STEPS+=("Run: $TSBIN/tailscale up   (prints a login URL; the installer itself never opens a browser)")
     return
   fi
+  if ((!SVC_OK)); then
+    say "    skipped: tailscaled is not running (no systemd); NOT joined to the tailnet"
+    NEXT_STEPS+=("Start tailscaled, then run: sudo tailscale up (or re-run this installer on a systemd host)")
+    return
+  fi
   local state ts_cmd=("$TSBIN/tailscale") extra=() keyfile content want_up=0 force=()
   state=$(ts_state)
   note "BackendState: $state"
-  if ! id -Gn | grep -qw admin; then
+  if [[ $OS_KIND == linux ]]; then
+    if ((${#SUDO_CMD[@]})); then ts_cmd=("${SUDO_CMD[@]}" "$TSBIN/tailscale"); fi
+    extra+=(--operator="$TARGET_USER")
+  elif ! id -Gn | grep -qw admin; then
     ts_cmd=(sudo "$TSBIN/tailscale")
     extra+=(--operator="$USER")
     note "sudo needed: user is not in the admin group"
@@ -1164,10 +1575,16 @@ step_gh_auth() {
       printf ' %q' "${GH_ENV[@]}" "$gh" auth login --hostname github.com --with-token
       printf '\n'
     else
-      printf '%s' "$GH_TOK" | "${GH_ENV[@]}" "$gh" auth login --hostname github.com --with-token
+      if printf '%s' "$GH_TOK" | as_target "${GH_ENV[@]}" "$gh" auth login --hostname github.com --with-token; then
+        authed=1
+        say "    done"
+      else
+        authed=0
+        say "    gh login FAILED (token rejected, no network, or gh error): not logged in; the token was not kept"
+        NEXT_STEPS+=("gh login failed: run 'gh auth login --hostname github.com --with-token' with a valid token, then 'gh auth setup-git --hostname github.com'")
+        if ((!INCOMPLETE)); then INCOMPLETE=4; fi
+      fi
       GH_TOK=""
-      authed=1
-      say "    done"
     fi
   elif ((DRY_RUN)); then
     note "no GH_TOKEN yet: with a hand-off this would run: printf %s <GH_TOKEN masked> | gh auth login --hostname github.com --with-token"
@@ -1180,7 +1597,7 @@ step_gh_auth() {
   if ((DRY_RUN)); then
     dry "${GH_ENV[@]}" "$gh" auth setup-git --hostname github.com
   elif ((authed)); then
-    "${GH_ENV[@]}" "$gh" auth setup-git --hostname github.com
+    as_target "${GH_ENV[@]}" "$gh" auth setup-git --hostname github.com </dev/null
   fi
 }
 
@@ -1197,14 +1614,14 @@ step_git_identity() {
     [[ -n ${vals[i]} ]] || continue
     cur=""
     if ((HAVE_BREW)) && [[ -x $git ]]; then
-      cur=$("$git" config --global --get "${keys[i]}" 2>/dev/null || true)
+      cur=$(as_target "$git" config --global --get "${keys[i]}" 2>/dev/null </dev/null || true)
     fi
     if [[ -n $cur ]] && ((!SET_GIT)); then
       note "${keys[i]}: already present -> skip (use --set-git-identity to overwrite)"
     elif ((DRY_RUN)); then
       dry "$git" config --global "${keys[i]}" "${vals[i]}"
     else
-      "$git" config --global "${keys[i]}" "${vals[i]}"
+      as_target "$git" config --global "${keys[i]}" "${vals[i]}" </dev/null
       note "${keys[i]}: set"
     fi
   done
@@ -1212,6 +1629,10 @@ step_git_identity() {
 
 step_iterm2() {
   step 9 "iTerm2 shell integration"
+  if [[ $OS_KIND == linux ]]; then
+    say "    skipped (macOS only)"
+    return
+  fi
   if ((!ITERM_SI)); then
     say "    skipped (needs --iterm2-shell-integration)"
     return
@@ -1254,8 +1675,38 @@ step_iterm2() {
   NEXT_STEPS+=("Open a new terminal tab so iTerm2 shell integration loads")
 }
 
+summary_linux() {
+  local ip="" name="" s
+  if ((DRY_RUN)); then
+    note "DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)"
+    note "then: ssh $TARGET_USER@<host>"
+  elif ((SVC_OK)); then
+    ip=$("$TSBIN/tailscale" ip -4 2>/dev/null | head -n1 || true)
+    name=$("$TSBIN/tailscale" status --json 2>/dev/null | sed -n 's/^ *"DNSName": *"\([^"]*\)".*/\1/p' | head -n1 || true)
+    name=${name%.}
+    note "Tailscale IP: ${ip:-unavailable}"
+    note "MagicDNS name: ${name:-unavailable}"
+    if [[ -n $name ]]; then note "connect: ssh $TARGET_USER@$name"; fi
+  else
+    note "Tailscale: NOT started (no systemd), so there is no tailnet IP or name"
+  fi
+  if ssh_listening; then note "SSH server: listening on port 22"; else note "SSH server: not listening on port 22"; fi
+  note "start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)"
+  if ((!SVC_OK)); then
+    say "    $( ((DRY_RUN)) && echo "DRY-RUN would end " )NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3."
+  elif ((INCOMPLETE == 4)); then
+    say "    NOT COMPLETE: gh login failed. Exit status 4."
+  fi
+  say "    still manual:"
+  for s in ${NEXT_STEPS[@]+"${NEXT_STEPS[@]}"}; do say "      - $s"; done
+}
+
 step_summary() {
   step 10 "Summary"
+  if [[ $OS_KIND == linux ]]; then
+    summary_linux
+    return
+  fi
   local ip="" name="" short fqdn
   if ((DRY_RUN)); then
     note "DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)"
@@ -1313,17 +1764,23 @@ main() {
   target_resolve
   step_preflight
   if [[ $OS_KIND == linux ]]; then
-    linux_install
+    step_linux_repos
+    step_linux_tailscale
+    step_linux_services
+    step_tailscale_up
+    step_linux_tools
+  else
+    step_homebrew
+    step_tailscale_formula
+    step_tailscaled
+    step_tailscale_up
+    step_tools
   fi
-  step_homebrew
-  step_tailscale_formula
-  step_tailscaled
-  step_tailscale_up
-  step_tools
   step_gh_auth
   step_git_identity
   step_iterm2
   step_summary
+  return "$INCOMPLETE"
 }
 
 main "$@"

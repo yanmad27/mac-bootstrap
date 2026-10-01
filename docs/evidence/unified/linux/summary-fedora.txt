@@ -1,0 +1,9 @@
+PASS fedora dry-run exits 0 and shows the numbered flow
+PASS fedora dry-run: dummy TS_AUTHKEY/GH_TOKEN absent from the output
+PASS fedora dry-run changed nothing (no tailscale/gh/node installed)
+PASS fedora hand-off delivered (real SSH)
+PASS fedora installer exit status 3 (services not started, honestly reported)
+PASS fedora gh login with the dummy token failed cleanly (script continued)
+PASS fedora probes: all tools present (tailscale, sshd, git, gh, node >= 20, paseo)
+PASS fedora probes: sshd -t ok, git identity set, inbox removed
+PASS fedora rerun is idempotent (everything already present -> skip, no reinstall)

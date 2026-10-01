@@ -1,0 +1,137 @@
+bash 3.2.57(1)-release
+
+=================== ubuntu (bash 3.2.57(1)-release)
+    test override: reading os-release from <tmp>
+detected: Fake ubuntu / apt
+[2/10] Package repositories (signed)
+    node v26.10.0 and npm already present -> skip
+    DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get update -qq
+    DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates curl gnupg
+    DRY-RUN would run: sudo install -d -m 0755 /etc/apt/keyrings
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg -o /tmp/mac-bootstrap.XXXXXX/tailscale-archive-keyring.gpg
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list -o /tmp/mac-bootstrap.XXXXXX/tailscale.list
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/tailscale-archive-keyring.gpg /usr/share/keyrings/tailscale-archive-keyring.gpg
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/tailscale.list /etc/apt/sources.list.d/tailscale.list
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /tmp/mac-bootstrap.XXXXXX/githubcli-archive-keyring.gpg
+    DRY-RUN would write /etc/apt/sources.list.d/github-cli.list: deb [arch=<dpkg arch> signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/githubcli-archive-keyring.gpg /etc/apt/keyrings/githubcli-archive-keyring.gpg
+
+[3/10] Tailscale package
+    DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq tailscale
+
+[4/10] OpenSSH server and tailscaled services
+    DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq openssh-server
+    would generate SSH host keys only if none exist (ssh-keygen -A), then validate with sshd -t
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+
+[6/10] git, gh, node, paseo
+    DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git gh
+    node v26.10.0: already present -> skip
+    paseo: already present -> skip (0.10.2)
+
+=================== debian (bash 3.2.57(1)-release)
+    test override: reading os-release from <tmp>
+detected: Fake debian / apt
+[2/10] Package repositories (signed)
+    node v26.10.0 and npm already present -> skip
+    DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get update -qq
+    DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates curl gnupg
+    DRY-RUN would run: sudo install -d -m 0755 /etc/apt/keyrings
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg -o /tmp/mac-bootstrap.XXXXXX/tailscale-archive-keyring.gpg
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://pkgs.tailscale.com/stable/debian/trixie.tailscale-keyring.list -o /tmp/mac-bootstrap.XXXXXX/tailscale.list
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/tailscale-archive-keyring.gpg /usr/share/keyrings/tailscale-archive-keyring.gpg
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/tailscale.list /etc/apt/sources.list.d/tailscale.list
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /tmp/mac-bootstrap.XXXXXX/githubcli-archive-keyring.gpg
+    DRY-RUN would write /etc/apt/sources.list.d/github-cli.list: deb [arch=<dpkg arch> signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/githubcli-archive-keyring.gpg /etc/apt/keyrings/githubcli-archive-keyring.gpg
+
+[3/10] Tailscale package
+    DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq tailscale
+
+[4/10] OpenSSH server and tailscaled services
+    DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq openssh-server
+    would generate SSH host keys only if none exist (ssh-keygen -A), then validate with sshd -t
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+
+[6/10] git, gh, node, paseo
+    DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git gh
+    node v26.10.0: already present -> skip
+    paseo: already present -> skip (0.10.2)
+
+=================== fedora (bash 3.2.57(1)-release)
+    test override: reading os-release from <tmp>
+detected: Fake fedora / fedora
+[2/10] Package repositories (signed)
+    node v26.10.0 and npm already present -> skip
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo -o /tmp/mac-bootstrap.XXXXXX/tailscale.repo
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/tailscale.repo /etc/yum.repos.d/tailscale.repo
+    done
+
+[3/10] Tailscale package
+    DRY-RUN would run: sudo dnf -y -q install tailscale
+
+[4/10] OpenSSH server and tailscaled services
+    DRY-RUN would run: sudo dnf -y -q install openssh-server
+    would generate SSH host keys only if none exist (ssh-keygen -A), then validate with sshd -t
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+
+[6/10] git, gh, node, paseo
+    DRY-RUN would run: sudo dnf -y -q install git gh
+    node v26.10.0: already present -> skip
+    paseo: already present -> skip (0.10.2)
+
+=================== rocky (bash 3.2.57(1)-release)
+    test override: reading os-release from <tmp>
+detected: Fake rocky / rhel
+[2/10] Package repositories (signed)
+    node v26.10.0 and npm already present -> skip
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://pkgs.tailscale.com/stable/centos/9/tailscale.repo -o /tmp/mac-bootstrap.XXXXXX/tailscale.repo
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/tailscale.repo /etc/yum.repos.d/tailscale.repo
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://cli.github.com/packages/rpm/gh-cli.repo -o /tmp/mac-bootstrap.XXXXXX/gh-cli.repo
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/gh-cli.repo /etc/yum.repos.d/gh-cli.repo
+    done
+
+[3/10] Tailscale package
+    DRY-RUN would run: sudo dnf -y -q install tailscale
+
+[4/10] OpenSSH server and tailscaled services
+    DRY-RUN would run: sudo dnf -y -q install openssh-server
+    would generate SSH host keys only if none exist (ssh-keygen -A), then validate with sshd -t
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+
+[6/10] git, gh, node, paseo
+    DRY-RUN would run: sudo dnf -y -q install git gh
+    node v26.10.0: already present -> skip
+    paseo: already present -> skip (0.10.2)
+
+=================== arch (bash 3.2.57(1)-release)
+    test override: reading os-release from <tmp>
+detected: Fake arch / pacman
+[2/10] Package repositories (signed)
+    node v26.10.0 and npm already present -> skip
+    official repos only (tailscale, github-cli, nodejs, openssh); refreshing and upgrading the package database first (pacman -Syu)
+    DRY-RUN would run: sudo pacman -Syu --noconfirm --needed
+    done
+
+[3/10] Tailscale package
+    DRY-RUN would run: sudo pacman -S --noconfirm --needed tailscale
+
+[4/10] OpenSSH server and tailscaled services
+    DRY-RUN would run: sudo pacman -S --noconfirm --needed openssh
+    would generate SSH host keys only if none exist (ssh-keygen -A), then validate with sshd -t
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+
+[6/10] git, gh, node, paseo
+    DRY-RUN would run: sudo pacman -S --noconfirm --needed git github-cli
+    node v26.10.0: already present -> skip
+    paseo: already present -> skip (0.10.2)

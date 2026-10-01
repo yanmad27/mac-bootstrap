@@ -116,3 +116,20 @@ Tailnet policy needed once (OpenSSH on TCP 22, not Tailscale SSH):
   "grants": [{ "src": ["autogroup:member"], "dst": ["tag:bootstrap"], "ip": ["tcp:22"] }]
 }
 ```
+
+## 9. Linux target facts (not part of the frozen contract, sections 1-4 are unchanged)
+
+Same single script and flags; the Linux branch is chosen by `uname -s`. Detected from `/etc/os-release` (parsed, never sourced): Ubuntu/Debian (apt, also ID_LIKE), Fedora (dnf), RHEL-compatibles `rhel|centos|rocky|almalinux|ol` (dnf), Arch (pacman, also ID_LIKE). Anything else (including Amazon Linux, Alpine, SUSE) stops with an "unsupported" error before any change. `MB_OS_RELEASE=<path>` replaces the os-release path ONLY with `--dry-run` or `MB_TEST=1` and is ignored otherwise.
+
+| Step | Ubuntu/Debian | Fedora | RHEL-compatible | Arch |
+|---|---|---|---|---|
+| Tailscale | signed apt repo (keyring + list from pkgs.tailscale.com per distro/codename) | `fedora/tailscale.repo` | `centos/<major>/tailscale.repo` | `tailscale` |
+| gh | signed apt repo (cli.github.com keyring) | distro `gh` | `gh-cli.repo` | `github-cli` |
+| Node >= 20 (Paseo) | distro `nodejs npm` if the candidate is >= 20, else NodeSource `node_22.x` apt repo with its signing key (never `setup_22.x`) | distro | `dnf module enable nodejs:22` on 8/9 | `nodejs npm` |
+| SSH server | `openssh-server`; unit `ssh` (`ssh.socket` too where it exists) | `openssh-server`, `sshd` | same | `openssh`, `sshd` |
+
+Paseo is `npm install -g @getpaseo/cli` (latest, version printed); only the CLI, its daemon is never started. Repo keys/files are HTTPS downloads, sanity-checked and not pinned (their sha256 is printed). The installer never enables password or root login and never opens a firewall port: firewalld state is checked and reported (with the command to allow `ssh`), ufw state is only reported.
+
+Privileges: root runs the system steps directly; a normal user needs sudo (otherwise a clear error before any change). As root, gh and git run as the `--target-user` / `SUDO_USER` user. gh stores its token in `~/.config/gh/hosts.yml` (plaintext, mode 0600) when no keyring is available, as on a headless server.
+
+No systemd as PID 1 (`/run/systemd/system` absent, e.g. a container): packages are installed, `tailscaled`/`sshd` are NOT enabled or started, `tailscale up` is skipped, and the summary and the exit status say so: exit 3 (`NOT COMPLETE`). A failed gh login (rejected token, no network) is reported without aborting and exits 4. A hand-off in such a container needs sshd started by hand (or paste, `p`).

@@ -1,0 +1,75 @@
+image: debian@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+image id: sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+platform: linux/arm64 (image architecture arm64)  native
+family: debian   run as: root (root, --target-user tuser)
+date: 2026-10-01T19:35:07+07:00
+command: docker exec -u root -e TS_AUTHKEY=<dummy> -e GH_TOKEN=<dummy> -e TS_TAGS=tag:bootstrap mbl-debian bash /tmp/install.sh --dry-run --target-user tuser
+
+
+[1/10] Preflight
+    detected: Debian GNU/Linux 13 (trixie) (apt family)
+    Linux, arch aarch64, target user tuser
+    running as root: gh and git run as tuser
+    mode: dry-run
+    TS_AUTHKEY: set
+    TS_TAGS: set
+    GH_TOKEN: set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+
+[2/10] Package repositories (signed)
+    DRY-RUN would run: env DEBIAN_FRONTEND=noninteractive apt-get update -qq
+    DRY-RUN would run: env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates curl gnupg
+    DRY-RUN would run: install -d -m 0755 /etc/apt/keyrings
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg -o /tmp/mac-bootstrap.XXXXXX/tailscale-archive-keyring.gpg
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://pkgs.tailscale.com/stable/debian/trixie.tailscale-keyring.list -o /tmp/mac-bootstrap.XXXXXX/tailscale.list
+    DRY-RUN would run: install -m 0644 /tmp/mac-bootstrap.XXXXXX/tailscale-archive-keyring.gpg /usr/share/keyrings/tailscale-archive-keyring.gpg
+    DRY-RUN would run: install -m 0644 /tmp/mac-bootstrap.XXXXXX/tailscale.list /etc/apt/sources.list.d/tailscale.list
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /tmp/mac-bootstrap.XXXXXX/githubcli-archive-keyring.gpg
+    DRY-RUN would write /etc/apt/sources.list.d/github-cli.list: deb [arch=<dpkg arch> signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main
+    DRY-RUN would run: install -m 0644 /tmp/mac-bootstrap.XXXXXX/githubcli-archive-keyring.gpg /etc/apt/keyrings/githubcli-archive-keyring.gpg
+    DRY-RUN would run: install -m 0644 /tmp/mac-bootstrap.XXXXXX/github-cli.list /etc/apt/sources.list.d/github-cli.list
+    DRY-RUN would run: env DEBIAN_FRONTEND=noninteractive apt-get update -qq
+    done
+
+[3/10] Tailscale package
+    DRY-RUN would run: env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq tailscale
+
+[4/10] OpenSSH server and tailscaled services
+    DRY-RUN would run: env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq openssh-server
+    would generate SSH host keys only if none exist (ssh-keygen -A), then validate with sshd -t
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+
+[5/10] tailscale up
+    skipped: tailscaled is not running (no systemd); NOT joined to the tailnet
+
+[6/10] git, gh, node, paseo
+    DRY-RUN would run: env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git gh
+    DRY-RUN would run: env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nodejs npm
+    DRY-RUN would run: npm install -g --no-fund --no-audit @getpaseo/cli
+
+[7/10] gh auth
+    DRY-RUN would run: printf %s <GH_TOKEN masked> | env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST /usr/bin/gh auth login --hostname github.com --with-token
+    DRY-RUN would run: env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST /usr/bin/gh auth setup-git --hostname github.com
+
+[8/10] git identity
+    skipped (GIT_USER_NAME / GIT_USER_EMAIL not set)
+
+[9/10] iTerm2 shell integration
+    skipped (macOS only)
+
+[10/10] Summary
+    DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
+    then: ssh tuser@<host>
+    SSH server: not listening on port 22
+    start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
+    DRY-RUN would end NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3.
+    still manual:
+      - Start tailscaled, then run: sudo tailscale up (or re-run this installer on a systemd host)
+      - Set your git identity: git config --global user.name ... && git config --global user.email ...
+
+exit=3

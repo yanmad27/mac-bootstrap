@@ -1,0 +1,9 @@
+PASS debian dry-run exits 0 and shows the numbered flow
+PASS debian dry-run: dummy TS_AUTHKEY/GH_TOKEN absent from the output
+PASS debian dry-run changed nothing (no tailscale/gh/node installed)
+PASS debian hand-off delivered (real SSH)
+PASS debian installer exit status 3 (services not started, honestly reported)
+PASS debian gh login with the dummy token failed cleanly (script continued)
+PASS debian probes: all tools present (tailscale, sshd, git, gh, node >= 20, paseo)
+PASS debian probes: sshd -t ok, git identity set, inbox removed
+PASS debian rerun is idempotent (everything already present -> skip, no reinstall)

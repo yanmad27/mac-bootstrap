@@ -5,8 +5,8 @@ the only files excluded: they cannot exist without the constants. Run from the r
 import base64, os, re, sys
 VALUES = ["tskey-client-DUMMYcid-DUMMYoauthsecret0001", "ghp_DUMMYghtoken0001", "tskey-auth-DUMMYminted0001",
           "tskey-api-DUMMYaccess0001", "tskey-client-DUMMYHOOKcid-DUMMYHOOKsecret", "ghp_DUMMYHOOKtoken",
-          "ghp_DUMMYSTUBgh0001", "tskey-client-DUMMYSTUBcid-DUMMYSTUBsecret", "tskey-auth-DUMMYenv0001", "ghp_DUMMYenvtoken01",
-          "DUMMYoauthsecret", "DUMMYghtoken", "DUMMYminted", "DUMMYaccess", "DUMMYHOOK", "DUMMYSTUB", "DUMMYenv"]
+          "ghp_DUMMYSTUBgh0001", "tskey-client-DUMMYSTUBcid-DUMMYSTUBsecret", "tskey-auth-DUMMYenv0001", "ghp_DUMMYenvtoken01", "tskey-auth-DUMMYdryrun0001", "ghp_DUMMYdryrun0001",
+          "DUMMYoauthsecret", "DUMMYghtoken", "DUMMYminted", "DUMMYaccess", "DUMMYHOOK", "DUMMYSTUB", "DUMMYenv", "DUMMYdryrun", "DUMMYb32", "DUMMYdry"]
 def forms(v):
     out = {v}
     for off in range(3):

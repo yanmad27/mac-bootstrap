@@ -1,0 +1,307 @@
+image: rockylinux@sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
+image id: sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
+platform: linux/arm64 (image architecture arm64)  native
+family: rocky   run as: tuser (sudo)
+date: 2026-10-01T19:35:26+07:00
+container: disposable, no systemd as PID 1 (docker 'sleep infinity')
+command: docker exec -it -u tuser mbl-rocky bash /tmp/install.sh 
+client: bash public/install.sh handoff tuser@127.0.0.1 --port 2234   (MB_TEST=1, mock API 127.0.0.1:18773, dummy values)
+note: sshd was started by hand in the container (docker exec -d sshd) once the installer printed its waiting banner; there is no systemd.
+
+===== installer output (full) =====
+
+[1/10] Preflight
+    detected: Rocky Linux 9.3 (Blue Onyx) (rhel family)
+    Linux, arch aarch64, target user tuser
+    not root: system changes use sudo
+    mode: apply
+    TS_AUTHKEY: not set
+    TS_TAGS: not set
+    GH_TOKEN: not set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+
+[2/10] Package repositories (signed)
+    fetched tailscale.repo, sha256 f46901f761d74c7227576836a3270c1c3bbd640d2b503dd337f8e26864002bc7 (unpinned HTTPS download)
+    fetched gh-cli.repo, sha256 29481151c94b18968d47dc5987c7ccc9c663a94fb819cc1cc9385b5d2f5d3a93 (unpinned HTTPS download)
+
+
+
+
+    node: dnf module nodejs:22 (the default stream is older than 20)
+    done
+
+[3/10] Tailscale package
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    done
+
+[4/10] OpenSSH server and tailscaled services
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    generated missing SSH host keys
+    sshd -t: ok
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+
+[5/10] tailscale up
+    needs a GitHub token: waiting for a hand-off from your client Mac
+    no SSH server is listening on port 22 here; press p to paste a bundle
+    press p to paste a bundle instead (client: mac-bootstrap bundle)
+    waiting up to 900s for a hand-off (Ctrl-C to stop)
+    SSH is reachable on this machine. From your client Mac, run one of:
+      mac-bootstrap handoff tuser@172.17.0.5
+    ED25519 host-key fingerprint (it must match what the client shows): SHA256:kgzekAALpNnZgKAYv5Ww1T46f1K6Dj60L9+vZgZ7P7c
+    bundle received over SSH and accepted
+    hand-off received: Tailscale key set, GitHub token set, git identity set
+    skipped: tailscaled is not running (no systemd); NOT joined to the tailnet
+
+[6/10] git, gh, node, paseo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\    paseo 0.10.2 (npm @getpaseo/cli, latest; the daemon is not started)
+    done
+
+[7/10] gh auth
+error validating token: HTTP 401: Bad credentials (https://api.github.com/)
+Try authenticating with:  gh auth login -h github.com
+    gh login FAILED (token rejected, no network, or gh error): not logged in; the token was not kept
+
+[8/10] git identity
+    user.name: set
+    user.email: set
+
+[9/10] iTerm2 shell integration
+    skipped (macOS only)
+
+[10/10] Summary
+    Tailscale: NOT started (no systemd), so there is no tailnet IP or name
+    SSH server: listening on port 22
+    start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
+    NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3.
+    still manual:
+      - Start tailscaled, then run: sudo tailscale up (or re-run this installer on a systemd host)
+      - gh login failed: run 'gh auth login --hostname github.com --with-token' with a valid token, then 'gh auth setup-git --hostname github.com'
+
+===== installer exit status: 3 =====
+
+===== client (Mac) output =====
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+Host key of 127.0.0.1 (ED25519): SHA256:kgzekAALpNnZgKAYv5Ww1T46f1K6Dj60L9+vZgZ7P7c
+Does this match the screen? [y/N] y
+Connecting to tuser@127.0.0.1 (host key pinned, strict checking)
+Hand-off delivered to tuser@127.0.0.1. The target takes it from here; watch its screen.
+
+===== client exit status: 0 =====
+
+===== postcondition probes =====
+$ (root) echo tailscale: $(tailscale version | head -1); echo sshd: $( (command -v sshd || echo /usr/sbin/sshd) | xargs -I{} sh -c '{} -V 2>&1 | head -1'); git --version; gh --version | head -1; echo node: $(node --version); echo paseo: $(paseo --version)
+tailscale: 1.102.4
+sshd: OpenSSH_9.9p1, OpenSSL 3.5.8 25 Aug 2026
+git version 2.52.0
+gh version 2.102.0 (2026-09-30)
+node: v22.23.2
+paseo: 0.10.2
+
+$ (root) $(command -v sshd || echo /usr/sbin/sshd) -t; echo sshd -t exit=$?
+sshd -t exit=0
+
+$ (tuser) gh auth status 2>&1 | head -3; echo gh-auth-status-exit=${PIPESTATUS[0]}
+You are not logged into any GitHub hosts. To log in, run: gh auth login
+gh-auth-status-exit=1
+
+$ (tuser) git config --global user.name; git config --global user.email
+Dummy Person
+dummy@example.invalid
+
+$ (tuser) ls -la ~/.cache/mac-bootstrap/inbox 2>&1 | head -2; ls -A ~/.cache/mac-bootstrap 2>&1
+ls: cannot access '/home/tuser/.cache/mac-bootstrap/inbox': No such file or directory
+
+$ (root) ls -A /tmp | grep -E 'tskey|mac-bootstrap\.' || echo none
+none
+
+$ (root) grep -hE '^(PasswordAuthentication|PermitRootLogin)' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/* 2>/dev/null || echo '(no PasswordAuthentication/PermitRootLogin lines written)'; git -C / log -0 2>/dev/null; true
+(no PasswordAuthentication/PermitRootLogin lines written)
+
+===== rerun (idempotence): bash install.sh --no-wait  =====
+[1/10] Preflight
+    detected: Rocky Linux 9.3 (Blue Onyx) (rhel family)
+    Linux, arch aarch64, target user tuser
+    not root: system changes use sudo
+    mode: apply
+    TS_AUTHKEY: not set
+    TS_TAGS: not set
+    GH_TOKEN: not set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+[2/10] Package repositories (signed)
+    node v22.23.2 and npm already present -> skip
+    tailscale dnf repo already configured -> skip
+    gh dnf repo already configured -> skip
+    done
+[3/10] Tailscale package
+    already present -> skip
+[4/10] OpenSSH server and tailscaled services
+    already present -> skip: openssh-server
+    sshd -t: ok
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+[5/10] tailscale up
+    needs a GitHub token: --no-wait, not waiting for a hand-off
+    skipped: tailscaled is not running (no systemd); NOT joined to the tailnet
+[6/10] git, gh, node, paseo
+    already present -> skip: git gh
+    node v22.23.2: already present -> skip
+    paseo: already present -> skip (0.10.2)
+    done
+[7/10] gh auth
+    no GH_TOKEN and no hand-off -> skip (no browser login is used)
+[8/10] git identity
+    skipped (GIT_USER_NAME / GIT_USER_EMAIL not set)
+[9/10] iTerm2 shell integration
+    skipped (macOS only)
+[10/10] Summary
+    Tailscale: NOT started (no systemd), so there is no tailnet IP or name
+    SSH server: listening on port 22
+    start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
+    NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3.
+    still manual:
+      - Start tailscaled, then run: sudo tailscale up (or re-run this installer on a systemd host)
+      - Run: gh auth login --hostname github.com && gh auth setup-git --hostname github.com
+      - Set your git identity: git config --global user.name ... && git config --global user.email ...
+===== rerun exit status: 3 =====

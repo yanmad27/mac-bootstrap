@@ -1,0 +1,65 @@
+image: archlinux@sha256:b21322c663be387c0ed9cbc7bbbfe18e41633ad4e7b7c77cfad45f128be20040
+image id: sha256:b21322c663be387c0ed9cbc7bbbfe18e41633ad4e7b7c77cfad45f128be20040
+platform: linux/amd64 (image architecture amd64)  EMULATION: amd64 under arm64 virtualisation
+family: arch   run as: root (root, --target-user tuser)
+date: 2026-10-01T19:50:01+07:00
+command: docker exec -u root -e TS_AUTHKEY=<dummy> -e GH_TOKEN=<dummy> -e TS_TAGS=tag:bootstrap mbl-arch bash /tmp/install.sh --dry-run --target-user tuser
+
+
+[1/10] Preflight
+    detected: Arch Linux (pacman family)
+    Linux, arch x86_64, target user tuser
+    running as root: gh and git run as tuser
+    mode: dry-run
+    TS_AUTHKEY: set
+    TS_TAGS: set
+    GH_TOKEN: set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+
+[2/10] Package repositories (signed)
+    official repos only (tailscale, github-cli, nodejs, openssh); refreshing and upgrading the package database first (pacman -Syu)
+    DRY-RUN would run: pacman --disable-sandbox -Syu --noconfirm --needed
+    done
+
+[3/10] Tailscale package
+    DRY-RUN would run: pacman --disable-sandbox -S --noconfirm --needed tailscale
+
+[4/10] OpenSSH server and tailscaled services
+    DRY-RUN would run: pacman --disable-sandbox -S --noconfirm --needed openssh
+    would generate SSH host keys only if none exist (ssh-keygen -A), then validate with sshd -t
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+
+[5/10] tailscale up
+    skipped: tailscaled is not running (no systemd); NOT joined to the tailnet
+
+[6/10] git, gh, node, paseo
+    DRY-RUN would run: pacman --disable-sandbox -S --noconfirm --needed git github-cli
+    DRY-RUN would run: pacman --disable-sandbox -S --noconfirm --needed nodejs npm
+    DRY-RUN would run: npm install -g --no-fund --no-audit @getpaseo/cli
+
+[7/10] gh auth
+    DRY-RUN would run: printf %s <GH_TOKEN masked> | env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST /usr/bin/gh auth login --hostname github.com --with-token
+    DRY-RUN would run: env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST /usr/bin/gh auth setup-git --hostname github.com
+
+[8/10] git identity
+    skipped (GIT_USER_NAME / GIT_USER_EMAIL not set)
+
+[9/10] iTerm2 shell integration
+    skipped (macOS only)
+
+[10/10] Summary
+    DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
+    then: ssh tuser@<host>
+    SSH server: not listening on port 22
+    start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
+    DRY-RUN would end NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3.
+    still manual:
+      - Start tailscaled, then run: sudo tailscale up (or re-run this installer on a systemd host)
+      - Set your git identity: git config --global user.name ... && git config --global user.email ...
+
+exit=3

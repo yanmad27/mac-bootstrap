@@ -1,0 +1,12 @@
+# static checks for the whole file (checkpoint B, final)
+version: 0.11.0
+shellcheck -s bash public/*.sh exit=0
+GNU bash, version 5.3.20(1)-release (aarch64-apple-darwin25.6.0)
+brew bash -n public/install.sh exit=0
+GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)
+/bin/bash -n public/install.sh exit=0
+/opt/homebrew/bin/bash -n public/iterm2-client.sh exit=0
+/bin/bash -n public/iterm2-client.sh exit=0
+iterm2-client.sh byte-identical to main: yes
+bash 3.2 construct audit (declare -A, mapfile, readarray, ${x,,}, [[ -v, &>>, |&):
+  none found

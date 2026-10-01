@@ -1,0 +1,13 @@
+PASS arch dry-run exits 0 and shows the numbered flow
+PASS arch dry-run: dummy TS_AUTHKEY/GH_TOKEN absent from the output
+PASS arch dry-run changed nothing (no tailscale/gh/node installed)
+PASS arch installer exit status 3 (services not started, honestly reported)
+PASS arch gh login with the dummy token failed cleanly (script continued)
+FAIL arch probes: all tools present (tailscale, sshd, git, gh, node >= 20, paseo)
+PASS arch probes: sshd -t ok, git identity set, inbox removed
+PASS arch rerun is idempotent (everything already present -> skip, no reinstall)
+# EMULATION LIMIT (not an install.sh defect): this family ran as linux/amd64 under arm64 emulation (no arm64 Arch image).
+# The FAIL above is kept as recorded: `gh --version` dies with a Go runtime panic under emulation (the gh package IS installed at /usr/bin/gh),
+# so the "all tools present" probe cannot pass. Also under emulation: sshd exits 255 (seccomp sandbox cannot attach) and `read -s -n 1` never
+# receives a key, so NO hand-off (SSH or paste) was possible for Arch; the dummy gh token and git identity came from the env instead.
+# Native amd64 and Arch arm64: UNTESTED.

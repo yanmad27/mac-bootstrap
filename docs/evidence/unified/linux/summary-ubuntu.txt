@@ -1,0 +1,9 @@
+PASS ubuntu dry-run exits 0 and shows the numbered flow
+PASS ubuntu dry-run: dummy TS_AUTHKEY/GH_TOKEN absent from the output
+PASS ubuntu dry-run changed nothing (no tailscale/gh/node installed)
+PASS ubuntu hand-off delivered (real SSH)
+PASS ubuntu installer exit status 3 (services not started, honestly reported)
+PASS ubuntu gh login with the dummy token failed cleanly (script continued)
+PASS ubuntu probes: all tools present (tailscale, sshd, git, gh, node >= 20, paseo)
+PASS ubuntu probes: sshd -t ok, git identity set, inbox removed
+PASS ubuntu rerun is idempotent (everything already present -> skip, no reinstall)

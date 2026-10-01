@@ -246,3 +246,10 @@ Create the OAuth client once in the admin console (Settings > OAuth clients): sc
 
 UNCONFIRMED (no real API call was allowed): the lowest `expirySeconds` the real API accepts (3600 is used), and the exact JSON of the live responses; the client reads `access_token` and `key` and fails closed with the API's message otherwise.
 
+## 8. Linux notes (unified bootstrap)
+
+- The Linux packages come from Tailscale's signed repos (`pkgs.tailscale.com`: apt keyring + list, `fedora/` or `centos/<major>/` `.repo` files) or the distro (`tailscale` on Arch). `tailscaled.service` is installed by the package; the installer runs `systemctl enable --now tailscaled` when systemd is PID 1 and otherwise leaves it stopped and says so.
+- `tailscale up` is run through `sudo` (or as root) with `--operator=<target user>`, `--auth-key=file:<0600 temp file>` and `--advertise-tags` when `TS_TAGS` is set; the OAuth `tskey-client-` form puts `?ephemeral=false&preauthorized=true` inside the file (section 7). Reruns skip a node that is already Running unless `--reauth-tailscale`.
+- `tailscale up --help` on the packaged 1.102.x lists `--auth-key`, `--client-secret` and `--id-token`, all with the `file:` form.
+- Not exercised here (no systemd in the test containers): enabling/starting the unit, a real `tailscale up`, and a real join.
+
