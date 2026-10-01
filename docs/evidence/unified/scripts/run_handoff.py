@@ -280,7 +280,7 @@ c = Proc(["/bin/bash", INSTALL, "--client-setup"], env=client_env({"MB_TEST_HOME
 c.wait_for("Tag for the minted keys", 20); c.send("\n"); cs = c.wait(30)
 want = sh("shasum -a 256 %s" % INSTALL).stdout.split()[0]
 helper = os.path.join(home3, ".local/bin/mac-bootstrap")
-ev("12-client-setup-from-file.txt", c.log + "\n# helper: " + sh("ls -l %s" % helper).stdout)
+ev("12-client-setup-from-file.txt", c.log + "\n# helper: " + sh("ls -l %s" % helper).stdout.replace(os.environ.get("USER", "?"), "user"))
 check("12 --client-setup from a saved file: helper installed 0755, sha256 printed equals install.sh", cs == 0 and want in c.log and oct(os.stat(helper).st_mode)[-3:] == "755", str(cs))
 check("12 client-setup in test mode did not touch the Keychain (security stub never called)", stub_calls() == "" and "Keychain write skipped" in c.log)
 h = sh("%s --help | head -3" % helper)

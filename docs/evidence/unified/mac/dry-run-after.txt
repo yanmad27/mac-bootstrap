@@ -1,4 +1,4 @@
-# after: feat/unified-bootstrap (working tree) bash public/install.sh --dry-run
+# after: feat/unified-bootstrap bash public/install.sh --dry-run
 
 [1/10] Preflight
     macOS 26.7.1, arch arm64

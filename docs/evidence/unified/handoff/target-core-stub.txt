@@ -1,4 +1,4 @@
-bash 3.2.57(1)-release  (stubs in /tmp/mbcore.xWP2R2, never the real tailscale/gh)
+bash 3.2.57(1)-release  (stubs in /tmp/mbcore.x21DK2, never the real tailscale/gh)
 
 === 1. TS_AUTHKEY=tskey-auth-... + TS_TAGS (state NeedsLogin)
 
@@ -6,7 +6,7 @@ bash 3.2.57(1)-release  (stubs in /tmp/mbcore.xWP2R2, never the real tailscale/g
     BackendState: NeedsLogin
     done
     | tailscale argv: status --json
-    | tailscale argv: up --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.V4PMmm/tskey --timeout=120s --advertise-tags=tag:bootstrap
+    | tailscale argv: up --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.1hLbEN/tskey --timeout=120s --advertise-tags=tag:bootstrap
     |   key file mode=600, 26 bytes, starts tskey-auth-...
     |   key file has no query suffix
 
@@ -16,7 +16,7 @@ bash 3.2.57(1)-release  (stubs in /tmp/mbcore.xWP2R2, never the real tailscale/g
     BackendState: NeedsLogin
     done
     | tailscale argv: status --json
-    | tailscale argv: up --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.V4PMmm/tskey --timeout=120s --advertise-tags=tag:bootstrap
+    | tailscale argv: up --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.1hLbEN/tskey --timeout=120s --advertise-tags=tag:bootstrap
     |   key file mode=600, 77 bytes, starts tskey-clien...
     |   key file query suffix (inside the file): ?ephemeral=false&preauthorized=true
 
@@ -36,7 +36,7 @@ bash 3.2.57(1)-release  (stubs in /tmp/mbcore.xWP2R2, never the real tailscale/g
     BackendState: Running
     done
     | tailscale argv: status --json
-    | tailscale argv: up --force-reauth --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.V4PMmm/tskey --timeout=120s --advertise-tags=tag:bootstrap
+    | tailscale argv: up --force-reauth --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.1hLbEN/tskey --timeout=120s --advertise-tags=tag:bootstrap
     |   key file mode=600, 26 bytes, starts tskey-auth-...
     |   key file has no query suffix
 

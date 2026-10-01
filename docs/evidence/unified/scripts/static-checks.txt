@@ -1,4 +1,4 @@
-commit-base: 33d3e07 (+ working tree)
+commit-base: a0fe82d (+ working tree)
 
 ShellCheck - shell script analysis tool
 version: 0.11.0
