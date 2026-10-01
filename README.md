@@ -1,12 +1,21 @@
 # mac-bootstrap
 
-Bootstraps a Mac for remote access over Tailscale: Screen Sharing and Remote Login are switched on by hand (Apple's supported UI), then one `curl | bash` command installs Homebrew, Tailscale (system daemon), git, gh and Paseo. An optional step sets up iTerm2 on both Macs.
+Bootstraps a Mac or Linux machine (Ubuntu/Debian, Fedora/RHEL, Arch) for remote access over Tailscale, with no browser ever opening on the new machine. One command installs Tailscale, git, gh and the rest (Homebrew and Paseo on a Mac). An optional step sets up iTerm2 on both Macs.
+
+How it works (the frozen contract is [docs/handoff.md](docs/handoff.md)):
+
+1. **Once, on your Mac.** In the Tailscale admin console add `tagOwners` for `tag:bootstrap` plus a grant to TCP 22, and create an OAuth client with only the Auth Keys (write) scope and that tag. Then run `curl -fsSL "<origin>/install.sh" | bash -s -- --client-setup --origin "<origin>"`, which stores the OAuth secret in your Keychain and installs the `mac-bootstrap` helper.
+2. **On each new machine.** Run `curl -fsSL "<origin>/install.sh" | bash` and type the sudo password (on a Mac, turn on Remote Login when System Settings opens; Screen Sharing is optional, by hand).
+3. **Hand-off.** On your Mac run the printed `mac-bootstrap handoff user@IP`, check the fingerprint matches the new machine's screen, and type its password. The new machine joins your tailnet (tagged, single-use key minted on your Mac; the OAuth secret never leaves it), logs `gh` in and gets your git identity. Fallback: `mac-bootstrap bundle --copy` on your Mac, then press `p` on the new machine and paste.
+
+The hand-off copies your Mac's existing `gh` login (`gh auth token`) to the new machine: broad scopes, the same token on both, revoking it logs your Mac out too, and on Linux it is a plaintext owner-only file.
 
 - `public/index.html`: the walkthrough page (static, no framework, no external requests). Every command on it is built from the address it is served from.
-- `public/install.sh`: run on the Mac being bootstrapped.
+- `public/install.sh`: the one script, for new machines and the client modes on your Mac.
 - `public/iterm2-client.sh`: run on the client Mac you SSH from.
 - `vercel.json`: no build; serves `public/`; scripts as `text/plain; charset=utf-8` with `nosniff` and revalidating cache; security headers on every path, and a CSP on `/` and `/index.html`.
-- `docs/tailscale-auth-key.md`: research behind the auth-key section (not served).
+- `docs/tailscale-auth-key.md`: research on Tailscale auth keys (not served).
+- `docs/handoff.md`: the unified bootstrap and hand-off contract (not served).
 
 ## One-time Vercel import
 
@@ -38,5 +47,9 @@ Open https://mac-bootstrap-seven.vercel.app/ to confirm the commands show the co
 
 ## Security notes
 
-- The page never asks for or stores secrets. Secrets go through a hidden `read` into non-exported shell variables and are handed only to `bash`; see the page and `install.sh`.
+- The page never asks for or stores secrets. The advanced env variant (`TS_AUTHKEY`, `GH_TOKEN`; a `tskey-client-` value also needs `TS_TAGS`) goes through a hidden `read` into non-exported shell variables and is handed only to `bash`; see the page and `install.sh`.
 - Pipe-to-shell trusts this site and your Vercel project. The page links the script URLs so you can read them first, and recommends `--dry-run`.
+
+## Page checks
+
+Evidence for the unified page is in [docs/evidence/unified/page/](docs/evidence/unified/page/): screenshots (1280/390, light/dark, JS off), a Copy-button clipboard test, the commands check (origin with JS on, `<your-site>` with JS off), contrast and reduced-motion results, the word count, and the iTerm2 diff. `check.js` there reproduces them (`npm i playwright`, serve `public/` on 127.0.0.1:8878, `node check.js <outdir>`).
