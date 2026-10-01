@@ -1,0 +1,10 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+PASS debian container booted systemd as PID 1
+PASS debian hand-off delivered over real SSH into the installer's own ssh unit (no manual sshd)
+PASS debian gh login with the dummy token failed cleanly; honest exit 4 (not complete)
+PASS debian installer reported tailscaled and the ssh unit enabled and active
+PASS debian sshd -T report printed (effective PasswordAuthentication/PermitRootLogin)
+PASS debian probes: tailscaled and the ssh unit (or ssh.socket) enabled and active; port 22 listening
+PASS debian C1: ssh.service holds port 22 and ssh.socket was NOT touched (no abort)
+PASS debian probes: tools, sshd -t, git identity set, inbox removed
+PASS debian rerun is idempotent (all present -> skip; units already active)

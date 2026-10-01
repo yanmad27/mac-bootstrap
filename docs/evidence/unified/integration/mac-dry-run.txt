@@ -1,4 +1,5 @@
-# Mac: bash public/install.sh --dry-run on the merged tree
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+# Mac: bash public/install.sh --dry-run (final script)
 
 [1/10] Preflight
     macOS 26.7.1, arch arm64

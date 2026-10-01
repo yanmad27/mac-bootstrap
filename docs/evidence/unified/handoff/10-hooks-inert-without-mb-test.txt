@@ -8,5 +8,5 @@ security CALLED (stub) service=mac-bootstrap.tailscale-tag
 gh CALLED (stub) auth token
 gh CALLED (stub) api user
 gh CALLED (stub) api user
-curl CALLED (stub) args: --proto =https --tlsv1.2 -sS --connect-timeout 10 --max-time 30 -K - -o /tmp/mac-bootstrap.ZdKFb5/tok.json -w %{http_code}
+curl CALLED (stub) args: --proto =https --tlsv1.2 -sS --connect-timeout 10 --max-time 30 -K - -o /tmp/mac-bootstrap.2RtfBF/tok.json -w %{http_code}
   stdin-config url = "https://api.tailscale.com/api/v2/oauth/token"

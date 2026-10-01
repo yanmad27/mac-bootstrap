@@ -1,7 +1,8 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
 PASS ubuntu dry-run exits 0 and shows the numbered flow
 PASS ubuntu dry-run: dummy TS_AUTHKEY/GH_TOKEN absent from the output
 PASS ubuntu dry-run changed nothing (no tailscale/gh/node installed)
-PASS ubuntu hand-off delivered (real SSH)
+PASS ubuntu hand-off delivered over real SSH
 PASS ubuntu installer exit status 3 (services not started, honestly reported)
 PASS ubuntu gh login with the dummy token failed cleanly (script continued)
 PASS ubuntu probes: all tools present (tailscale, sshd, git, gh, node >= 20, paseo)

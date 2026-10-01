@@ -1,8 +1,9 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
 image: ubuntu@sha256:008173c23f95b170204355c12626cb5a965d779a7e1283b09e9cffbb1bf33ca3
 image id: sha256:008173c23f95b170204355c12626cb5a965d779a7e1283b09e9cffbb1bf33ca3
 platform: linux/arm64 (image architecture arm64)  native
 family: ubuntu   run as: tuser (sudo)
-date: 2026-10-01T19:35:18+07:00
+date: 2026-10-01T21:29:01+07:00
 command: docker exec -u tuser -e TS_AUTHKEY=<dummy> -e GH_TOKEN=<dummy> -e TS_TAGS=tag:bootstrap mbl-ubuntu bash /tmp/install.sh --dry-run 
 
 
@@ -38,6 +39,7 @@ command: docker exec -u tuser -e TS_AUTHKEY=<dummy> -e GH_TOKEN=<dummy> -e TS_TA
     DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/nodesource.gpg /usr/share/keyrings/nodesource.gpg
     DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/nodesource.list /etc/apt/sources.list.d/nodesource.list
     DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get update -qq
+    DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nodejs
     done
 
 [3/10] Tailscale package
@@ -53,10 +55,10 @@ command: docker exec -u tuser -e TS_AUTHKEY=<dummy> -e GH_TOKEN=<dummy> -e TS_TA
 [5/10] tailscale up
     skipped: tailscaled is not running (no systemd); NOT joined to the tailnet
 
-[6/10] git, gh, node, paseo
+[6/10] git, gh, paseo
     DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git gh
-    DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nodejs
-    DRY-RUN would run: sudo npm install -g --no-fund --no-audit @getpaseo/cli
+    npm's global prefix is checked in the real run: no sudo when this user can write it, otherwise sudo with the resolved npm path
+    DRY-RUN would run: npm install -g --no-fund --no-audit @getpaseo/cli
 
 [7/10] gh auth
     DRY-RUN would run: printf %s <GH_TOKEN masked> | env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST /usr/bin/gh auth login --hostname github.com --with-token
@@ -73,9 +75,10 @@ command: docker exec -u tuser -e TS_AUTHKEY=<dummy> -e GH_TOKEN=<dummy> -e TS_TA
     then: ssh tuser@<host>
     SSH server: not listening on port 22
     start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
-    DRY-RUN would end NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3.
+    DRY-RUN would read the effective PasswordAuthentication/PermitRootLogin with sshd -T and warn if password login is on (nothing is changed)
+    DRY-RUN: a real run here would end NOT COMPLETE (tailscaled and sshd would not be started: systemd is not PID 1) with exit status 3; this dry-run changed nothing and exits 0.
     still manual:
       - Start tailscaled, then run: sudo tailscale up (or re-run this installer on a systemd host)
       - Set your git identity: git config --global user.name ... && git config --global user.email ...
 
-exit=3
+exit=0

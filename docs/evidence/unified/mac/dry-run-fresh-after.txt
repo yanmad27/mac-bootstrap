@@ -1,4 +1,5 @@
 # fresh-Mac mock (empty HOME, no brew) after: branch
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
 
 [1/10] Preflight
     macOS 26.7.1, arch arm64
@@ -27,8 +28,8 @@
     DRY-RUN would run: sudo /opt/homebrew/bin/brew services start tailscale
 
 [5/10] tailscale up
-    needs a Tailscale key and a GitHub token: DRY-RUN would wait up to 900s for a hand-off:
-      create ~/.cache/mac-bootstrap/inbox (0700), write a ready marker, print this machine's IPs and SSH host-key fingerprint,
+    needs a Tailscale key and a GitHub token: DRY-RUN would wait up to 900s for a hand-off (only with a terminal):
+      create ~/.cache/mac-bootstrap/inbox (0700), write a ready marker (receiver pid + nonce), print this machine's IPs and SSH host-key fingerprint,
       accept ONE bundle pushed over SSH by 'mac-bootstrap handoff' from your client Mac, or pasted (press p); no browser is opened
     BackendState: NoState
     no key yet: this is what would run once a hand-off delivers one

@@ -1,10 +1,10 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
 bash 3.2.57(1)-release
 
 =================== ubuntu (bash 3.2.57(1)-release)
     test override: reading os-release from <tmp>
 detected: Fake ubuntu / apt
 [2/10] Package repositories (signed)
-    node v26.10.0 and npm already present -> skip
     DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get update -qq
     DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates curl gnupg
     DRY-RUN would run: sudo install -d -m 0755 /etc/apt/keyrings
@@ -15,6 +15,7 @@ detected: Fake ubuntu / apt
     DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /tmp/mac-bootstrap.XXXXXX/githubcli-archive-keyring.gpg
     DRY-RUN would write /etc/apt/sources.list.d/github-cli.list: deb [arch=<dpkg arch> signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main
     DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/githubcli-archive-keyring.gpg /etc/apt/keyrings/githubcli-archive-keyring.gpg
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/github-cli.list /etc/apt/sources.list.d/github-cli.list
 
 [3/10] Tailscale package
     DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq tailscale
@@ -26,16 +27,14 @@ detected: Fake ubuntu / apt
     packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
     firewalld: not active
 
-[6/10] git, gh, node, paseo
+[6/10] git, gh, paseo
     DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git gh
-    node v26.10.0: already present -> skip
     paseo: already present -> skip (0.10.2)
 
 =================== debian (bash 3.2.57(1)-release)
     test override: reading os-release from <tmp>
 detected: Fake debian / apt
 [2/10] Package repositories (signed)
-    node v26.10.0 and npm already present -> skip
     DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get update -qq
     DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates curl gnupg
     DRY-RUN would run: sudo install -d -m 0755 /etc/apt/keyrings
@@ -46,6 +45,7 @@ detected: Fake debian / apt
     DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /tmp/mac-bootstrap.XXXXXX/githubcli-archive-keyring.gpg
     DRY-RUN would write /etc/apt/sources.list.d/github-cli.list: deb [arch=<dpkg arch> signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main
     DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/githubcli-archive-keyring.gpg /etc/apt/keyrings/githubcli-archive-keyring.gpg
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/github-cli.list /etc/apt/sources.list.d/github-cli.list
 
 [3/10] Tailscale package
     DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq tailscale
@@ -57,18 +57,17 @@ detected: Fake debian / apt
     packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
     firewalld: not active
 
-[6/10] git, gh, node, paseo
+[6/10] git, gh, paseo
     DRY-RUN would run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git gh
-    node v26.10.0: already present -> skip
     paseo: already present -> skip (0.10.2)
 
 =================== fedora (bash 3.2.57(1)-release)
     test override: reading os-release from <tmp>
 detected: Fake fedora / fedora
 [2/10] Package repositories (signed)
-    node v26.10.0 and npm already present -> skip
     DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo -o /tmp/mac-bootstrap.XXXXXX/tailscale.repo
     DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/tailscale.repo /etc/yum.repos.d/tailscale.repo
+    node v26.10.0 at /opt/homebrew/bin/node and npm: ok (>= 20) -> skip
     done
 
 [3/10] Tailscale package
@@ -81,20 +80,19 @@ detected: Fake fedora / fedora
     packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
     firewalld: not active
 
-[6/10] git, gh, node, paseo
+[6/10] git, gh, paseo
     DRY-RUN would run: sudo dnf -y -q install git gh
-    node v26.10.0: already present -> skip
     paseo: already present -> skip (0.10.2)
 
 =================== rocky (bash 3.2.57(1)-release)
     test override: reading os-release from <tmp>
 detected: Fake rocky / rhel
 [2/10] Package repositories (signed)
-    node v26.10.0 and npm already present -> skip
     DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://pkgs.tailscale.com/stable/centos/9/tailscale.repo -o /tmp/mac-bootstrap.XXXXXX/tailscale.repo
     DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/tailscale.repo /etc/yum.repos.d/tailscale.repo
     DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://cli.github.com/packages/rpm/gh-cli.repo -o /tmp/mac-bootstrap.XXXXXX/gh-cli.repo
     DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/gh-cli.repo /etc/yum.repos.d/gh-cli.repo
+    node v26.10.0 at /opt/homebrew/bin/node and npm: ok (>= 20) -> skip
     done
 
 [3/10] Tailscale package
@@ -107,18 +105,17 @@ detected: Fake rocky / rhel
     packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
     firewalld: not active
 
-[6/10] git, gh, node, paseo
+[6/10] git, gh, paseo
     DRY-RUN would run: sudo dnf -y -q install git gh
-    node v26.10.0: already present -> skip
     paseo: already present -> skip (0.10.2)
 
 =================== arch (bash 3.2.57(1)-release)
     test override: reading os-release from <tmp>
 detected: Fake arch / pacman
 [2/10] Package repositories (signed)
-    node v26.10.0 and npm already present -> skip
     official repos only (tailscale, github-cli, nodejs, openssh); refreshing and upgrading the package database first (pacman -Syu)
     DRY-RUN would run: sudo pacman -Syu --noconfirm --needed
+    node v26.10.0 at /opt/homebrew/bin/node and npm: ok (>= 20) -> skip
     done
 
 [3/10] Tailscale package
@@ -131,7 +128,6 @@ detected: Fake arch / pacman
     packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
     firewalld: not active
 
-[6/10] git, gh, node, paseo
+[6/10] git, gh, paseo
     DRY-RUN would run: sudo pacman -S --noconfirm --needed git github-cli
-    node v26.10.0: already present -> skip
     paseo: already present -> skip (0.10.2)

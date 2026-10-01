@@ -3,7 +3,7 @@
 then a real SSH hand-off from this Mac (MB_TEST=1, mock API on 127.0.0.1, DUMMY values), then probes.
 usage (repo root): python3 docs/evidence/unified/scripts/run_linux.py <ubuntu|debian|fedora|rocky|arch>
 No systemd in containers: sshd is started by hand after the installer prints its waiting banner."""
-import json, os, re, shlex, shutil, subprocess, sys, tempfile, datetime
+import hashlib, json, os, re, shlex, shutil, subprocess, sys, tempfile, datetime
 sys.path.insert(0, os.path.dirname(__file__))
 from ptydrive import Proc, BUNDLE_RE
 
@@ -16,7 +16,7 @@ FAMS = {
 }
 fam = sys.argv[1]; F = FAMS[fam]
 ROOT = os.getcwd(); OUT = os.path.join(ROOT, "docs/evidence/unified/linux"); SCR = os.path.join(ROOT, "docs/evidence/unified/scripts")
-INSTALL = os.path.join(ROOT, "public/install.sh"); T = tempfile.mkdtemp(prefix="mbl.", dir="/tmp")
+INSTALL = os.path.join(ROOT, "public/install.sh"); SHA = hashlib.sha256(open(INSTALL, "rb").read()).hexdigest(); T = tempfile.mkdtemp(prefix="mbl.", dir="/tmp")
 CN = "mbl-" + fam; API_PORT = 18770 + list(FAMS).index(fam)
 D = {"oauth": "tskey-client-DUMMYcid-DUMMYoauthsecret0001", "gh": "ghp_DUMMYghtoken0001", "dry_ts": "tskey-auth-DUMMYdryrun0001", "dry_gh": "ghp_DUMMYdryrun0001"}
 ANSI = re.compile(r"\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)")
@@ -52,14 +52,14 @@ sh("docker cp %s %s:/tmp/install.sh" % (INSTALL, CN))
 home = os.path.join(T, "home"); os.makedirs(home)
 open(home + "/.gitconfig", "w").write("[user]\n\tname = Dummy Person\n\temail = dummy@example.invalid\n")
 args = [] if F["runas"] == "tuser" else ["--target-user", "tuser"]
-hdr = ["image: %s" % digest, "image id: %s" % imgid, "platform: %s (image architecture %s)%s" % (F["plat"], arch, "  EMULATION: amd64 under arm64 virtualisation" if arch == "amd64" else "  native"),
+hdr = ["install.sh sha256: %s" % SHA, "image: %s" % digest, "image id: %s" % imgid, "platform: %s (image architecture %s)%s" % (F["plat"], arch, "  EMULATION: amd64 under arm64 virtualisation" if arch == "amd64" else "  native"),
        "family: %s   run as: %s%s" % (fam, F["runas"], " (sudo)" if F["sudo"] else " (root, --target-user tuser)"), "date: %s" % datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
        "container: disposable, no systemd as PID 1 (docker 'sleep infinity')"]
 
 # ---- dry run (dummy secrets in the env must not appear)
 dry_cmd = ["docker", "exec", "-u", F["runas"], "-e", "TS_AUTHKEY=" + D["dry_ts"], "-e", "GH_TOKEN=" + D["dry_gh"], "-e", "TS_TAGS=tag:bootstrap", CN, "bash", "/tmp/install.sh", "--dry-run"] + args
 dr = subprocess.run(dry_cmd, capture_output=True, text=True)
-open(os.path.join(OUT, "dry-run-%s.txt" % fam), "w").write("\n".join(hdr[:5]) + "\ncommand: docker exec -u %s -e TS_AUTHKEY=<dummy> -e GH_TOKEN=<dummy> -e TS_TAGS=tag:bootstrap %s bash /tmp/install.sh --dry-run %s\n\n" % (F["runas"], CN, " ".join(args)) + clean(dr.stdout + dr.stderr) + "\nexit=%d\n" % dr.returncode)
+open(os.path.join(OUT, "dry-run-%s.txt" % fam), "w").write("\n".join(hdr[:6]) + "\ncommand: docker exec -u %s -e TS_AUTHKEY=<dummy> -e GH_TOKEN=<dummy> -e TS_TAGS=tag:bootstrap %s bash /tmp/install.sh --dry-run %s\n\n" % (F["runas"], CN, " ".join(args)) + clean(dr.stdout + dr.stderr) + "\nexit=%d\n" % dr.returncode)
 check("%s dry-run exits 0 and shows the numbered flow" % fam, dr.returncode == 3 or dr.returncode == 0 and "[10/10] Summary" in dr.stdout, str(dr.returncode))
 check("%s dry-run: dummy TS_AUTHKEY/GH_TOKEN absent from the output" % fam, D["dry_ts"] not in dr.stdout + dr.stderr and D["dry_gh"] not in dr.stdout + dr.stderr)
 check("%s dry-run changed nothing (no tailscale/gh/node installed)" % fam, dx("root", "command -v tailscale gh paseo sshd").returncode != 0)
@@ -75,7 +75,7 @@ if F.get("paste"):
     # attached (sshd drops every connection) and `read -s -n 1` never receives a key on the emulated tty. So no hand-off is
     # attempted for this family; the dummy gh token and git identity are given through the back-compat env instead.
     r = Proc(["docker", "exec", "-it", "-u", F["runas"], "-e", "GH_TOKEN=" + D["gh"], "-e", "GIT_USER_NAME=Dummy Person", "-e", "GIT_USER_EMAIL=dummy@example.invalid", CN, "bash", "/tmp/install.sh"] + args)
-    rs = r.wait(1700)
+    rs = r.wait(900)
     dbg = dx("root", "(/usr/bin/sshd -ddd -D -p 2299 -E /tmp/sshd-debug.log &) ; sleep 2; ssh-keyscan -T 10 -p 2299 -t ed25519 127.0.0.1 2>&1 | cut -c1-70; sleep 1; grep -E 'PR_SET_SECCOMP|exited with status' /tmp/sshd-debug.log | head -3")
     tt = Proc(["docker", "exec", "-it", CN, "bash", "-c", "read -r -t 4 -s -n 1 k </dev/tty; echo key-read: got=[$k] rc=$?"]); tt.send("p"); tt.wait(20)
     emu = ("EMULATION LIMIT (amd64 on arm64): no hand-off was attempted for this family.\n--- sshd under emulation (in-container probe):\n" + dbg.stdout + dbg.stderr +
@@ -83,12 +83,12 @@ if F.get("paste"):
     cs = 0; c = type("C", (), {"log": emu})()
 else:
     r = Proc(real_cmd)
-    r.wait_for("waiting up to", 1700)
+    r.wait_for("waiting up to", 900)
     sh("docker exec -d -u root %s bash -c %s" % (CN, shlex.quote('exec $(command -v sshd || echo /usr/sbin/sshd)')))
-    r.wait_for("ED25519 host-key fingerprint", 60)
+    r.wait_for("host-key fingerprint", 60)
     c = Proc(["/bin/bash", INSTALL, "handoff", "tuser@127.0.0.1", "--port", str(F["port"])], env=cenv)
     c.wait_for("Does this match the screen? [y/N]", 60); c.send("y\n"); cs = c.wait(120)
-    rs = r.wait(300)
+    rs = r.wait(600)
 mock.terminate()
 body = ("\n".join(hdr) + "\ncommand: docker exec -it -u %s %s%s bash /tmp/install.sh %s\n" % (F["runas"], "-e GH_TOKEN=<dummy> -e GIT_USER_NAME=<dummy> -e GIT_USER_EMAIL=<dummy> " if F.get("paste") else "", CN, " ".join(args)) +
         ("note: NO hand-off for this family (emulation limit, see below); dummy gh token and git identity come from the env.\n\n" if F.get("paste") else
@@ -123,7 +123,7 @@ rrt = clean(rr.stdout + rr.stderr)
 body += "\n===== rerun (idempotence): bash install.sh --no-wait %s =====\n" % " ".join(args) + "\n".join(l for l in rrt.split("\n") if l.strip()) + "\n===== rerun exit status: %d =====\n" % rr.returncode
 check("%s rerun is idempotent (everything already present -> skip, no reinstall)" % fam, "already present" in rrt and "Setting up" not in rrt and "Unpacking" not in rrt and "Installing" not in rrt, rrt[-300:])
 open(os.path.join(OUT, "real-%s.txt" % fam), "w").write(body)
-open(os.path.join(OUT, "summary-%s.txt" % fam), "w").write("\n".join(("PASS " if ok else "FAIL ") + l for l, ok in results) + "\n")
+open(os.path.join(OUT, "summary-%s.txt" % fam), "w").write("install.sh sha256: %s\n" % SHA + "\n".join(("PASS " if ok else "FAIL ") + l for l, ok in results) + "\n")
 os.kill(apid, 15); shutil.rmtree(T, ignore_errors=True)
 sh("docker rm -f %s >/dev/null" % CN)
 sys.exit(0 if all(ok for _, ok in results) else 1)

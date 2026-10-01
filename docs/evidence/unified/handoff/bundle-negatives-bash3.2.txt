@@ -1,6 +1,12 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
 bash 3.2.57(1)-release
 PASS valid bundle accepted: rc=0 
 PASS valid, no trailing newline: rc=0 
+PASS S-L1 truncated bundle (END=1 marker missing) rejected: rc=1 (    error: bundle rejected: missing END marker (truncated?))
+PASS S-L1 END=1 present but not last (data after END): rc=1 (    error: bundle rejected: data after the END marker)
+PASS S-L1 END with a wrong value: rc=1 (    error: bundle rejected: bad END marker)
+PASS S-L1 END only (no data): rc=1 (    error: bundle rejected: empty)
+PASS S-L1 duplicate END: rc=1 (    error: bundle rejected: data after the END marker)
 PASS split at the first '=': value 'a=b' kept whole
 PASS good bundle fills all five variables (lengths ts=26 gh=20)
 PASS shell metacharacters are inert text (never eval/source): rc=0 
@@ -29,4 +35,4 @@ PASS control character in git name: rc=1 (    error: bundle rejected: bad GIT_US
 PASS git name > 200: rc=1 (    error: bundle rejected: bad GIT_USER_NAME)
 PASS bad email: rc=1 (    error: bundle rejected: bad GIT_USER_EMAIL)
 PASS empty value for a key: rc=1 (    error: bundle rejected: bad GH_TOKEN)
-bundle_parse results: pass=29 fail=0
+bundle_parse results: pass=34 fail=0

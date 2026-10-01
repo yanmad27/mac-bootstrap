@@ -1,5 +1,6 @@
 TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
-Host key of 127.0.0.1 (ED25519): SHA256:eKxxBae9zQbDUQOVG5ncBKFpBC2/XT3HCoHL8NouVTM
+Host key of 127.0.0.1 (ED25519): SHA256:0bdPaFVg5WnrSjJL0nKH1t/TWM4D7Q0cga+Gm+/19h8
+It must equal the ED25519 SHA256 fingerprint printed on the target's screen.
 Does this match the screen? [y/N] y
 Connecting to tuser@127.0.0.1 (host key pinned, strict checking)
     error: Tailscale API refused to mint the key (HTTP 403) requested tags are invalid or not permitted

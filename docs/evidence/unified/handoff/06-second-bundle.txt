@@ -1,4 +1,8 @@
-send #1 (ready present): exit=0 stderr=''
-send #2 (bundle exists, ready present): exit=5 stderr='mac-bootstrap: a bundle was already delivered or the hand-off is closed'
-oversized (20000 bytes) with ready present: exit=4 stderr='mac-bootstrap: bundle too large'
-send with no inbox: exit=3 stderr='mac-bootstrap: the target is not waiting for a hand-off'
+ready = '<pid> <nonce>' written by the receiver; a live sleeping process stands in for it
+probe (live pid): exit=0 stdout(nonce)='abc123'
+send #1: exit=0
+send #2 (bundle exists): exit=5 stderr='mac-bootstrap: a bundle was already delivered or the hand-off is closed'
+oversized (20000 bytes): exit=4 stderr='mac-bootstrap: bundle too large'
+wrong nonce: exit=3 stderr='mac-bootstrap: the target is not waiting for a hand-off'
+STALE ready (pid not alive) probe: exit=3 ; send: exit=3 stderr='mac-bootstrap: the target is not waiting for a hand-off'
+no inbox: exit=3 stderr='mac-bootstrap: the target is not waiting for a hand-off'

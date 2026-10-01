@@ -1,3 +1,4 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
 PASS 01 hand-off over real SSH exit 0
 PASS 01 fingerprint shown by client equals the one on the target screen
 PASS 01 receiver parsed the bundle (TS key tskey-auth-, gh, tags, identity set)
@@ -15,12 +16,13 @@ PASS 04 inbox still holds only ready (no bundle)
 PASS 04 Ctrl-C on the receiver runs the cleanup trap (inbox removed)
 PASS 05 pinned key != real host key: strict checking refuses, nothing minted/sent
 PASS 05 ssh reported the host key problem
-PASS 06 first push ok, second push rejected (exit 5), oversized rejected (exit 4), no inbox rejected (exit 3)
+PASS 06 probe returns the nonce; first push ok, second push exit 5, oversized exit 4
+PASS 06 S-M1: wrong nonce, stale ready (dead pid) and no inbox are all refused (exit 3) on probe and send
 PASS 06 client probe: target not waiting -> abort before minting
 PASS 07 symlinked inbox refused; no ready marker written through the link
 PASS 07 client cannot push into a symlinked inbox (aborts before minting)
 PASS 08 root without --target-user refused
-PASS 08 --target-user passes preflight on Linux then hits the clean not-yet stub
+PASS 08 --target-user passes preflight on Linux and the dry-run flow completes (exit 0)
 PASS 08 non-root --target-user other refused
 PASS 08 root receiver for --target-user tuser: hand-off delivered and parsed
 PASS 09 API refusing the mint: clear error, nothing delivered
@@ -34,6 +36,11 @@ PASS 12 installed helper runs
 PASS 12 piped --client-setup --origin: helper downloaded, sha256 equals install.sh
 PASS 12 piped without --origin: clear refusal
 PASS 12 non-https origin refused
+PASS 15 S-M1: stale ready (receiver pid dead, e.g. after kill -9): client refuses, nothing minted, no 'delivered' message
+PASS 16 S-M1/S-L5: bundle not taken within 15 s -> client removes it, reports failure (exit != 0)
+PASS 16 S-L5: the minted key was revoked by id (DELETE /api/v2/tailnet/-/keys/<id>) with the bearer token
+PASS 17 C7: leading zeros, 0, non-numbers, >65535 rejected; valid values accepted
+PASS 18 S-L3: existing different helper -> both sha256 shown, default/No keeps it, y replaces it, identical needs no prompt
 PASS 13 hand-off still works through the argv-logging wrappers
 PASS 13 no secret (raw or base64) in any curl/ssh argv
 PASS 14 bash -x leaks no secret (client `bundle` and target dry-run with secrets in env)

@@ -3,6 +3,7 @@
 # temp HOME). It never runs the installer for real and never touches the real tailscale/gh/brew.
 # DUMMY values only. usage: target-core-stub.sh <install.sh>
 set -u
+if (: </dev/tty) 2>/dev/null; then echo "run without a controlling terminal (the no-terminal scenario would otherwise wait for a hand-off)"; exit 2; fi
 SRC=$1
 W=$(mktemp -d /tmp/mbcore.XXXXXX); export HOME=$W/home; mkdir -p "$HOME" "$W/opt/tailscale/bin" "$W/bin"
 LOG=$W/calls.log; : >"$LOG"
@@ -52,6 +53,8 @@ scn "6. no key and --no-wait: no browser login, manual next step recorded"
 TS_KEY=""; NO_WAIT=1; STUB_STATE=NeedsLogin; NEXT_STEPS=(); step_tailscale_up; show; printf '    | next: %s\n' "${NEXT_STEPS[@]}"; NO_WAIT=0
 
 SKIP_GH_AUTH=0
+scn "6b. C6: no terminal and no --no-wait: the installer does NOT block for a hand-off (behaves as --no-wait)"
+TS_KEY=""; NO_WAIT=0; STUB_STATE=NeedsLogin; NEXT_STEPS=(); step_tailscale_up; show; printf '    | next: %s\n' "${NEXT_STEPS[@]}"
 scn "7. gh not authenticated (stub: auth status exits 1) + token: token via stdin, then setup-git"
 GH_TOK=ghp_DUMMYghtoken0001; export STUB_GH_RC=1; step_gh_auth; show
 scn "8. gh already authenticated (stub exits 0): login skipped, token unused"

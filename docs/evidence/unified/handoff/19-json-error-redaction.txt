@@ -1,0 +1,10 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+# S-P3: json_error redacts tskey-/Bearer runs from API messages (bash 3.2, function-level)
+in : requested tags are invalid or not permitted
+out: [requested tags are invalid or not permitted]
+in : bad key tskey-auth-kDUMMY123-abcDEF in request
+out: [bad key <redacted> in request]
+in : Authorization failed for Bearer tskey-api-DUMMYxyz.tail end
+out: [Authorization failed for Bearer <redacted>.tail end]
+in : unexpected $(touch /tmp/x) chars
+out: []

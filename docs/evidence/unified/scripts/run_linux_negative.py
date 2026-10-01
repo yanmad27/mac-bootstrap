@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Linux negative tests + distro detection matrix (disposable containers, nothing installed).
 usage (repo root): python3 docs/evidence/unified/scripts/run_linux_negative.py"""
-import os, shlex, subprocess, sys
+import hashlib, os, shlex, subprocess, sys
 ROOT = os.getcwd(); OUT = os.path.join(ROOT, "docs/evidence/unified/linux"); INSTALL = os.path.join(ROOT, "public/install.sh")
 def sh(c): return subprocess.run(c, shell=True, capture_output=True, text=True)
 def dx(cn, user, cmd, env=()):
     e = "".join("-e %s " % shlex.quote(x) for x in env)
     r = sh("docker exec -u %s %s%s bash -c %s" % (user, e, cn, shlex.quote(cmd))); return r.stdout + r.stderr
+SHA = hashlib.sha256(open(INSTALL, "rb").read()).hexdigest()
 res = []; log = []
 def check(label, ok):
     res.append((label, ok)); print(("PASS " if ok else "FAIL ") + label, flush=True)
@@ -70,6 +71,6 @@ check("matrix: ubuntu/debian/mint -> apt, fedora -> fedora, rocky/alma/centos/rh
       all(ok(i, "apt family") for i in ("ubuntu", "debian", "linuxmint")) and ok("fedora", "fedora family") and all(ok(i, "rhel family") for i in ("rocky", "almalinux", "centos", "rhel", "ol"))
       and all(ok(i, "pacman family") for i in ("arch", "manjaro")) and all(ok(i, "unsupported") for i in ("amzn", "alpine", "opensuse-leap")))
 for c in (U, M, A): sh("docker rm -f %s >/dev/null" % c)
-open(os.path.join(OUT, "negative-tests.txt"), "w").write("Linux negative tests (disposable containers, nothing installed)\n\n" + "\n".join(log))
-open(os.path.join(OUT, "summary-negative.txt"), "w").write("\n".join(("PASS " if k else "FAIL ") + l for l, k in res) + "\n")
+open(os.path.join(OUT, "negative-tests.txt"), "w").write("install.sh sha256: %s\nLinux negative tests (disposable containers, nothing installed)\n\n" % SHA + "\n".join(log))
+open(os.path.join(OUT, "summary-negative.txt"), "w").write("install.sh sha256: %s\n" % SHA + "\n".join(("PASS " if k else "FAIL ") + l for l, k in res) + "\n")
 sys.exit(0 if all(k for _, k in res) else 1)

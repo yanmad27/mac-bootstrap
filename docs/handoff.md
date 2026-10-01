@@ -36,7 +36,7 @@ Keychain items (login keychain, account = `$USER`): service `mac-bootstrap.tails
 
 ## 2. Bundle
 
-`MB1:` + base64 (one line, no wrapping) of `KEY=VALUE` lines.
+`MB1:` + base64 (one line, no wrapping) of `KEY=VALUE` lines. The LAST line must be `END=1` (a truncation guard); a bundle without it, with data after it, or with a wrong END value is rejected, and a bundle with only `END=1` is empty.
 
 | Key | Rule |
 |---|---|
@@ -45,6 +45,7 @@ Keychain items (login keychain, account = `$USER`): service `mac-bootstrap.tails
 | `GH_TOKEN` | `^[A-Za-z0-9_]+$` |
 | `GIT_USER_NAME` | no control characters, at most 200 bytes |
 | `GIT_USER_EMAIL` | `local@domain`, no whitespace or `<>` |
+| `END` | exactly `END=1`, last line, once |
 
 Receiver rules: decoded size at most 8 KiB (encoded line at most 11000 bytes); reject CR, NUL, empty lines, duplicate keys and unknown keys; split at the FIRST `=`; never `eval` or `source`. Errors name the problem, never the value. A bundle is parsed from a file or variable only by the receiver's own loop.
 
@@ -53,8 +54,9 @@ Git identity on the client is read-only: `git config --global user.name/user.ema
 ## 3. Inbox (receiver, on the target)
 
 - Path `$TARGET_HOME/.cache/mac-bootstrap/inbox`, mode 0700, owned by the target user. The receiver verifies that `.cache`, `mac-bootstrap` and `inbox` are real directories (not symlinks), owned by the target user, and not group/world writable.
-- The receiver writes a `ready` marker. The SSH-side command (the only thing the client runs) writes `bundle.tmp.<pid>` under `umask 077`, and links it to `bundle` only if `ready` exists and `bundle` does not (an atomic no-clobber `ln`, then removes the temp).
-- Wait loop: polls for `bundle` once a second while `read -t 1 -s -n 1 </dev/tty` watches for `p`. `p` switches to a hidden paste prompt (strictly sequential, never two readers). Empty paste goes back to waiting. Timeout `--handoff-timeout` (default 900 s); after a timeout the run continues without credentials and lists the manual steps. `--no-wait` skips the wait entirely.
+- The receiver writes a `ready` marker containing `<receiver pid> <random nonce>`. The SSH-side commands (the only things the client runs) refuse a `ready` whose pid is not alive (`kill -0`, or `/proc/<pid>` / `ps -p` when the receiver runs as root), so a marker left by a killed receiver or a reboot is never trusted. The probe prints the nonce; the send command must present the same nonce. It writes `bundle.tmp.<pid>` under `umask 077` and links it to `bundle` only if `ready` still matches and `bundle` does not exist (an atomic no-clobber `ln`, then removes the temp). After sending, the client waits up to 15 s (same SSH connection) for the receiver to take `bundle`; if it is not taken the client removes it, revokes the minted key by id (`DELETE /api/v2/tailnet/-/keys/{id}`) and reports failure.
+- Every filesystem operation on inbox paths runs as the target user, so a root receiver never follows user-controlled paths. The inbox directory is 0700; its parents must be real directories owned by the user, not world-writable, and group-writable only when the directory's group is the user's own private group (Fedora/RHEL `umask 002`).
+- Wait loop: polls for `bundle` once a second while `read -t 1 -s -n 1 </dev/tty` watches for `p`. `p` switches to a hidden paste prompt (strictly sequential, never two readers). Empty paste goes back to waiting. Timeout `--handoff-timeout` (default 900 s); after a timeout the run continues without credentials and lists the manual steps. `--no-wait` skips the wait entirely. With no terminal (`/dev/tty` unavailable) the installer does not wait either: it behaves as `--no-wait` and lists the manual next steps (clarification of the earlier Mac behaviour "no terminal -> skip").
 - Single use: on read the receiver removes `ready`, validates, then deletes `bundle`. A second bundle is refused by the SSH side (no `ready`).
 - Cleanup trap on EXIT, INT, TERM removes `ready`, `bundle`, `bundle.tmp.*` and the empty inbox.
 - When the wait is needed: Tailscale not Running (or `--reauth-tailscale`) with no key, or gh not authenticated (or `--reauth-gh`) with no token, in a non-skipped step. Values already in the environment win over bundle values.
@@ -106,7 +108,9 @@ In test mode the real Keychain and the real `gh` are never invoked and `gh api u
 | GitHub token (`gh auth token`, explicit consent) | The client's token is shared with the target: broad scopes, the same token on two machines. It travels in the bundle (SSH, or your clipboard/scrollback when pasted). Revoking it logs the client Mac out too. Linux stores it as plaintext 0600 `~/.config/gh/hosts.yml` when no keyring exists. | `gh auth logout` on either machine, or revoke the OAuth app authorization at github.com/settings/applications; then `gh auth login` again on the client. |
 | Minted Tailscale key | Single use, 1 hour. Only valid until used or expired. | Revoke it in the admin console (Settings > Keys). Revoking does not remove a node already registered; remove the machine in the admin console. |
 | SSH host key (trust on first use) | A network attacker could present their own key | The client shows the fingerprint and you compare it with the target screen; only that key is trusted, strict checking, never `StrictHostKeyChecking=no`. Pasting avoids the network. |
-| Inbox / bundle on the target | Plain file for a moment | 0700 dir owned by the target user, 0600 file, removed on read and by the exit trap. |
+| Inbox / bundle on the target | Plain file for a moment | 0700 dir owned by the target user, 0600 file, removed on read and by the exit trap; stale `ready` markers (dead pid) are refused. |
+| Secrets passed through the environment (`TS_AUTHKEY`, `GH_TOKEN`) | They stay in the process environment block of the installer (readable by the same user and root) and in shell history if typed inline | Prefer the hand-off. The script copies them to non-exported variables and unsets them first, but cannot scrub the parent shell's history or the original environment block. |
+| Failed delivery | A minted key that was not used | The client revokes it by id; otherwise it is single-use and expires in one hour. |
 
 Tailnet policy needed once (OpenSSH on TCP 22, not Tailscale SSH):
 
@@ -133,3 +137,6 @@ Paseo is `npm install -g @getpaseo/cli` (latest, version printed); only the CLI,
 Privileges: root runs the system steps directly; a normal user needs sudo (otherwise a clear error before any change). As root, gh and git run as the `--target-user` / `SUDO_USER` user. gh stores its token in `~/.config/gh/hosts.yml` (plaintext, mode 0600) when no keyring is available, as on a headless server.
 
 No systemd as PID 1 (`/run/systemd/system` absent, e.g. a container): packages are installed, `tailscaled`/`sshd` are NOT enabled or started, `tailscale up` is skipped, and the summary and the exit status say so: exit 3 (`NOT COMPLETE`). A failed gh login (rejected token, no network) is reported without aborting and exits 4. A hand-off in such a container needs sshd started by hand (or paste, `p`).
+
+Updates after review (section 9 facts): the SSH unit is `ssh.socket` only when it is already enabled or active (Ubuntu); otherwise `systemctl enable --now ssh` (apt) or `sshd`, and a failed enable stops with a clear error. Node >= 20 with npm is installed or upgraded in step 2, before the Tailscale join (NodeSource when its repo is configured or the distro candidate is older than 20; `dnf module switch-to/enable nodejs:22` on RHEL 8/9). Paseo is installed without sudo when npm's global prefix is writable, otherwise with `sudo env PATH=... <resolved npm>`. A RHEL-family system must have dnf and major version >= 8. A dry-run without systemd exits 0 and says a real run would exit 3. The Linux summary reports the effective `PasswordAuthentication`/`PermitRootLogin` from `sshd -T` and warns when password login is on (it never changes the configuration).
+

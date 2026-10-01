@@ -1,2 +1,2 @@
-diff vs checkpoint A (mac/dry-run-after.txt), header line ignored:
-IDENTICAL
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+diff vs checkpoint A mac/dry-run-after.txt (header lines ignored): IDENTICAL

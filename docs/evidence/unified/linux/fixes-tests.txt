@@ -1,0 +1,253 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+Functional tests of review items C2, C3, C4, C8, C9 (disposable native arm64 ubuntu containers)
+
+##### C9 fedora-without-dnf (real /etc/os-release, no override, ubuntu userland)
+
+[1/10] Preflight
+exit=1
+error: dnf not found: this installer needs dnf (Fedora, RHEL 8+); yum-only systems are unsupported (nothing was changed)
+
+##### C9 arch-without-pacman (real /etc/os-release, no override, ubuntu userland)
+
+[1/10] Preflight
+exit=1
+error: pacman not found on this Arch-family system (nothing was changed)
+
+##### C9 centos-7 (real /etc/os-release, no override, ubuntu userland)
+
+[1/10] Preflight
+exit=1
+error: RHEL-family release 7 is older than 8 (needs dnf and current packages): unsupported (nothing was changed)
+
+##### C8 .cache 0755
+setup: chmod 755 /home/tuser/.cache
+RESULT-OK inbox=/home/tuser/.cache/mac-bootstrap/inbox
+drwx------ 2 tuser tuser 4096 Oct  1 14:18 /home/tuser/.cache/mac-bootstrap/inbox
+
+##### C8 .cache 0775 group = the user's private group tuser (Fedora umask 002)
+setup: chmod 775 /home/tuser/.cache
+RESULT-OK inbox=/home/tuser/.cache/mac-bootstrap/inbox
+drwx------ 2 tuser tuser 4096 Oct  1 14:18 /home/tuser/.cache/mac-bootstrap/inbox
+
+##### C8 .cache 0775 group daemon (not the private group)
+setup: chgrp daemon /home/tuser/.cache; chmod 775 /home/tuser/.cache
+RESULT-REFUSED
+    error: inbox refused: /home/tuser/.cache is not a plain directory owned by tuser (symlink or loose permissions)
+
+##### C8 .cache 0777 (world-writable)
+setup: chmod 777 /home/tuser/.cache
+RESULT-REFUSED
+    error: inbox refused: /home/tuser/.cache is not a plain directory owned by tuser (symlink or loose permissions)
+
+##### C8 mac-bootstrap 0770 pre-existing, private group (chmod 0700 applied, inbox 0700)
+setup: chmod 755 /home/tuser/.cache; mkdir -p /home/tuser/.cache/mac-bootstrap; chown tuser:tuser /home/tuser/.cache/mac-bootstrap; chmod 770 /home/tuser/.cache/mac-bootstrap
+RESULT-OK inbox=/home/tuser/.cache/mac-bootstrap/inbox
+drwx------ 2 tuser tuser 4096 Oct  1 14:18 /home/tuser/.cache/mac-bootstrap/inbox
+
+##### C8 mac-bootstrap is a symlink
+setup: chmod 755 /home/tuser/.cache; ln -s /tmp /home/tuser/.cache/mac-bootstrap
+RESULT-REFUSED
+    error: inbox refused: /home/tuser/.cache/mac-bootstrap is not a plain directory owned by tuser (symlink or loose permissions)
+
+##### C2 first run (full install)
+--skip-gh-auth)
+
+[8/10] git identity
+    skipped (GIT_USER_NAME / GIT_USER_EMAIL not set)
+
+[9/10] iTerm2 shell integration
+    skipped (macOS only)
+
+[10/10] Summary
+    Tailscale: NOT started (no systemd), so there is no tailnet IP or name
+    SSH server: not listening on port 22
+    start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
+    sshd effective settings: PasswordAuthentication yes, PermitRootLogin without-password (this installer changes neither)
+    WARNING: SSH password login is ON. Consider key-only login (PasswordAuthentication no) once your key works; not changed here
+    NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3.
+    still manual:
+      - Run: /usr/bin/tailscale up   (prints a login URL; the installer itself never opens a browser)
+      - Run: gh auth login --hostname github.com && gh auth setup-git --hostname github.com
+      - Set your git identity: git config --global user.name ... && git config --global user.email ...
+exit=3
+npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm notice
+npm notice New major version of npm available! 10.9.9 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
+
+##### C2 state after `apt-get remove nodejs` (NodeSource list stays)
+/etc/apt/sources.list.d/nodesource.list
+node: absent
+dpkg-query: no packages found matching nodejs
+
+##### C2 rerun
+
+[1/10] Preflight
+    detected: Ubuntu 24.04.5 LTS (apt family)
+    Linux, arch aarch64, target user tuser
+    not root: system changes use sudo
+    mode: apply
+    TS_AUTHKEY: not set
+    TS_TAGS: not set
+    GH_TOKEN: not set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+
+[2/10] Package repositories (signed)
+    already present -> skip: ca-certificates curl gnupg
+    tailscale apt repo already configured -> skip
+    gh apt repo already configured -> skip
+    NodeSource apt repo already configured -> skip
+Detected old npm client, removing...
+    done
+
+[3/10] Tailscale package
+    already present -> skip
+
+[4/10] OpenSSH server and tailscaled services
+    already present -> skip: openssh-server
+    sshd -t: ok
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+
+[5/10] tailscale up
+    skipped (--skip-tailscale-up)
+
+[6/10] git, gh, paseo
+    already present -> skip: git gh
+    paseo: already present -> skip (0.10.2)
+    done
+
+[7/10] gh auth
+    skipped (--skip-gh-auth)
+
+[8/10] git identity
+    skipped (GIT_USER_NAME / GIT_USER_EMAIL not set)
+
+[9/10] iTerm2 shell integration
+    skipped (macOS only)
+
+[10/10] Summary
+    Tailscale: NOT started (no systemd), so there is no tailnet IP or name
+    SSH server: not listening on port 22
+    start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
+    sshd effective settings: PasswordAuthentication yes, PermitRootLogin without-password (this installer changes neither)
+    WARNING: SSH password login is ON. Consider key-only login (PasswordAuthentication no) once your key works; not changed here
+    NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3.
+    still manual:
+      - Run: /usr/bin/tailscale up   (prints a login URL; the installer itself never opens a browser)
+      - Run: gh auth login --hostname github.com && gh auth setup-git --hostname github.com
+      - Set your git identity: git config --global user.name ... && git config --global user.email ...
+exit=3
+
+##### C2 versions after rerun
+v22.23.3
+10.9.9
+0.10.2
+
+##### C3 run with distro nodejs preinstalled (v18.19.1)
+esolv.conf.systemd-resolved.bak': Device or resource busy
+Cannot take a backup of /etc/resolv.conf.
+ln: failed to create symbolic link '/etc/resolv.conf': Device or resource busy
+Cannot install symlink from /etc/resolv.conf to ../run/systemd/resolve/stub-resolv.conf
+Creating group 'systemd-resolve' with GID 996.
+
+Creating user 'systemd-resolve' (systemd Resolver) with UID 996 and GID 996.
+
+
+
+
+Creating config file /etc/ssh/sshd_config with new version
+Creating SSH2 RSA key; this may take some time ...
+3072 SHA256:Mrdh5EiXrjMt1rffmOHCSmBUvbURxx9K8wNh4SGPqMY root@64dfb0d359ba (RSA)
+Creating SSH2 ECDSA key; this may take some time ...
+256 SHA256:bC0OMCe12CtjU8cCzPaJ2TZ/F1zKwCFqgUrwpZievaA root@64dfb0d359ba (ECDSA)
+Creating SSH2 ED25519 key; this may take some time ...
+256 SHA256:TlhAIy2Utsc3Ltd3K+nqeCI2fQVUJXhP9yd1IvpvvPg root@64dfb0d359ba (ED25519)
+invoke-rc.d: could not determine current runlevel
+invoke-rc.d: policy-rc.d denied execution of start.
+
+
+
+
+    sshd -t: ok
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+
+[5/10] tailscale up
+    skipped (--skip-tailscale-up)
+
+[6/10] git, gh, paseo
+    npm prefix /usr needs root: installing Paseo with sudo /usr/bin/npm
+
+added 297 packages in 32s
+    paseo 0.10.2 (npm @getpaseo/cli, latest; the daemon is not started)
+    done
+
+[7/10] gh auth
+    skipped (--skip-gh-auth)
+
+[8/10] git identity
+    skipped (GIT_USER_NAME / GIT_USER_EMAIL not set)
+
+[9/10] iTerm2 shell integration
+    skipped (macOS only)
+
+[10/10] Summary
+    Tailscale: NOT started (no systemd), so there is no tailnet IP or name
+    SSH server: not listening on port 22
+    start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
+    sshd effective settings: PasswordAuthentication yes, PermitRootLogin without-password (this installer changes neither)
+    WARNING: SSH password login is ON. Consider key-only login (PasswordAuthentication no) once your key works; not changed here
+    NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3.
+    still manual:
+      - Run: /usr/bin/tailscale up   (prints a login URL; the installer itself never opens a browser)
+      - Run: gh auth login --hostname github.com && gh auth setup-git --hostname github.com
+      - Set your git identity: git config --global user.name ... && git config --global user.email ...
+exit=3
+npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm notice
+npm notice New major version of npm available! 10.9.9 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
+
+##### C3 versions after
+v22.23.3
+0.10.2
+
+##### C4 node/npm only on the user's PATH (/opt/node-user, root-owned prefix): sudo with the resolved npm
+plain `sudo npm` (what the old code did):
+sudo: npm: command not found
+
+v22.11.0
+    npm prefix /opt/node-user needs root: installing Paseo with sudo /opt/node-user/bin/npm
+
+added 294 packages in 32s
+/opt/node-user/bin/paseo
+0.10.2
+npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm notice
+npm notice New major version of npm available! 10.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
+
+##### C4 npm prefix writable by the user (user-owned node install): no sudo
+    npm prefix /opt/node-user is writable by this user: installing Paseo without sudo
+
+added 294 packages in 32s
+/opt/node-user/bin/paseo
+0.10.2
+npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm notice
+npm notice New major version of npm available! 10.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

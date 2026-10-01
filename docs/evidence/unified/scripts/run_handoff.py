@@ -2,7 +2,7 @@
 """Hand-off evidence runner. DUMMY credentials only, a local mock API, a disposable Linux
 container (mb-sshd, sshd on 127.0.0.1:2222). Writes redacted logs into docs/evidence/unified/handoff/.
 Run from the repo root:  python3 docs/evidence/unified/scripts/run_handoff.py"""
-import json, os, re, shutil, subprocess, sys, tempfile, time
+import hashlib, json, os, re, shlex, shutil, subprocess, sys, tempfile, time
 sys.path.insert(0, os.path.dirname(__file__))
 from ptydrive import Proc, redact
 
@@ -23,6 +23,7 @@ DUMMY = {
     "stub_oauth": "tskey-client-DUMMYSTUBcid-DUMMYSTUBsecret",
     "name": "Dummy Person", "email": "dummy@example.invalid",
 }
+SHA = hashlib.sha256(open(INSTALL, "rb").read()).hexdigest()
 results = []
 
 def ev(name, text):
@@ -37,7 +38,7 @@ def sh(cmd, **kw):
     return subprocess.run(cmd, shell=True, capture_output=True, text=True, **kw)
 
 def dexec(user, cmd):
-    return sh("docker exec -u %s mb-sshd bash -c %s" % (user, json.dumps(cmd)))
+    return sh("docker exec -u %s mb-sshd bash -c %s" % (user, shlex.quote(cmd)))
 
 # ---------------------------------------------------------------- setup
 os.makedirs(OUT, exist_ok=True)
@@ -164,37 +165,41 @@ check("05 pinned key != real host key: strict checking refuses, nothing minted/s
 check("05 ssh reported the host key problem", "Host key verification failed" in c.log or "REMOTE HOST IDENTIFICATION" in c.log or "host key" in c.log.lower())
 r.send("\x03"); r.wait(20); os.remove(stubs + "/ssh-keyscan"); mock.terminate()
 
-# ---------------------------------------------------------------- 06 second bundle rejected / not waiting
+# ---------------------------------------------------------------- 06 second bundle, wrong nonce, stale pid, oversized (SSH-side commands)
 reset_inbox()
-dexec("tuser", "mkdir -p /home/tuser/.cache/mac-bootstrap/inbox && chmod 700 /home/tuser/.cache/mac-bootstrap /home/tuser/.cache/mac-bootstrap/inbox && touch /home/tuser/.cache/mac-bootstrap/inbox/ready")
 known = os.path.join(T, "kh")
-scan = sh("ssh-keyscan -p 2222 -t ed25519 127.0.0.1 2>/dev/null").stdout
-open(known, "w").write(scan)
-rc = open(INSTALL).read()
-send_cmd = re.search(r'^readonly RC_SEND="(.*)"$', rc, re.M).group(1).replace('\\"', '"').replace('\\$', '$').replace('\\\\', '\\') if False else None
-# evaluate the exact RC_* strings by letting bash do the unquoting
-RC = subprocess.run(["/bin/bash", "-c", 'eval "$(grep -E "^readonly RC_SEND=" %s)"; printf "%%s" "$RC_SEND"' % INSTALL], capture_output=True, text=True).stdout
+open(known, "w").write(sh("ssh-keyscan -p 2222 -t ed25519 127.0.0.1 2>/dev/null").stdout)
 RP = subprocess.run(["/bin/bash", "-c", 'eval "$(grep -E "^readonly RC_PROBE=" %s)"; printf "%%s" "$RC_PROBE"' % INSTALL], capture_output=True, text=True).stdout
-SSHO = "ssh -p 2222 -o StrictHostKeyChecking=yes -o UserKnownHostsFile=%s -o GlobalKnownHostsFile=/dev/null -o IdentitiesOnly=yes -i %s/id -o IdentityAgent=none -o BatchMode=yes tuser@127.0.0.1" % (known, T)
-def push(payload):
-    return subprocess.run(SSHO + " " + json.dumps(RC).replace("\\$", "\\$"), shell=True, input=payload, capture_output=True, text=True)
-# RC contains $ and quotes meant for the REMOTE shell: pass via argv list instead of shell
-def push2(payload):
+def RS(nonce): return subprocess.run(["/bin/bash", "-c", 'tmp=$(mktemp); grep -v "^main \\"\\$@\\"$" %s >"$tmp"; source "$tmp"; rc_send %s; rm -f "$tmp"' % (INSTALL, nonce)], capture_output=True, text=True).stdout
+def ssh_run(cmd, payload=""):
     return subprocess.run(["ssh", "-p", "2222", "-o", "StrictHostKeyChecking=yes", "-o", "UserKnownHostsFile=" + known, "-o", "GlobalKnownHostsFile=/dev/null",
-                           "-o", "IdentitiesOnly=yes", "-i", T + "/id", "-o", "IdentityAgent=none", "-o", "BatchMode=yes", "tuser@127.0.0.1", RC],
+                           "-o", "IdentitiesOnly=yes", "-i", T + "/id", "-o", "IdentityAgent=none", "-o", "BatchMode=yes", "tuser@127.0.0.1", cmd],
                           input=payload, capture_output=True, text=True)
-p1 = push2("MB1:AAAA\n"); p2 = push2("MB1:BBBB\n")
-big = push2("MB1:" + "A" * 20000 + "\n")
-dexec("tuser", "rm -f /home/tuser/.cache/mac-bootstrap/inbox/*; touch /home/tuser/.cache/mac-bootstrap/inbox/ready")
-big = push2("MB1:" + "A" * 20000 + "\n")
-dexec("tuser", "rm -rf /home/tuser/.cache/mac-bootstrap")
-p3 = push2("MB1:CCCC\n")
+def mk_ready(nonce="abc123", alive=True):
+    # alive: a sleeping process stands in for the receiver; otherwise a pid that has exited
+    dexec("tuser", "rm -rf ~/.cache/mac-bootstrap; mkdir -p ~/.cache/mac-bootstrap/inbox; chmod 700 ~/.cache/mac-bootstrap ~/.cache/mac-bootstrap/inbox; "
+          + ("(sleep 900 >/dev/null 2>&1 & echo $! > /tmp/sleeper.pid)" if alive else "(true & echo $! > /tmp/sleeper.pid; wait)") +
+          "; printf '%s %s\\n' $(cat /tmp/sleeper.pid) " + nonce + " > ~/.cache/mac-bootstrap/inbox/ready")
+mk_ready()
+pr = ssh_run(RP)
+p1 = ssh_run(RS("abc123"), "MB1:AAAA\n"); p2 = ssh_run(RS("abc123"), "MB1:BBBB\n")
+dexec("tuser", "rm -f ~/.cache/mac-bootstrap/inbox/bundle")
+big = ssh_run(RS("abc123"), "MB1:" + "A" * 20000 + "\n")
+wn = ssh_run(RS("deadbeef"), "MB1:CCCC\n")
+mk_ready(alive=False)
+stale_probe = ssh_run(RP); stale_send = ssh_run(RS("abc123"), "MB1:DDDD\n")
+dexec("tuser", "rm -rf ~/.cache/mac-bootstrap")
+noin = ssh_run(RS("abc123"), "MB1:EEEE\n")
 ev("06-second-bundle.txt",
-   "send #1 (ready present): exit=%d stderr=%r\nsend #2 (bundle exists, ready present): exit=%d stderr=%r\n"
-   "oversized (20000 bytes) with ready present: exit=%d stderr=%r\nsend with no inbox: exit=%d stderr=%r\n"
-   % (p1.returncode, p1.stderr.strip(), p2.returncode, p2.stderr.strip(), big.returncode, big.stderr.strip(), p3.returncode, p3.stderr.strip()))
-check("06 first push ok, second push rejected (exit 5), oversized rejected (exit 4), no inbox rejected (exit 3)",
-      (p1.returncode, p2.returncode, big.returncode, p3.returncode) == (0, 5, 4, 3), str((p1.returncode, p2.returncode, big.returncode, p3.returncode)))
+   "ready = '<pid> <nonce>' written by the receiver; a live sleeping process stands in for it\n"
+   "probe (live pid): exit=%d stdout(nonce)=%r\nsend #1: exit=%d\nsend #2 (bundle exists): exit=%d stderr=%r\noversized (20000 bytes): exit=%d stderr=%r\n"
+   "wrong nonce: exit=%d stderr=%r\nSTALE ready (pid not alive) probe: exit=%d ; send: exit=%d stderr=%r\nno inbox: exit=%d stderr=%r\n"
+   % (pr.returncode, pr.stdout.strip(), p1.returncode, p2.returncode, p2.stderr.strip(), big.returncode, big.stderr.strip(), wn.returncode, wn.stderr.strip(),
+      stale_probe.returncode, stale_send.returncode, stale_send.stderr.strip(), noin.returncode, noin.stderr.strip()))
+check("06 probe returns the nonce; first push ok, second push exit 5, oversized exit 4",
+      (pr.returncode, pr.stdout.strip(), p1.returncode, p2.returncode, big.returncode) == (0, "abc123", 0, 5, 4), str((pr.returncode, pr.stdout, p1.returncode, p2.returncode, big.returncode)))
+check("06 S-M1: wrong nonce, stale ready (dead pid) and no inbox are all refused (exit 3) on probe and send",
+      (wn.returncode, stale_probe.returncode, stale_send.returncode, noin.returncode) == (3, 3, 3, 3), str((wn.returncode, stale_probe.returncode, stale_send.returncode, noin.returncode)))
 # the client's own probe refuses before minting when the target is not waiting
 reset_inbox()
 mock, mlog = start_mock("m6.jsonl")
@@ -222,10 +227,10 @@ reset_inbox()
 a = sh("docker exec -u root mb-sshd bash /tmp/install.sh --dry-run 2>&1; echo exit=$?")
 b2 = sh("docker exec -u root mb-sshd bash /tmp/install.sh --dry-run --target-user tuser 2>&1; echo exit=$?")
 c2 = sh("docker exec -u tuser mb-sshd bash /tmp/install.sh --dry-run --target-user other 2>&1; echo exit=$?")
-ev("08-root-matrix.txt", "# root, no --target-user\n" + a.stdout + "\n# root, --target-user tuser (Linux install branch is a stub: checkpoint B)\n" + b2.stdout +
+ev("08-root-matrix.txt", "# root, no --target-user\n" + a.stdout + "\n# root, --target-user tuser (dry-run of the Linux flow)\n" + b2.stdout +
    "\n# non-root tuser, --target-user other\n" + c2.stdout)
 check("08 root without --target-user refused", "running as root: name the user" in a.stdout and "exit=1" in a.stdout)
-check("08 --target-user passes preflight on Linux then hits the clean not-yet stub", "not yet implemented" in b2.stdout and "exit=1" in b2.stdout)
+check("08 --target-user passes preflight on Linux and the dry-run flow completes (exit 0)", "[10/10] Summary" in b2.stdout and "exit=0" in b2.stdout, b2.stdout[-300:])
 check("08 non-root --target-user other refused", "needs root" in c2.stdout)
 mock, mlog = start_mock("m8.jsonl")
 reset_inbox()
@@ -301,6 +306,58 @@ check("12 piped --client-setup --origin: helper downloaded, sha256 equals instal
 check("12 piped without --origin: clear refusal", pns != 0 and "--origin" in pn.log)
 check("12 non-https origin refused", pbs != 0 and "must be https" in pb.log)
 
+# ---------------------------------------------------------------- 15 stale ready: client refuses before minting
+mk_ready(alive=False)
+mock, mlog = start_mock("m15.jsonl")
+c = client_handoff("y\n"); cs = c.wait(40)
+ev("15-stale-ready-client.txt", c.log)
+check("15 S-M1: stale ready (receiver pid dead, e.g. after kill -9): client refuses, nothing minted, no 'delivered' message",
+      cs != 0 and "not waiting" in c.log and "delivered" not in c.log and (not os.path.exists(mlog) or open(mlog).read() == ""))
+mock.terminate()
+
+# ---------------------------------------------------------------- 16 live receiver that never consumes: remove bundle, revoke the minted key
+mk_ready(alive=True)
+mock, mlog = start_mock("m16.jsonl")
+c = client_handoff("y\n"); cs = c.wait(90)
+ev("16-not-consumed-revoke-client.txt", c.log)
+reqs16 = [json.loads(l) for l in open(mlog)] if os.path.exists(mlog) else []
+shutil.copy(mlog, os.path.join(OUT, "16-mock-api-requests.jsonl"))
+left = dexec("tuser", "ls ~/.cache/mac-bootstrap/inbox").stdout.split()
+check("16 S-M1/S-L5: bundle not taken within 15 s -> client removes it, reports failure (exit != 0)", cs != 0 and "did not take the bundle within 15 s" in c.log and "bundle" not in left, str((cs, left)))
+check("16 S-L5: the minted key was revoked by id (DELETE /api/v2/tailnet/-/keys/<id>) with the bearer token", any(q.get("method") == "DELETE" and q["path"] == "/api/v2/tailnet/-/keys/kDUMMY" and q["bearer_matches_expected"] for q in reqs16) and "revoked" in c.log, str(reqs16[-1:]))
+mock.terminate(); dexec("tuser", "kill $(cat /tmp/sleeper.pid) 2>/dev/null; true")
+
+# ---------------------------------------------------------------- 17 argument validation (C7)
+rows = []; allok = True
+for args, exp_rc in ((["--dry-run", "--handoff-timeout", "08"], 2), (["--dry-run", "--handoff-timeout", "0"], 2), (["--dry-run", "--handoff-timeout", "abc"], 2), (["--dry-run", "--handoff-timeout", "1000000"], 2), (["--dry-run", "--handoff-timeout", "90"], 0),
+                   (["handoff", "u@h", "--port", "022"], 2), (["handoff", "u@h", "--port", "0"], 2), (["handoff", "u@h", "--port", "65536"], 2), (["handoff", "u@h", "--port", "22", "--help"], 0), (["handoff", "u@h", "--port", "65535", "--help"], 0)):
+    r = subprocess.run(["/bin/bash", INSTALL] + args, capture_output=True, text=True, input="", env=dict(os.environ, MB_TEST="1"))
+    okk = r.returncode == exp_rc; allok &= okk
+    rows.append("%-45s exit=%d want=%d %s" % (" ".join(args), r.returncode, exp_rc, "ok" if okk else "WRONG"))
+ev("17-arg-validation.txt", "\n".join(rows) + "\n")
+check("17 C7: leading zeros, 0, non-numbers, >65535 rejected; valid values accepted", allok)
+
+# ---------------------------------------------------------------- 18 client-setup helper replace prompt (S-L3)
+home5 = os.path.join(T, "home5"); os.makedirs(home5)
+def setup(answers, label):
+    c = Proc(["/bin/bash", INSTALL, "--client-setup"], env=client_env({"MB_TEST_HOME": home5}))
+    for exp, snd in answers:
+        c.wait_for(exp, 30); c.send(snd)
+    c.wait(30); return c
+c1 = setup([("Tag for the minted keys", "\n")], "first")
+hp = os.path.join(home5, ".local/bin/mac-bootstrap")
+with open(hp, "a") as f: f.write("# local edit\n")
+mod_sha = sh("shasum -a 256 %s" % hp).stdout.split()[0]
+c2 = setup([("Replace it? [y/N]", "n\n"), ("Tag for the minted keys", "\n")], "decline")
+kept = sh("shasum -a 256 %s" % hp).stdout.split()[0] == mod_sha
+c3 = setup([("Replace it? [y/N]", "y\n"), ("Tag for the minted keys", "\n")], "accept")
+now = sh("shasum -a 256 %s" % hp).stdout.split()[0]
+c4 = setup([("Tag for the minted keys", "\n")], "identical")
+ev("18-helper-replace.txt", "# 1 first install\n" + c1.log + "\n# 2 existing helper edited, answer n\n" + c2.log + "\n# 3 answer y\n" + c3.log + "\n# 4 identical helper\n" + c4.log)
+check("18 S-L3: existing different helper -> both sha256 shown, default/No keeps it, y replaces it, identical needs no prompt",
+      "installed sha256" in c2.log and "new       sha256" in c2.log and kept and "keeping the existing helper" in c2.log and now == want and "already identical" in c4.log and "Replace it?" not in c4.log,
+      str(("installed sha256" in c2.log, "new       sha256" in c2.log, kept, "keeping the existing helper" in c2.log, now == want, "already identical" in c4.log, "Replace it?" not in c4.log)))
+
 # ---------------------------------------------------------------- 13 no secret in argv (curl/ssh wrappers log argv, then run the real tool)
 argv_log = os.path.join(T, "argv.log"); open(argv_log, "w").close()
 stub("curl", 'echo "curl $*" >> %s; exec /usr/bin/curl "$@"\n' % argv_log)
@@ -339,7 +396,7 @@ leak = [v for v in allv for f in forms(v) if f[8:-4] in raw]
 check("14 bash -x leaks no secret (client `bundle` and target dry-run with secrets in env)", xs == 0 and not leak and "set +x" in raw, str(leak))
 
 # ---------------------------------------------------------------- finish
-open(os.path.join(OUT, "summary.txt"), "w").write("\n".join(("PASS " if ok else "FAIL ") + l for l, ok, _ in results) + "\n")
+open(os.path.join(OUT, "summary.txt"), "w").write("install.sh sha256: %s\n" % SHA + "\n".join(("PASS " if ok else "FAIL ") + l for l, ok, _ in results) + "\n")
 os.kill(agent_pid, 15)
 shutil.rmtree(T, ignore_errors=True)
 print("failed:", [l for l, ok, _ in results if not ok])

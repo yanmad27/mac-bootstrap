@@ -1,0 +1,8 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+PASS fedora container booted systemd as PID 1
+PASS fedora gh login with the dummy token failed cleanly; honest exit 4 (not complete)
+PASS fedora installer reported tailscaled and the ssh unit enabled and active
+PASS fedora sshd -T report printed (effective PasswordAuthentication/PermitRootLogin)
+PASS fedora probes: tailscaled and the ssh unit (or ssh.socket) enabled and active; port 22 listening
+PASS fedora probes: tools, sshd -t, git identity set, inbox removed
+PASS fedora rerun is idempotent (all present -> skip; units already active)

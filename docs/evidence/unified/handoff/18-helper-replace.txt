@@ -1,0 +1,43 @@
+# 1 first install
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+Tag for the minted keys [tag:bootstrap]: 
+test mode: Keychain write skipped
+installed /tmp/mbev.9b_te68z/home5/.local/bin/mac-bootstrap
+sha256 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+add it to your PATH:  export PATH="$HOME/.local/bin:$PATH"   (put that line in ~/.zprofile)
+next: mac-bootstrap handoff <user@host>   (or: mac-bootstrap bundle)
+
+# 2 existing helper edited, answer n
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+a helper already exists at /tmp/mbev.9b_te68z/home5/.local/bin/mac-bootstrap
+  installed sha256: 5133de8033947d5655bf1cacdfedece0cc80ab009217677ddb3567d02c1d5801
+  new       sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+Replace it? [y/N] n
+keeping the existing helper
+Tag for the minted keys [tag:bootstrap]: 
+test mode: Keychain write skipped
+sha256 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+add it to your PATH:  export PATH="$HOME/.local/bin:$PATH"   (put that line in ~/.zprofile)
+next: mac-bootstrap handoff <user@host>   (or: mac-bootstrap bundle)
+
+# 3 answer y
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+a helper already exists at /tmp/mbev.9b_te68z/home5/.local/bin/mac-bootstrap
+  installed sha256: 5133de8033947d5655bf1cacdfedece0cc80ab009217677ddb3567d02c1d5801
+  new       sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+Replace it? [y/N] y
+Tag for the minted keys [tag:bootstrap]: 
+test mode: Keychain write skipped
+installed /tmp/mbev.9b_te68z/home5/.local/bin/mac-bootstrap
+sha256 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+add it to your PATH:  export PATH="$HOME/.local/bin:$PATH"   (put that line in ~/.zprofile)
+next: mac-bootstrap handoff <user@host>   (or: mac-bootstrap bundle)
+
+# 4 identical helper
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+the helper at /tmp/mbev.9b_te68z/home5/.local/bin/mac-bootstrap is already identical
+Tag for the minted keys [tag:bootstrap]: 
+test mode: Keychain write skipped
+sha256 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+add it to your PATH:  export PATH="$HOME/.local/bin:$PATH"   (put that line in ~/.zprofile)
+next: mac-bootstrap handoff <user@host>   (or: mac-bootstrap bundle)

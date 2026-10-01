@@ -1,8 +1,9 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
 image: rockylinux@sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
 image id: sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
 platform: linux/arm64 (image architecture arm64)  native
 family: rocky   run as: tuser (sudo)
-date: 2026-10-01T19:35:26+07:00
+date: 2026-10-01T21:29:06+07:00
 container: disposable, no systemd as PID 1 (docker 'sleep infinity')
 command: docker exec -it -u tuser mbl-rocky bash /tmp/install.sh 
 client: bash public/install.sh handoff tuser@127.0.0.1 --port 2234   (MB_TEST=1, mock API 127.0.0.1:18773, dummy values)
@@ -30,7 +31,18 @@ note: sshd was started by hand in the container (docker exec -d sshd) once the i
 
 
 
-    node: dnf module nodejs:22 (the default stream is older than 20)
+
+
+
+
+
+
+
+
+
+
+
+
     done
 
 [3/10] Tailscale package
@@ -70,10 +82,6 @@ note: sshd was started by hand in the container (docker exec -d sshd) once the i
 
 
 
-
-
-
-
     generated missing SSH host keys
     sshd -t: ok
     systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
@@ -87,12 +95,12 @@ note: sshd was started by hand in the container (docker exec -d sshd) once the i
     waiting up to 900s for a hand-off (Ctrl-C to stop)
     SSH is reachable on this machine. From your client Mac, run one of:
       mac-bootstrap handoff tuser@172.17.0.5
-    ED25519 host-key fingerprint (it must match what the client shows): SHA256:kgzekAALpNnZgKAYv5Ww1T46f1K6Dj60L9+vZgZ7P7c
+    ED25519 SHA256 host-key fingerprint (it must match what the client shows): SHA256:yuYOforhTEnrmHtpridN9Ii3T90l6KyuOZOrVXPPC9M
     bundle received over SSH and accepted
     hand-off received: Tailscale key set, GitHub token set, git identity set
     skipped: tailscaled is not running (no systemd); NOT joined to the tailnet
 
-[6/10] git, gh, node, paseo
+[6/10] git, gh, paseo
 
 
 
@@ -179,19 +187,11 @@ note: sshd was started by hand in the container (docker exec -d sshd) once the i
 
 
 
+    npm prefix /usr/local needs root: installing Paseo with sudo /usr/bin/npm
 
 
 
-
-
-
-
-
-
-
-
-
-\    paseo 0.10.2 (npm @getpaseo/cli, latest; the daemon is not started)
+|    paseo 0.10.2 (npm @getpaseo/cli, latest; the daemon is not started)
     done
 
 [7/10] gh auth
@@ -210,6 +210,8 @@ Try authenticating with:  gh auth login -h github.com
     Tailscale: NOT started (no systemd), so there is no tailnet IP or name
     SSH server: listening on port 22
     start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
+    sshd effective settings: PasswordAuthentication yes, PermitRootLogin without-password (this installer changes neither)
+    WARNING: SSH password login is ON. Consider key-only login (PasswordAuthentication no) once your key works; not changed here
     NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3.
     still manual:
       - Start tailscaled, then run: sudo tailscale up (or re-run this installer on a systemd host)
@@ -217,12 +219,13 @@ Try authenticating with:  gh auth login -h github.com
 
 ===== installer exit status: 3 =====
 
-===== client (Mac) output =====
+===== client (Mac) / emulation-limit output =====
 TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
-Host key of 127.0.0.1 (ED25519): SHA256:kgzekAALpNnZgKAYv5Ww1T46f1K6Dj60L9+vZgZ7P7c
+Host key of 127.0.0.1 (ED25519): SHA256:yuYOforhTEnrmHtpridN9Ii3T90l6KyuOZOrVXPPC9M
+It must equal the ED25519 SHA256 fingerprint printed on the target's screen.
 Does this match the screen? [y/N] y
 Connecting to tuser@127.0.0.1 (host key pinned, strict checking)
-Hand-off delivered to tuser@127.0.0.1. The target takes it from here; watch its screen.
+Hand-off delivered to tuser@127.0.0.1 and taken by the receiver. Watch its screen for the result.
 
 ===== client exit status: 0 =====
 
@@ -234,6 +237,10 @@ git version 2.52.0
 gh version 2.102.0 (2026-09-30)
 node: v22.23.2
 paseo: 0.10.2
+
+$ (root) command -v gh; ls -l $(command -v gh)
+/usr/bin/gh
+-rwxr-xr-x 1 root root 39059616 Sep 30 02:34 /usr/bin/gh
 
 $ (root) $(command -v sshd || echo /usr/sbin/sshd) -t; echo sshd -t exit=$?
 sshd -t exit=0
@@ -269,9 +276,9 @@ $ (root) grep -hE '^(PasswordAuthentication|PermitRootLogin)' /etc/ssh/sshd_conf
     GIT_USER_EMAIL: not set
     done
 [2/10] Package repositories (signed)
-    node v22.23.2 and npm already present -> skip
     tailscale dnf repo already configured -> skip
     gh dnf repo already configured -> skip
+    node v22.23.2 at /usr/bin/node and npm: ok (>= 20) -> skip
     done
 [3/10] Tailscale package
     already present -> skip
@@ -284,9 +291,8 @@ $ (root) grep -hE '^(PasswordAuthentication|PermitRootLogin)' /etc/ssh/sshd_conf
 [5/10] tailscale up
     needs a GitHub token: --no-wait, not waiting for a hand-off
     skipped: tailscaled is not running (no systemd); NOT joined to the tailnet
-[6/10] git, gh, node, paseo
+[6/10] git, gh, paseo
     already present -> skip: git gh
-    node v22.23.2: already present -> skip
     paseo: already present -> skip (0.10.2)
     done
 [7/10] gh auth
@@ -299,6 +305,8 @@ $ (root) grep -hE '^(PasswordAuthentication|PermitRootLogin)' /etc/ssh/sshd_conf
     Tailscale: NOT started (no systemd), so there is no tailnet IP or name
     SSH server: listening on port 22
     start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
+    sshd effective settings: PasswordAuthentication yes, PermitRootLogin without-password (this installer changes neither)
+    WARNING: SSH password login is ON. Consider key-only login (PasswordAuthentication no) once your key works; not changed here
     NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3.
     still manual:
       - Start tailscaled, then run: sudo tailscale up (or re-run this installer on a systemd host)

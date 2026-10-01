@@ -1,0 +1,17 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+PASS C9 fedora-without-dnf -> clear error before changes
+PASS C9 arch-without-pacman -> clear error before changes
+PASS C9 centos-7 -> clear error before changes
+PASS C8 .cache 0755 -> accepted
+PASS C8 .cache 0775 group = the user's private group tuser (Fedora umask 002) -> accepted
+PASS C8 .cache 0775 group daemon (not the private group) -> refused
+PASS C8 .cache 0777 (world-writable) -> refused
+PASS C8 mac-bootstrap 0770 pre-existing, private group (chmod 0700 applied, inbox 0700) -> accepted
+PASS C8 mac-bootstrap is a symlink -> refused
+PASS C2 first run ok
+PASS C2 rerun with nodesource.list present and nodejs absent: NodeSource plan, no apt error, node >= 20 again
+PASS C2 node 22 + npm present after the rerun
+PASS C3 node < 20 preinstalled (v18.19.1): found, upgraded, install completes
+PASS C3 the upgrade happens in step 2, before the Tailscale step
+PASS C4 root-owned npm prefix + node outside secure_path: plain `sudo npm` fails, the new code uses sudo with the resolved npm path and succeeds
+PASS C4 writable npm prefix: installed without sudo, prefix named

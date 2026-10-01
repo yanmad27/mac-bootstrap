@@ -1,4 +1,5 @@
-bash 3.2.57(1)-release  (stubs in /tmp/mbcore.x21DK2, never the real tailscale/gh)
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+bash 3.2.57(1)-release  (stubs in /tmp/mbcore.bOcblL, never the real tailscale/gh)
 
 === 1. TS_AUTHKEY=tskey-auth-... + TS_TAGS (state NeedsLogin)
 
@@ -6,7 +7,7 @@ bash 3.2.57(1)-release  (stubs in /tmp/mbcore.x21DK2, never the real tailscale/g
     BackendState: NeedsLogin
     done
     | tailscale argv: status --json
-    | tailscale argv: up --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.1hLbEN/tskey --timeout=120s --advertise-tags=tag:bootstrap
+    | tailscale argv: up --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.3qa78S/tskey --timeout=120s --advertise-tags=tag:bootstrap
     |   key file mode=600, 26 bytes, starts tskey-auth-...
     |   key file has no query suffix
 
@@ -16,7 +17,7 @@ bash 3.2.57(1)-release  (stubs in /tmp/mbcore.x21DK2, never the real tailscale/g
     BackendState: NeedsLogin
     done
     | tailscale argv: status --json
-    | tailscale argv: up --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.1hLbEN/tskey --timeout=120s --advertise-tags=tag:bootstrap
+    | tailscale argv: up --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.3qa78S/tskey --timeout=120s --advertise-tags=tag:bootstrap
     |   key file mode=600, 77 bytes, starts tskey-clien...
     |   key file query suffix (inside the file): ?ephemeral=false&preauthorized=true
 
@@ -36,7 +37,7 @@ bash 3.2.57(1)-release  (stubs in /tmp/mbcore.x21DK2, never the real tailscale/g
     BackendState: Running
     done
     | tailscale argv: status --json
-    | tailscale argv: up --force-reauth --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.1hLbEN/tskey --timeout=120s --advertise-tags=tag:bootstrap
+    | tailscale argv: up --force-reauth --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.3qa78S/tskey --timeout=120s --advertise-tags=tag:bootstrap
     |   key file mode=600, 26 bytes, starts tskey-auth-...
     |   key file has no query suffix
 
@@ -47,6 +48,17 @@ bash 3.2.57(1)-release  (stubs in /tmp/mbcore.x21DK2, never the real tailscale/g
     BackendState: NeedsLogin
     no key available (no TS_AUTHKEY, no hand-off): skipped
     | tailscale argv: status --json
+    | tailscale argv: status --json
+    | next: Join Tailscale: run 'mac-bootstrap handoff tester@<this-mac-ip>' from your client Mac while this installer waits (re-run it), or re-run with TS_AUTHKEY=... ; no browser login is used
+
+=== 6b. C6: no terminal and no --no-wait: the installer does NOT block for a hand-off (behaves as --no-wait)
+
+[5/10] tailscale up
+    needs a Tailscale key and a GitHub token: no terminal, so not waiting for a hand-off (same as --no-wait)
+    BackendState: NeedsLogin
+    no key available (no TS_AUTHKEY, no hand-off): skipped
+    | tailscale argv: status --json
+    | gh argv: auth status --active --hostname github.com
     | tailscale argv: status --json
     | next: Join Tailscale: run 'mac-bootstrap handoff tester@<this-mac-ip>' from your client Mac while this installer waits (re-run it), or re-run with TS_AUTHKEY=... ; no browser login is used
 
@@ -93,3 +105,4 @@ bash 3.2.57(1)-release  (stubs in /tmp/mbcore.x21DK2, never the real tailscale/g
     user.name: set
     user.email: set
     | after --set-git-identity: name=[Dummy Person] email=[dummy@example.invalid]
+

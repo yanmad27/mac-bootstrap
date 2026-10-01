@@ -52,9 +52,10 @@ readonly BUNDLE_LINE_MAX=11000
 readonly TOTAL=10
 readonly CURL=(curl --proto '=https' --tlsv1.2 -fsSL)
 readonly GH_ENV=(env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST)
-# Remote commands run by the client over SSH (plain sh, no `eval`, bundle on stdin).
-readonly RC_PROBE="sh -c 'd=\"\$HOME/.cache/mac-bootstrap/inbox\"; test -d \"\$d\" && test ! -L \"\$d\" && test -e \"\$d/ready\" && test ! -e \"\$d/bundle\"'"
-readonly RC_SEND="sh -c 'umask 077; d=\"\$HOME/.cache/mac-bootstrap/inbox\"; if test -L \"\$d\" || test ! -d \"\$d\" || test ! -e \"\$d/ready\"; then echo \"mac-bootstrap: the target is not waiting for a hand-off\" >&2; exit 3; fi; t=\"\$d/bundle.tmp.\$\$\"; head -c 11100 >\"\$t\"; n=\$(wc -c <\"\$t\" | tr -d \" \"); if test \"\$n\" -gt 11000; then rm -f \"\$t\"; echo \"mac-bootstrap: bundle too large\" >&2; exit 4; fi; if test -e \"\$d/ready\" && ln \"\$t\" \"\$d/bundle\" 2>/dev/null; then rm -f \"\$t\"; exit 0; fi; rm -f \"\$t\"; echo \"mac-bootstrap: a bundle was already delivered or the hand-off is closed\" >&2; exit 5'"
+# Remote commands run by the client over SSH (plain sh, no `eval`, bundle on stdin). The receiver writes
+# "<pid> <nonce>" into the ready marker; the SSH side refuses a ready whose pid is not alive.
+readonly RC_PROBE="sh -c 'd=\"\$HOME/.cache/mac-bootstrap/inbox\"; if test -L \"\$d\" || test ! -d \"\$d\" || test -L \"\$d/ready\" || test ! -f \"\$d/ready\" || test -e \"\$d/bundle\"; then exit 3; fi; read rp rn <\"\$d/ready\" || exit 3; case \"\$rp\" in \"\"|*[!0-9]*) exit 3;; esac; case \"\$rn\" in \"\"|*[!0-9a-f]*) exit 3;; esac; if kill -0 \"\$rp\" 2>/dev/null || test -d \"/proc/\$rp\" || ps -p \"\$rp\" >/dev/null 2>&1; then echo \"\$rn\"; exit 0; fi; exit 3'"
+readonly RC_WAIT="sh -c 'd=\"\$HOME/.cache/mac-bootstrap/inbox\"; i=0; while test -e \"\$d/bundle\" && test \"\$i\" -lt 15; do sleep 1; i=\$((i+1)); done; if test -e \"\$d/bundle\"; then rm -f \"\$d/bundle\"; exit 6; fi; exit 0'"
 
 unset TS_KEY GH_TOK
 MODE=target
@@ -87,6 +88,11 @@ B_TAGS=""
 B_GH=""
 B_NAME=""
 B_EMAIL=""
+MINT_TOK=""
+MINT_ID=""
+HELPER_SUM=""
+HELPER_DO=1
+HELPER_DEST=""
 BREW=""
 BREWCMD=""
 HAVE_BREW=0
@@ -94,6 +100,7 @@ PREFIX=""
 TMPD=""
 TSBIN=""
 INBOX=""
+INBOX_OPEN=0
 CM_DIR=""
 CM_SOCK=""
 CHOME=""
@@ -249,14 +256,14 @@ parse_args() {
         ;;
       --handoff-timeout)
         [[ $MODE == target ]] || badopt "$1"
-        need_val "$@"; re='^[0-9]{1,6}$'
-        if ! [[ $2 =~ $re ]] || (($2 < 1)); then printf -- '--handoff-timeout needs a number of seconds\n' >&2; exit 2; fi
+        need_val "$@"; re='^[1-9][0-9]{0,5}$'
+        if ! [[ $2 =~ $re ]]; then printf -- '--handoff-timeout needs a number of seconds (1-999999, no leading zeros)\n' >&2; exit 2; fi
         HANDOFF_TIMEOUT=$2; shift
         ;;
       --port)
         [[ $MODE == handoff ]] || badopt "$1"
-        need_val "$@"; re='^[0-9]{1,5}$'
-        if ! [[ $2 =~ $re ]] || (($2 < 1 || $2 > 65535)); then printf -- '--port needs a port number\n' >&2; exit 2; fi
+        need_val "$@"; re='^[1-9][0-9]{0,4}$'
+        if ! [[ $2 =~ $re ]] || (($2 > 65535)); then printf -- '--port needs a port number (1-65535, no leading zeros)\n' >&2; exit 2; fi
         CL_PORT=$2; shift
         ;;
       --copy)
@@ -330,12 +337,12 @@ as_target() {
   fi
 }
 
-owner_mode() {
-  if [[ $(uname -s) == Darwin ]]; then stat -f '%u %Lp' "$1"; else stat -c '%u %a' "$1"; fi
+owner_mode() { # "uid mode group" as seen by the target user
+  if [[ $(uname -s) == Darwin ]]; then as_target stat -f '%u %Lp %Sg' "$1"; else as_target stat -c '%u %a %G' "$1"; fi
 }
 
-b64dec() { # $1 in-file, $2 out-file
-  base64 -d <"$1" >"$2" 2>/dev/null || base64 -D <"$1" >"$2" 2>/dev/null
+b64dec() { # $1 in-file, $2 out-file (created 0600)
+  (umask 077; base64 -d <"$1" >"$2" 2>/dev/null) || (umask 077; base64 -D <"$1" >"$2" 2>/dev/null)
 }
 
 bundle_clear() { B_TS=""; B_TAGS=""; B_GH=""; B_NAME=""; B_EMAIL=""; }
@@ -343,7 +350,7 @@ bundle_fail() { err "bundle rejected: $1"; rm -f "$TMPD/bundle.dec" "$TMPD/bundl
 
 # bundle_parse <MB1:...>: validate and load into B_*. Errors never include values.
 bundle_parse() {
-  local raw=$1 re line key val seen=" " size tmp
+  local raw=$1 re line key val seen=" " size tmp endseen=0
   bundle_clear
   if ((${#raw} > BUNDLE_LINE_MAX)); then err "bundle rejected: too large"; return 1; fi
   re='^MB1:[A-Za-z0-9+/]+={0,2}$'
@@ -364,14 +371,20 @@ bundle_parse() {
     if [[ $line != *=* ]]; then bundle_fail "line without '='"; return 1; fi
     key=${line%%=*}
     val=${line#*=}
+    if ((endseen)); then bundle_fail "data after the END marker"; return 1; fi
     case $key in
-      TS_AUTHKEY | TS_TAGS | GH_TOKEN | GIT_USER_NAME | GIT_USER_EMAIL) ;;
+      TS_AUTHKEY | TS_TAGS | GH_TOKEN | GIT_USER_NAME | GIT_USER_EMAIL | END) ;;
       *) bundle_fail "unknown key"; return 1 ;;
     esac
     case $seen in
       *" $key "*) bundle_fail "duplicate key $key"; return 1 ;;
     esac
     seen="$seen$key "
+    if [[ $key == END ]]; then
+      if [[ $val != 1 ]]; then bundle_fail "bad END marker"; return 1; fi
+      endseen=1
+      continue
+    fi
     case $key in
       TS_AUTHKEY) re='^tskey-auth-[A-Za-z0-9_-]+$'; [[ $val =~ $re ]] && B_TS=$val ;;
       TS_TAGS) re='^tag:[a-z][a-z0-9-]*(,tag:[a-z][a-z0-9-]*)*$'; [[ $val =~ $re ]] && B_TAGS=$val ;;
@@ -389,7 +402,8 @@ bundle_parse() {
     esac
   done <"$tmp.dec"
   rm -f "$tmp.dec"
-  if [[ $seen == " " ]]; then err "bundle rejected: empty"; return 1; fi
+  if ((!endseen)); then bundle_fail "missing END marker (truncated?)"; return 1; fi
+  if [[ $seen == " END " ]]; then bundle_fail "empty"; return 1; fi
   return 0
 }
 
@@ -403,22 +417,30 @@ bundle_apply() {
   bundle_clear
 }
 
-# Directory is real (not a symlink), owned by the target user, not group/world writable.
+# Directory is real (not a symlink), owned by the target user, not world writable. Group-write is
+# accepted only when the directory's group is the user's own private group (Fedora/RHEL umask 002).
+# Every filesystem operation on inbox paths runs as the target user (as_target), so root never
+# follows user-controlled paths.
 inbox_check_dir() {
-  local d=$1 om m
-  if [[ -L $d || ! -d $d ]]; then return 1; fi
-  om=$(owner_mode "$d") || return 1
-  m=${om#* }
-  if [[ ${om%% *} != "$TARGET_UID" ]]; then return 1; fi
-  if (((8#$m & 8#022) != 0)); then return 1; fi
+  local d=$1 om ou m g pg
+  if as_target test -L "$d" || ! as_target test -d "$d"; then return 1; fi
+  om=$(owner_mode "$d" 2>/dev/null) || return 1
+  read -r ou m g <<<"$om"
+  if [[ $ou != "$TARGET_UID" ]]; then return 1; fi
+  if (((8#$m & 8#002) != 0)); then return 1; fi
+  if (((8#$m & 8#020) != 0)); then
+    pg=$(id -gn "$TARGET_USER" 2>/dev/null || true)
+    if [[ -z $pg || $g != "$pg" || $pg != "$TARGET_USER" ]]; then return 1; fi
+  fi
   return 0
 }
 
 inbox_prepare() {
-  local base="$TARGET_HOME/.cache" d
+  local base="$TARGET_HOME/.cache" d nonce
   INBOX=""
+  INBOX_OPEN=0
   for d in "$base" "$base/mac-bootstrap" "$base/mac-bootstrap/inbox"; do
-    if [[ -e $d || -L $d ]]; then
+    if as_target test -e "$d" || as_target test -L "$d"; then
       if ! inbox_check_dir "$d"; then
         err "inbox refused: $d is not a plain directory owned by $TARGET_USER (symlink or loose permissions)"
         return 1
@@ -430,24 +452,35 @@ inbox_prepare() {
   done
   as_target chmod 0700 "$base/mac-bootstrap" "$base/mac-bootstrap/inbox" || return 1
   INBOX="$base/mac-bootstrap/inbox"
-  rm -f "$INBOX/bundle" "$INBOX"/bundle.tmp.* 2>/dev/null || true
+  nonce=$(od -An -N8 -tx1 /dev/urandom 2>/dev/null | tr -d ' \n' || true)
+  if ! [[ $nonce =~ ^[0-9a-f]{16}$ ]]; then nonce=$(printf '%x%x%x%x' "$RANDOM" "$RANDOM" "$RANDOM" "$RANDOM"); fi
+  # ready = "<receiver pid> <nonce>": the SSH side refuses a ready whose pid is not alive (stale marker)
   # shellcheck disable=SC2016
-  as_target sh -c 'umask 077; : >"$1"' sh "$INBOX/ready" || { INBOX=""; return 1; }
+  if ! as_target sh -c 'rm -f -- "$1"/bundle "$1"/bundle.tmp.*; umask 077; printf "%s %s\n" "$2" "$3" >"$1/ready"' sh "$INBOX" "$$" "$nonce"; then
+    inbox_cleanup
+    return 1
+  fi
+  INBOX_OPEN=1
   return 0
 }
 
 inbox_cleanup() {
   if [[ -n $INBOX ]]; then
-    rm -f "$INBOX/ready" "$INBOX/bundle" "$INBOX"/bundle.tmp.* 2>/dev/null || true
-    rmdir "$INBOX" 2>/dev/null || true
+    # shellcheck disable=SC2016
+    as_target sh -c 'rm -f -- "$1"/ready "$1"/bundle "$1"/bundle.tmp.*; rmdir "$1" 2>/dev/null; true' sh "$INBOX" || true
     INBOX=""
+    INBOX_OPEN=0
   fi
 }
+
+inbox_has_bundle() { as_target test -e "$INBOX/bundle" || as_target test -L "$INBOX/bundle"; }
 
 ssh_listening() { ( exec 3<>/dev/tcp/127.0.0.1/22 ) 2>/dev/null; }
 
 lan_ips() {
-  if command -v ifconfig >/dev/null 2>&1; then
+  if [[ $OS_KIND == linux ]] && command -v ip >/dev/null 2>&1; then
+    ip -4 -o addr show scope global 2>/dev/null | awk '{split($4,a,"/"); print a[1]}'
+  elif command -v ifconfig >/dev/null 2>&1; then
     ifconfig 2>/dev/null | awk '$1=="inet" && $2 !~ /^127\./ && $2 !~ /^169\.254\./ {print $2}'
   elif command -v ip >/dev/null 2>&1; then
     ip -4 -o addr show scope global 2>/dev/null | awk '{split($4,a,"/"); print a[1]}'
@@ -474,60 +507,61 @@ target_screen() {
   if [[ -r /etc/ssh/ssh_host_ed25519_key.pub ]]; then
     fp=$(ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub -E sha256 2>/dev/null | awk '{print $2}' || true)
   fi
+  if [[ -z $fp ]]; then
+    note "SSH is reachable, but this machine has no readable ED25519 host key, so the client cannot verify it: use paste (press p; client: mac-bootstrap bundle)"
+    return 0
+  fi
   note "SSH is reachable on this machine. From your client Mac, run one of:"
   while IFS= read -r ip; do
     [[ -n $ip ]] && note "  mac-bootstrap handoff $TARGET_USER@$ip"
   done < <(lan_ips)
   if ln=$(local_name); then note "  mac-bootstrap handoff $TARGET_USER@$ln"; fi
-  note "ED25519 host-key fingerprint (it must match what the client shows): ${fp:-unavailable (no ED25519 host key found)}"
+  note "ED25519 SHA256 host-key fingerprint (it must match what the client shows): $fp"
 }
 
 # Wait for a bundle: SSH push into the inbox, or `p` for a hidden paste. Returns 0 if a bundle
-# was received and loaded into the credential variables.
+# was received and loaded into the credential variables. (Callers guarantee a terminal.)
 wait_for_handoff() {
-  local deadline k rc shown=0 tty=0 line left pasted=0
-  have_tty && tty=1
+  local deadline k rc shown=0 left pasted=0
   if inbox_prepare; then
     :
   else
     note "SSH hand-off is unavailable on this machine; paste is still possible"
   fi
   if ssh_listening; then
-    if [[ -n $INBOX ]]; then target_screen; fi
+    if ((INBOX_OPEN)); then target_screen; fi
     shown=1
   elif [[ $OS_KIND == macos ]]; then
     note "Remote Login is off. Opening System Settings > General > Sharing: turn on Remote Login (or press p to paste a bundle instead)"
-    open "x-apple.systempreferences:com.apple.Sharing-Settings.extension" >/dev/null 2>&1 || true
+    if ! open "x-apple.systempreferences:com.apple.Sharing-Settings.extension" >/dev/null 2>&1; then
+      note "could not open System Settings; open it by hand: System Settings (or System Preferences) > Sharing > Remote Login"
+    fi
   else
     note "no SSH server is listening on port 22 here; press p to paste a bundle"
   fi
-  if ((tty)); then note "press p to paste a bundle instead (client: mac-bootstrap bundle)"; fi
+  note "press p to paste a bundle instead (client: mac-bootstrap bundle)"
   note "waiting up to ${HANDOFF_TIMEOUT}s for a hand-off (Ctrl-C to stop)"
   deadline=$((SECONDS + HANDOFF_TIMEOUT))
   while ((SECONDS < deadline)); do
-    if [[ -n $INBOX && -e $INBOX/bundle ]]; then
+    if ((INBOX_OPEN)) && inbox_has_bundle; then
       if take_inbox_bundle; then bundle_apply; return 0; fi
       note "SSH hand-off is closed for this run; press p to paste, or run the installer again"
-      INBOX=""
+      INBOX_OPEN=0
     fi
     if ((!shown)) && ssh_listening; then
-      if [[ -n $INBOX ]]; then target_screen; fi
+      if ((INBOX_OPEN)); then target_screen; fi
       shown=1
     fi
-    if ((tty)); then
-      rc=0
-      read -r -t 1 -s -n 1 k 2>/dev/null </dev/tty || rc=$?
-      if ((rc == 0)); then
-        case $k in
-          p | P)
-            left=$((deadline - SECONDS))
-            if paste_bundle "$left"; then pasted=1; break; fi
-            ;;
-        esac
-      elif ((rc < 128)); then
-        sleep 1
-      fi
-    else
+    rc=0
+    read -r -t 1 -s -n 1 k 2>/dev/null </dev/tty || rc=$?
+    if ((rc == 0)); then
+      case $k in
+        p | P)
+          left=$((deadline - SECONDS))
+          if paste_bundle "$left"; then pasted=1; break; fi
+          ;;
+      esac
+    elif ((rc < 128)); then
       sleep 1
     fi
   done
@@ -536,22 +570,24 @@ wait_for_handoff() {
   return 1
 }
 
+# Reads, validates and deletes the pushed bundle, all as the target user.
 take_inbox_bundle() {
-  local f="$INBOX/bundle" om size content rc
-  rm -f "$INBOX/ready"
-  if [[ -L $f || ! -f $f ]]; then err "bundle refused: not a regular file"; rm -f "$f"; return 1; fi
-  om=$(owner_mode "$f") || { rm -f "$f"; return 1; }
-  if [[ ${om%% *} != "$TARGET_UID" ]] || (((8#${om#* } & 8#077) != 0)); then
-    err "bundle refused: wrong owner or loose permissions"; rm -f "$f"; return 1
-  fi
-  size=$(wc -c <"$f" | tr -d ' ')
-  if ((size < 1 || size > BUNDLE_LINE_MAX + 1)); then err "bundle refused: size out of range"; rm -f "$f"; return 1; fi
-  if (($(LC_ALL=C tr -d 'A-Za-z0-9+/=:\n' <"$f" | wc -c) != 0)); then err "bundle refused: unexpected characters"; rm -f "$f"; return 1; fi
-  content=$(cat "$f")
+  local f="$INBOX/bundle" content rc
+  as_target rm -f -- "$INBOX/ready"
+  rc=0
+  # shellcheck disable=SC2016
+  content=$(as_target sh -c 'f=$1; if test -L "$f" || test ! -f "$f" || test ! -O "$f"; then exit 2; fi; n=$(wc -c <"$f" | tr -d " "); if test "$n" -lt 1 || test "$n" -gt 11001; then exit 3; fi; c=$(LC_ALL=C tr -d "A-Za-z0-9+/=:\n" <"$f" | wc -c | tr -d " "); if test "$c" -ne 0; then exit 4; fi; cat "$f"' sh "$f") || rc=$?
+  as_target rm -f -- "$f"
+  case $rc in
+    0) ;;
+    2) err "bundle refused: not a regular file owned by $TARGET_USER"; return 1 ;;
+    3) err "bundle refused: size out of range"; return 1 ;;
+    4) err "bundle refused: unexpected characters"; return 1 ;;
+    *) err "bundle refused: could not read it"; return 1 ;;
+  esac
   rc=0
   bundle_parse "$content" || rc=$?
   content=""
-  rm -f "$f"
   if ((rc != 0)); then return 1; fi
   note "bundle received over SSH and accepted"
   return 0
@@ -568,9 +604,23 @@ paste_bundle() {
   if [[ -z $line ]]; then return 1; fi
   if ! bundle_parse "$line"; then line=""; return 1; fi
   line=""
-  if [[ -n $INBOX ]]; then rm -f "$INBOX/ready"; fi
+  if [[ -n $INBOX ]]; then as_target rm -f -- "$INBOX/ready"; fi
   note "pasted bundle accepted"
   return 0
+}
+
+# sudo may have expired while waiting for the hand-off: refresh it (or fail clearly) before using it.
+sudo_refresh() {
+  local need=0
+  if ((DRY_RUN)); then return 0; fi
+  if ((${#SUDO_CMD[@]})); then need=1; fi
+  if [[ $OS_KIND == macos ]] && ! id -Gn | grep -qw admin; then need=1; fi
+  if ((!need)) || sudo -n true 2>/dev/null; then return 0; fi
+  if have_tty; then
+    sudo -v || die "sudo authentication failed after the hand-off wait"
+  else
+    die "sudo credentials expired during the hand-off wait and there is no terminal to ask again; re-run the installer (nothing from the hand-off was kept)"
+  fi
 }
 
 # Called at the start of step 5: wait for credentials only if something needs them.
@@ -594,9 +644,13 @@ maybe_handoff() {
     return 0
   fi
   if ((DRY_RUN)); then
-    note "needs $why: DRY-RUN would wait up to ${HANDOFF_TIMEOUT}s for a hand-off:"
-    note "  create ~/.cache/mac-bootstrap/inbox (0700), write a ready marker, print this machine's IPs and SSH host-key fingerprint,"
+    note "needs $why: DRY-RUN would wait up to ${HANDOFF_TIMEOUT}s for a hand-off (only with a terminal):"
+    note "  create ~/.cache/mac-bootstrap/inbox (0700), write a ready marker (receiver pid + nonce), print this machine's IPs and SSH host-key fingerprint,"
     note "  accept ONE bundle pushed over SSH by 'mac-bootstrap handoff' from your client Mac, or pasted (press p); no browser is opened"
+    return 0
+  fi
+  if ! have_tty; then
+    note "needs $why: no terminal, so not waiting for a hand-off (same as --no-wait)"
     return 0
   fi
   note "needs $why: waiting for a hand-off from your client Mac"
@@ -604,6 +658,7 @@ maybe_handoff() {
     note "hand-off received: Tailscale key $(setstate "$TS_KEY"), GitHub token $(setstate "$GH_TOK"), git identity $(setstate "$GIT_NAME$GIT_EMAIL")"
   fi
   inbox_cleanup
+  sudo_refresh
 }
 
 # ---------------------------------------------------------------------------------------
@@ -634,8 +689,45 @@ kc_get() { security find-generic-password -s "$1" -a "$USER" -w 2>/dev/null; }
 # The secret reaches `security` on stdin (interactive mode), never argv. Values are validated.
 kc_put() { printf 'add-generic-password -U -s %s -a %s -w %s\n' "$1" "$USER" "$2" | security -i >/dev/null 2>&1; }
 
+# helper_prepare <src-file-or-empty> <proto>: fetch/copy the helper into the temp dir, validate it, and decide whether
+# to (re)install it. An existing, different helper is replaced only after showing both sha256 values and asking.
+helper_prepare() {
+  local src=$1 proto=$2 old ans=""
+  ensure_tmp
+  HELPER_DEST="$CHOME/.local/bin/mac-bootstrap"
+  HELPER_DO=1
+  if [[ -n $src ]]; then
+    cp "$src" "$TMPD/helper"
+  else
+    curl --proto "=$proto" --tlsv1.2 -fsSL --max-time 60 "$ORIGIN/install.sh" -o "$TMPD/helper" </dev/null || die "could not download $ORIGIN/install.sh"
+  fi
+  if [[ $(head -n1 "$TMPD/helper") != '#!/usr/bin/env bash' || $(tail -n1 "$TMPD/helper") != '}' ]] || ! grep -q 'mac-bootstrap install.sh' "$TMPD/helper"; then
+    die "the helper copy does not look like install.sh; refusing to install it"
+  fi
+  HELPER_SUM=$(shasum -a 256 <"$TMPD/helper" | cut -d' ' -f1)
+  if [[ -e $HELPER_DEST ]]; then
+    old=$(shasum -a 256 <"$HELPER_DEST" | cut -d' ' -f1)
+    if [[ $old == "$HELPER_SUM" ]]; then
+      say "the helper at $HELPER_DEST is already identical"
+      HELPER_DO=0
+    else
+      say "a helper already exists at $HELPER_DEST"
+      say "  installed sha256: $old"
+      say "  new       sha256: $HELPER_SUM"
+      if have_tty; then
+        printf 'Replace it? [y/N] ' >/dev/tty
+        IFS= read -r ans </dev/tty || true
+      fi
+      case $ans in
+        y | Y | yes | YES) ;;
+        *) HELPER_DO=0; say "keeping the existing helper" ;;
+      esac
+    fi
+  fi
+}
+
 client_setup() {
-  local secret="" tag="" re ans sum dest src proto
+  local secret="" tag="" re ans src proto
   client_guard
   re='^[A-Za-z0-9._-]+$'
   [[ $USER =~ $re ]] || die "unsupported user name for the Keychain item"
@@ -651,6 +743,7 @@ client_setup() {
       die "--origin must be https://host[:port]"
     fi
   fi
+  helper_prepare "$src" "$proto"
   if test_mode; then
     secret=${MB_TEST_OAUTH_SECRET-}
     [[ -n $secret ]] || die "test mode: MB_TEST_OAUTH_SECRET is required"
@@ -678,23 +771,13 @@ client_setup() {
     say "stored in the login Keychain: service $KC_OAUTH (secret), $KC_TAG (tag $tag)"
   fi
   secret=""
-  # helper copy
-  ensure_tmp
-  dest="$CHOME/.local/bin/mac-bootstrap"
-  if [[ -n $src ]]; then
-    cp "$src" "$TMPD/helper"
-  else
-    curl --proto "=$proto" --tlsv1.2 -fsSL --max-time 60 "$ORIGIN/install.sh" -o "$TMPD/helper" </dev/null || die "could not download $ORIGIN/install.sh"
+  if ((HELPER_DO)); then
+    mkdir -p "$CHOME/.local/bin"
+    chmod 0755 "$TMPD/helper"
+    mv "$TMPD/helper" "$HELPER_DEST"
+    say "installed $HELPER_DEST"
   fi
-  if [[ $(head -n1 "$TMPD/helper") != '#!/usr/bin/env bash' || $(tail -n1 "$TMPD/helper") != '}' ]] || ! grep -q 'mac-bootstrap install.sh' "$TMPD/helper"; then
-    die "the helper copy does not look like install.sh; refusing to install it"
-  fi
-  sum=$(shasum -a 256 <"$TMPD/helper" | cut -d' ' -f1)
-  mkdir -p "$CHOME/.local/bin"
-  chmod 0755 "$TMPD/helper"
-  mv "$TMPD/helper" "$dest"
-  say "installed $dest"
-  say "sha256 $sum"
+  say "sha256 $HELPER_SUM"
   case ":$PATH:" in
     *":$CHOME/.local/bin:"*) ;;
     *) say "add it to your PATH:  export PATH=\"\$HOME/.local/bin:\$PATH\"   (put that line in ~/.zprofile)" ;;
@@ -753,8 +836,9 @@ git_identity_get() {
 }
 
 json_error() { # $1 file: print a sanitized API message
-  local m="" re="^[A-Za-z0-9 .,:_'/-]{1,200}\$"
+  local m="" re="^[A-Za-z0-9 .,:_'/<>-]{1,200}\$"
   m=$(plutil -extract message raw -o - "$1" 2>/dev/null || true)
+  m=$(printf '%s' "$m" | sed -E 's/tskey-[A-Za-z0-9_-]+/<redacted>/g; s/[Bb]earer +[A-Za-z0-9_.-]+/<redacted>/g')
   if [[ $m =~ $re ]]; then printf '%s' "$m"; fi
 }
 
@@ -764,9 +848,11 @@ mint_key() {
   local proto tok http tags="" t re body
   local IFS_SAVE=$IFS
   MINTED=""
+  MINT_TOK=""
+  MINT_ID=""
   ensure_tmp
   proto=${API_BASE%%:*}
-  http=$(printf '%s\n' \
+  http=$(umask 077; printf '%s\n' \
     "url = \"$API_BASE/api/v2/oauth/token\"" \
     'data = "grant_type=client_credentials"' \
     'data = "client_id=mac-bootstrap"' \
@@ -786,11 +872,12 @@ mint_key() {
   IFS=$IFS_SAVE
   body="{\"capabilities\":{\"devices\":{\"create\":{\"reusable\":false,\"ephemeral\":false,\"preauthorized\":true,\"tags\":[$tags]}}},\"expirySeconds\":3600,\"description\":\"mac-bootstrap handoff\"}"
   (umask 077; printf '%s' "$body" >"$TMPD/mint-body.json")
-  http=$(printf '%s\n' \
+  http=$(umask 077; printf '%s\n' \
     "url = \"$API_BASE/api/v2/tailnet/-/keys\"" \
     "header = \"Authorization: Bearer $tok\"" \
     'header = "Content-Type: application/json"' |
     curl --proto "=$proto" --tlsv1.2 -sS --connect-timeout 10 --max-time 30 -K - --data-binary "@$TMPD/mint-body.json" -o "$TMPD/key.json" -w '%{http_code}') || { rm -f "$TMPD/key.json" "$TMPD/mint-body.json"; die "could not reach the Tailscale API"; }
+  MINT_TOK=$tok
   tok=""
   rm -f "$TMPD/mint-body.json"
   if [[ $http != 200 ]]; then
@@ -800,9 +887,27 @@ mint_key() {
     exit 1
   fi
   MINTED=$(plutil -extract key raw -o - "$TMPD/key.json" 2>/dev/null || true)
+  MINT_ID=$(plutil -extract id raw -o - "$TMPD/key.json" 2>/dev/null || true)
   rm -f "$TMPD/key.json"
   re='^tskey-auth-[A-Za-z0-9_-]+$'
   [[ $MINTED =~ $re ]] || die "the Tailscale API returned no usable auth key"
+  re='^[A-Za-z0-9_-]+$'
+  [[ $MINT_ID =~ $re ]] || MINT_ID=""
+}
+
+# revoke_key: delete the minted key by id (used when a delivery fails). The token reaches curl on stdin.
+revoke_key() {
+  local http proto
+  if [[ -z $MINT_TOK || -z $MINT_ID ]]; then note "no key id available: revoke the minted key in the Tailscale admin console"; return 1; fi
+  proto=${API_BASE%%:*}
+  http=$(umask 077; printf '%s\n' \
+    "url = \"$API_BASE/api/v2/tailnet/-/keys/$MINT_ID\"" \
+    'request = "DELETE"' \
+    "header = \"Authorization: Bearer $MINT_TOK\"" |
+    curl --proto "=$proto" --tlsv1.2 -sS --connect-timeout 10 --max-time 30 -K - -o /dev/null -w '%{http_code}') || { err "could not reach the Tailscale API to revoke the minted key"; return 1; }
+  if [[ $http != 200 && $http != 204 ]]; then err "revoking the minted key failed (HTTP $http)"; return 1; fi
+  note "minted key revoked (HTTP $http)"
+  return 0
 }
 
 # Builds BUNDLE (MB1:...). Requires CL_* from the helpers above.
@@ -813,6 +918,7 @@ build_bundle() {
     printf 'GH_TOKEN=%s\n' "$CL_GH"
     if [[ -n $CL_NAME ]]; then printf 'GIT_USER_NAME=%s\n' "$CL_NAME"; fi
     if [[ -n $CL_EMAIL ]]; then printf 'GIT_USER_EMAIL=%s\n' "$CL_EMAIL"; fi
+    printf 'END=1\n'
   } | base64 | tr -d '\n')
   BUNDLE="MB1:$BUNDLE"
   MINTED=""
@@ -826,6 +932,11 @@ client_collect() {
   CL_SECRET=""
   build_bundle
   CL_GH=""
+}
+
+# rc_send <nonce>: the remote command that links the bundle into the inbox of the receiver that wrote <nonce>.
+rc_send() {
+  printf '%s' "sh -c 'umask 077; d=\"\$HOME/.cache/mac-bootstrap/inbox\"; N=\"$1\"; ok() { if test -L \"\$d\" || test ! -d \"\$d\" || test -L \"\$d/ready\" || test ! -f \"\$d/ready\"; then return 1; fi; read rp rn <\"\$d/ready\" || return 1; test \"\$rn\" = \"\$N\" || return 1; kill -0 \"\$rp\" 2>/dev/null || test -d \"/proc/\$rp\" || ps -p \"\$rp\" >/dev/null 2>&1; }; if ok; then :; else echo \"mac-bootstrap: the target is not waiting for a hand-off\" >&2; exit 3; fi; t=\"\$d/bundle.tmp.\$\$\"; head -c 11100 >\"\$t\"; n=\$(wc -c <\"\$t\" | tr -d \" \"); if test \"\$n\" -gt 11000; then rm -f \"\$t\"; echo \"mac-bootstrap: bundle too large\" >&2; exit 4; fi; if ok && ln \"\$t\" \"\$d/bundle\" 2>/dev/null; then rm -f \"\$t\"; exit 0; fi; rm -f \"\$t\"; echo \"mac-bootstrap: a bundle was already delivered or the hand-off is closed\" >&2; exit 5'"
 }
 
 cmd_bundle() {
@@ -846,10 +957,18 @@ cmd_bundle() {
     fi
   fi
   BUNDLE=""
+  MINT_TOK=""
+}
+
+handoff_fail() {
+  local msg=$1
+  if revoke_key; then msg="$msg The minted key was revoked."; else msg="$msg Revoke the minted key in the Tailscale admin console (it is single-use and expires in one hour)."; fi
+  MINT_TOK=""
+  die "$msg"
 }
 
 cmd_handoff() {
-  local user host re scan fp ans kc rc
+  local user host re scan fp ans kc rc nonce
   client_guard
   [[ -n $CL_HOST ]] || die "usage: mac-bootstrap handoff <user@host> [--port N]"
   re='^[A-Za-z0-9._][A-Za-z0-9._-]*@[A-Za-z0-9][A-Za-z0-9.:%_-]*$'
@@ -867,6 +986,7 @@ cmd_handoff() {
   fp=$(printf '%s\n' "$scan" | ssh-keygen -lf - -E sha256 2>/dev/null | awk '{print $2}')
   [[ -n $fp ]] || die "could not compute the host-key fingerprint"
   say "Host key of $host (ED25519): $fp"
+  say "It must equal the ED25519 SHA256 fingerprint printed on the target's screen."
   printf 'Does this match the screen? [y/N] ' >/dev/tty
   IFS= read -r ans </dev/tty || true
   case $ans in
@@ -878,22 +998,30 @@ cmd_handoff() {
   CM_SOCK="$CM_DIR/cm"
   local opts=(-p "$CL_PORT" -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$TMPD/known_hosts"
     -o GlobalKnownHostsFile=/dev/null -o HostKeyAlgorithms=ssh-ed25519 -o HashKnownHosts=no
+    -o ProxyCommand=none -o ProxyJump=none -o PermitLocalCommand=no
     -o ClearAllForwardings=yes -o ForwardAgent=no -o "ControlPath=$CM_SOCK")
   say "Connecting to $CL_HOST (host key pinned, strict checking)"
   ssh "${opts[@]}" -MNf -- "$CL_HOST" </dev/null || die "ssh login failed (nothing was minted or sent)"
   rc=0
-  ssh "${opts[@]}" -- "$CL_HOST" "$RC_PROBE" </dev/null || rc=$?
-  if ((rc != 0)); then
-    die "the target is not waiting for a hand-off for $user (start the installer there first; nothing was minted)"
+  nonce=$(ssh "${opts[@]}" -- "$CL_HOST" "$RC_PROBE" </dev/null) || rc=$?
+  re='^[0-9a-f]{1,32}$'
+  if ((rc != 0)) || ! [[ $nonce =~ $re ]]; then
+    die "the target is not waiting for a hand-off for $user (start the installer there first; or its ready marker is stale; nothing was minted)"
   fi
   client_collect
   rc=0
-  printf '%s\n' "$BUNDLE" | ssh "${opts[@]}" -- "$CL_HOST" "$RC_SEND" || rc=$?
+  printf '%s\n' "$BUNDLE" | ssh "${opts[@]}" -- "$CL_HOST" "$(rc_send "$nonce")" || rc=$?
   BUNDLE=""
   if ((rc != 0)); then
-    die "the target refused the bundle (exit $rc). The minted key is single-use and expires in one hour; revoke it in the Tailscale admin console if you like"
+    handoff_fail "the target refused the bundle (exit $rc)."
   fi
-  say "Hand-off delivered to $CL_HOST. The target takes it from here; watch its screen."
+  rc=0
+  ssh "${opts[@]}" -- "$CL_HOST" "$RC_WAIT" </dev/null || rc=$?
+  if ((rc != 0)); then
+    handoff_fail "the target did not take the bundle within 15 s (it was removed from the inbox)."
+  fi
+  MINT_TOK=""
+  say "Hand-off delivered to $CL_HOST and taken by the receiver. Watch its screen for the result."
 }
 
 # ---------------------------------------------------------------------------------------
@@ -963,9 +1091,10 @@ linux_family_of() {
 # Reads /etc/os-release (never sourced). MB_OS_RELEASE overrides the path ONLY with --dry-run
 # or MB_TEST=1; otherwise it is ignored.
 linux_detect() {
-  local f=/etc/os-release w
+  local f=/etc/os-release w overridden=0
   if [[ -n ${MB_OS_RELEASE-} ]] && { ((DRY_RUN)) || test_mode; }; then
     f=$MB_OS_RELEASE
+    overridden=1
     note "test override: reading os-release from $f"
   fi
   [[ -r $f ]] || die "cannot detect the Linux distribution: $f is missing or unreadable (nothing was changed)"
@@ -1002,6 +1131,17 @@ linux_detect() {
   if [[ $LINUX_FAMILY == rhel ]]; then
     RHEL_MAJOR=${OS_VER%%.*}
     [[ $RHEL_MAJOR =~ ^[0-9]+$ ]] || die "cannot determine the RHEL major version from $f (nothing was changed)"
+    if ((RHEL_MAJOR < 8)); then die "RHEL-family release $OS_VER is older than 8 (needs dnf and current packages): unsupported (nothing was changed)"; fi
+  fi
+  # the package manager must really be here (skipped only for the os-release test override)
+  if ((!overridden)); then
+    case $LINUX_FAMILY in
+      apt)
+        if ! command -v apt-get >/dev/null 2>&1 || ! command -v dpkg-query >/dev/null 2>&1; then die "apt-get/dpkg-query not found on this Debian/Ubuntu-family system (nothing was changed)"; fi
+        ;;
+      fedora | rhel) command -v dnf >/dev/null 2>&1 || die "dnf not found: this installer needs dnf (Fedora, RHEL 8+); yum-only systems are unsupported (nothing was changed)" ;;
+      pacman) command -v pacman >/dev/null 2>&1 || die "pacman not found on this Arch-family system (nothing was changed)" ;;
+    esac
   fi
 }
 
@@ -1082,6 +1222,53 @@ node_major() {
 
 node_ok() { command -v npm >/dev/null 2>&1 && (($(node_major) >= 20)); }
 
+node_diag() {
+  if command -v node >/dev/null 2>&1; then printf 'node %s at %s' "$(node --version 2>/dev/null)" "$(command -v node)"; else printf 'no node'; fi
+}
+
+apt_nodesource_configured() { grep -rqsF 'deb.nodesource.com' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; }
+
+# Install-or-upgrade (also when the package is already present, e.g. an old distro nodejs).
+pm_upgrade() {
+  case $LINUX_FAMILY in
+    apt) priv env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$@" ;;
+    fedora | rhel) priv dnf -y -q install "$@" ;;
+    pacman) priv pacman ${PACMAN_X[@]+"${PACMAN_X[@]}"} -S --noconfirm "$@" ;;
+  esac
+}
+
+# Runs at the end of step 2, BEFORE any irreversible step (the Tailscale join): Node >= 20 + npm for Paseo.
+linux_ensure_node() {
+  if [[ $NODE_PLAN == skip ]]; then
+    note "$(node_diag) and npm: ok (>= 20) -> skip"
+    return 0
+  fi
+  if command -v node >/dev/null 2>&1; then note "found $(node_diag): too old for Paseo (needs >= 20) or npm is missing: installing/upgrading"; fi
+  case $LINUX_FAMILY in
+    apt)
+      if [[ $NODE_PLAN == nodesource ]]; then pm_upgrade nodejs; else pm_upgrade nodejs npm; fi
+      ;;
+    fedora) pm_upgrade nodejs npm ;;
+    rhel)
+      case $RHEL_MAJOR in
+        8 | 9)
+          if pkg_installed nodejs; then
+            priv dnf -y -q module switch-to nodejs:22 || die "dnf module switch-to nodejs:22 failed (an older Node stream is installed). Fix it by hand (sudo dnf module reset nodejs; sudo dnf module enable nodejs:22; sudo dnf install nodejs npm) and re-run; nothing irreversible has been done yet"
+          else
+            priv dnf -y -q module enable nodejs:22 || die "dnf module enable nodejs:22 failed. Enable a Node >= 20 stream or package by hand and re-run; nothing irreversible has been done yet"
+          fi
+          ;;
+      esac
+      pm_upgrade nodejs npm
+      ;;
+    pacman) pm_install nodejs npm ;;
+  esac
+  if ((!DRY_RUN)); then
+    hash -r
+    node_ok || die "Paseo needs Node >= 20 with npm, but this machine has $(node_diag) after the install. Remove or fix the old node (PATH order?) and re-run; nothing irreversible has been done yet (Tailscale is not joined)"
+  fi
+}
+
 apt_candidate_major() {
   local c
   c=$(apt-cache policy nodejs 2>/dev/null | sed -n 's/^ *Candidate: *//p' | head -n1)
@@ -1107,15 +1294,14 @@ step_linux_repos() {
     fi
   fi
   NODE_PLAN=skip
-  if node_ok; then
-    note "node $(node --version) and npm already present -> skip"
-  fi
   case $LINUX_FAMILY in
     apt)
       priv env DEBIAN_FRONTEND=noninteractive apt-get update -qq
       pm_install ca-certificates curl gnupg
-      if [[ $NODE_PLAN == skip ]] && ! node_ok; then
-        if (($(apt_candidate_major) >= 20)); then
+      if ! node_ok; then
+        if apt_nodesource_configured; then
+          NODE_PLAN=nodesource
+        elif (($(apt_candidate_major) >= 20)); then
           NODE_PLAN=distro
         else
           NODE_PLAN=nodesource
@@ -1183,25 +1369,16 @@ step_linux_repos() {
           expect_in gh-cli.repo "cli.github.com"
           priv install -m 0644 "$(tmpref gh-cli.repo)" /etc/yum.repos.d/gh-cli.repo
         fi
-        if [[ $NODE_PLAN == skip ]] && ! node_ok; then
-          NODE_PLAN=distro
-          case $RHEL_MAJOR in
-            8 | 9)
-              priv dnf -y -q module enable nodejs:22
-              note "node: dnf module nodejs:22 (the default stream is older than 20)"
-              ;;
-          esac
-        fi
-      elif [[ $NODE_PLAN == skip ]] && ! node_ok; then
-        NODE_PLAN=distro
       fi
+      if ! node_ok; then NODE_PLAN=distro; fi
       ;;
     pacman)
       note "official repos only (tailscale, github-cli, nodejs, openssh); refreshing and upgrading the package database first (pacman -Syu)"
       priv pacman ${PACMAN_X[@]+"${PACMAN_X[@]}"} -Syu --noconfirm --needed
-      if [[ $NODE_PLAN == skip ]] && ! node_ok; then NODE_PLAN=distro; fi
+      if ! node_ok; then NODE_PLAN=distro; fi
       ;;
   esac
+  linux_ensure_node
   say "    done"
 }
 
@@ -1241,7 +1418,7 @@ unit_exists() { systemctl list-unit-files --no-legend "$1" 2>/dev/null | grep -q
 
 step_linux_services() {
   step 4 "OpenSSH server and tailscaled services"
-  local sshd i sshunit
+  local sshd sshunit mode i
   case $LINUX_FAMILY in
     pacman) pm_install openssh ;;
     *) pm_install openssh-server ;;
@@ -1263,25 +1440,34 @@ step_linux_services() {
       apt) sshunit=ssh ;;
       *) sshunit=sshd ;;
     esac
-    if ((DRY_RUN)); then
-      note "systemd is PID 1: would enable and start tailscaled and $sshunit"
+    # Socket activation is used only when ssh.socket is ALREADY enabled or active (Ubuntu 22.10+); enabling it while
+    # ssh.service holds port 22 (Debian) would fail.
+    mode=service
+    if [[ $LINUX_FAMILY == apt ]] && unit_exists ssh.socket && { systemctl is-enabled --quiet ssh.socket 2>/dev/null || systemctl is-active --quiet ssh.socket 2>/dev/null; }; then
+      mode=socket
     fi
-    priv systemctl enable --now tailscaled
-    if [[ $LINUX_FAMILY == apt ]] && ! ((DRY_RUN)) && unit_exists ssh.socket; then
-      priv systemctl enable --now ssh.socket
-      priv systemctl enable ssh.service
-    elif [[ $LINUX_FAMILY == apt ]] && ((DRY_RUN)); then
-      dry systemctl enable --now ssh.socket "(only if the ssh.socket unit exists, e.g. Ubuntu 22.10+)"
-      dry systemctl enable --now ssh
+    if ((DRY_RUN)); then
+      if [[ $mode == socket ]]; then note "systemd is PID 1: ssh.socket is already enabled/active here, so the socket would be kept enabled and started"
+      else note "systemd is PID 1: would enable and start tailscaled and $sshunit (a not-yet-enabled ssh.socket is left alone)"; fi
+    fi
+    priv systemctl enable --now tailscaled || die "could not enable and start tailscaled (see: journalctl -u tailscaled); nothing was joined"
+    if [[ $mode == socket ]]; then
+      priv systemctl enable --now ssh.socket || die "could not enable and start ssh.socket (see: systemctl status ssh.socket)"
     else
-      priv systemctl enable --now "$sshunit"
+      priv systemctl enable --now "$sshunit" || die "could not enable and start $sshunit (see: systemctl status $sshunit; if ssh.socket owns port 22, enable that instead)"
     fi
     if ((!DRY_RUN)); then
+      systemctl is-active --quiet tailscaled || die "tailscaled is not active after enable --now"
+      if [[ $mode == socket ]]; then
+        systemctl is-active --quiet ssh.socket || die "ssh.socket is not active after enable --now"
+      else
+        systemctl is-active --quiet "$sshunit" || die "$sshunit is not active after enable --now"
+      fi
       for i in $(seq 1 30); do
         if "$TSBIN/tailscale" status >/dev/null 2>&1 || [[ -S /var/run/tailscale/tailscaled.sock || -S /run/tailscale/tailscaled.sock ]]; then break; fi
         sleep 1
       done
-      note "systemd: tailscaled $(systemctl is-active tailscaled 2>/dev/null || true), $sshunit $(systemctl is-active "$sshunit" 2>/dev/null || true)$(if [[ $LINUX_FAMILY == apt ]] && unit_exists ssh.socket; then printf ', ssh.socket %s' "$(systemctl is-active ssh.socket 2>/dev/null || true)"; fi)"
+      note "systemd: tailscaled $(systemctl is-active tailscaled 2>/dev/null || true) ($(systemctl is-enabled tailscaled 2>/dev/null || true)), $( [[ $mode == socket ]] && echo ssh.socket || echo "$sshunit" ) $(systemctl is-active "$( [[ $mode == socket ]] && echo ssh.socket || echo "$sshunit" )" 2>/dev/null || true) ($(systemctl is-enabled "$( [[ $mode == socket ]] && echo ssh.socket || echo "$sshunit" )" 2>/dev/null || true))"
       say "    done"
     fi
   else
@@ -1293,30 +1479,34 @@ step_linux_services() {
   firewall_report
 }
 
-step_linux_tools() {
-  step 6 "git, gh, node, paseo"
-  case $LINUX_FAMILY in
-    apt) pm_install git gh ;;
-    fedora | rhel) pm_install git gh ;;
-    pacman) pm_install git github-cli ;;
-  esac
-  if node_ok; then
-    note "node $(node --version): already present -> skip"
-  else
-    case $LINUX_FAMILY in
-      apt)
-        if [[ $NODE_PLAN == nodesource ]]; then pm_install nodejs; else pm_install nodejs npm; fi
-        ;;
-      *) pm_install nodejs npm ;;
-    esac
-    if ((!DRY_RUN)); then
-      (($(node_major) >= 20)) || die "node >= 20 is required by Paseo, found $(node --version 2>/dev/null || echo none)"
-    fi
+linux_install_paseo() {
+  local npm_bin prefix
+  if ((DRY_RUN)); then
+    note "npm's global prefix is checked in the real run: no sudo when this user can write it, otherwise sudo with the resolved npm path"
+    dry npm install -g --no-fund --no-audit @getpaseo/cli
+    return 0
   fi
+  npm_bin=$(command -v npm) || die "npm not found after the Node install"
+  prefix=$("$npm_bin" config get prefix 2>/dev/null </dev/null) || prefix=""
+  if [[ -n $prefix ]] && { [[ -w $prefix/lib/node_modules ]] || { [[ ! -e $prefix/lib/node_modules ]] && [[ -w $prefix ]]; }; }; then
+    note "npm prefix $prefix is writable by this user: installing Paseo without sudo"
+    "$npm_bin" install -g --no-fund --no-audit @getpaseo/cli </dev/null
+  else
+    note "npm prefix ${prefix:-unknown} needs root: installing Paseo with sudo $npm_bin"
+    ${SUDO_CMD[@]+"${SUDO_CMD[@]}"} env "PATH=$PATH" "$npm_bin" install -g --no-fund --no-audit @getpaseo/cli </dev/null
+  fi
+}
+
+step_linux_tools() {
+  step 6 "git, gh, paseo"
+  case $LINUX_FAMILY in
+    pacman) pm_install git github-cli ;;
+    *) pm_install git gh ;;
+  esac
   if command -v paseo >/dev/null 2>&1; then
     note "paseo: already present -> skip ($(paseo --version 2>/dev/null || echo 'version unknown'))"
   else
-    priv npm install -g --no-fund --no-audit @getpaseo/cli
+    linux_install_paseo
     if ((!DRY_RUN)); then
       note "paseo $(paseo --version 2>/dev/null || echo 'installed, version unreadable') (npm @getpaseo/cli, latest; the daemon is not started)"
     fi
@@ -1499,6 +1689,14 @@ step_tailscale_up() {
       if ((REAUTH_TS)); then
         want_up=1
       else
+        if [[ $OS_KIND == linux ]]; then
+          if [[ -n $TS_TAGS_V ]]; then
+            extra+=(--advertise-tags="$TS_TAGS_V")
+            note "stopped node: re-applying the known tags with --advertise-tags (UNTESTED on a real node)"
+          else
+            note "stopped node: no TS_TAGS known, so tags are not re-applied (the node keeps its stored prefs; UNTESTED)"
+          fi
+        fi
         run "${ts_cmd[@]}" up --timeout=120s ${extra[@]+"${extra[@]}"}
         ((DRY_RUN)) || say "    done"
       fi
@@ -1675,6 +1873,29 @@ step_iterm2() {
   NEXT_STEPS+=("Open a new terminal tab so iTerm2 shell integration loads")
 }
 
+# Reports the EFFECTIVE sshd password/root login policy; never changes it.
+sshd_policy() {
+  local sshd out pa pr pcmd=()
+  if ((DRY_RUN)); then
+    note "DRY-RUN would read the effective PasswordAuthentication/PermitRootLogin with sshd -T and warn if password login is on (nothing is changed)"
+    return 0
+  fi
+  sshd=$(command -v sshd 2>/dev/null || echo /usr/sbin/sshd)
+  [[ -x $sshd ]] || return 0
+  if ((${#SUDO_CMD[@]})); then pcmd=(sudo -n); fi
+  out=$(${pcmd[@]+"${pcmd[@]}"} "$sshd" -T 2>/dev/null </dev/null || true)
+  pa=$(awk '$1=="passwordauthentication"{print $2}' <<<"$out")
+  pr=$(awk '$1=="permitrootlogin"{print $2}' <<<"$out")
+  if [[ -z $pa ]]; then
+    note "could not read the effective sshd settings (sshd -T needs root)"
+    return 0
+  fi
+  note "sshd effective settings: PasswordAuthentication $pa, PermitRootLogin ${pr:-unknown} (this installer changes neither)"
+  if [[ $pa == yes ]]; then
+    note "WARNING: SSH password login is ON. Consider key-only login (PasswordAuthentication no) once your key works; not changed here"
+  fi
+}
+
 summary_linux() {
   local ip="" name="" s
   if ((DRY_RUN)); then
@@ -1692,8 +1913,13 @@ summary_linux() {
   fi
   if ssh_listening; then note "SSH server: listening on port 22"; else note "SSH server: not listening on port 22"; fi
   note "start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)"
+  sshd_policy
   if ((!SVC_OK)); then
-    say "    $( ((DRY_RUN)) && echo "DRY-RUN would end " )NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3."
+    if ((DRY_RUN)); then
+      say "    DRY-RUN: a real run here would end NOT COMPLETE (tailscaled and sshd would not be started: systemd is not PID 1) with exit status 3; this dry-run changed nothing and exits 0."
+    else
+      say "    NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3."
+    fi
   elif ((INCOMPLETE == 4)); then
     say "    NOT COMPLETE: gh login failed. Exit status 4."
   fi
@@ -1780,6 +2006,7 @@ main() {
   step_git_identity
   step_iterm2
   step_summary
+  if ((DRY_RUN)); then return 0; fi
   return "$INCOMPLETE"
 }
 

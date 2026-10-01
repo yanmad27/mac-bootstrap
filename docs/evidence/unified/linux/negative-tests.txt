@@ -1,3 +1,4 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
 Linux negative tests (disposable containers, nothing installed)
 
 ##### 1. non-root user without sudo (real run, no flags): refused before any change

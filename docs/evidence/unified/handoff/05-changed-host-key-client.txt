@@ -1,5 +1,6 @@
 TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
-Host key of 127.0.0.1 (ED25519): SHA256:6kuztfbEGz6NnCjFtVenl1DsAfLHPVt2711RCbOo0+M
+Host key of 127.0.0.1 (ED25519): SHA256:Kmumo1moYG4sOSGNHNbF84z7rUnAgm3E3d1kLYpl0FA
+It must equal the ED25519 SHA256 fingerprint printed on the target's screen.
 Does this match the screen? [y/N] y
 Connecting to tuser@127.0.0.1 (host key pinned, strict checking)
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -9,10 +10,10 @@ IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
 Someone could be eavesdropping on you right now (man-in-the-middle attack)!
 It is also possible that a host key has just been changed.
 The fingerprint for the ED25519 key sent by the remote host is
-SHA256:eKxxBae9zQbDUQOVG5ncBKFpBC2/XT3HCoHL8NouVTM.
+SHA256:0bdPaFVg5WnrSjJL0nKH1t/TWM4D7Q0cga+Gm+/19h8.
 Please contact your system administrator.
-Add correct host key in /tmp/mac-bootstrap.6XFJ0W/known_hosts to get rid of this message.
-Offending ED25519 key in /tmp/mac-bootstrap.6XFJ0W/known_hosts:1
+Add correct host key in /tmp/mac-bootstrap.RcK7fu/known_hosts to get rid of this message.
+Offending ED25519 key in /tmp/mac-bootstrap.RcK7fu/known_hosts:1
 Host key for [127.0.0.1]:2222 has changed and you have requested strict checking.
 Host key verification failed.
 error: ssh login failed (nothing was minted or sent)

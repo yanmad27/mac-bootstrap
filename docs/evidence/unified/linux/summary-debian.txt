@@ -1,7 +1,8 @@
+install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
 PASS debian dry-run exits 0 and shows the numbered flow
 PASS debian dry-run: dummy TS_AUTHKEY/GH_TOKEN absent from the output
 PASS debian dry-run changed nothing (no tailscale/gh/node installed)
-PASS debian hand-off delivered (real SSH)
+PASS debian hand-off delivered over real SSH
 PASS debian installer exit status 3 (services not started, honestly reported)
 PASS debian gh login with the dummy token failed cleanly (script continued)
 PASS debian probes: all tools present (tailscale, sshd, git, gh, node >= 20, paseo)

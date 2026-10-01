@@ -23,12 +23,18 @@ TS_TAGS=tag:bootstrap
 GH_TOKEN=ghp_DUMMYghtoken0001
 GIT_USER_NAME=Dummy Person
 GIT_USER_EMAIL=dummy@example.invalid
+END=1
 '
 try "valid bundle accepted" 0 "$(printf '%s' "$GOOD" | enc)"
 try "valid, no trailing newline" 0 "$(printf '%s' "${GOOD%?}" | enc)"
-bundle_parse "$(printf 'GIT_USER_NAME=a=b\n' | enc)" && [[ $B_NAME == "a=b" ]] && { pass=$((pass+1)); echo "PASS split at the first '=': value 'a=b' kept whole"; } || { fail=$((fail+1)); echo "FAIL first-= split"; }
+try "S-L1 truncated bundle (END=1 marker missing) rejected" 1 "$(printf '%s' "${GOOD%END=1?}" | enc)"
+try "S-L1 END=1 present but not last (data after END)" 1 "$(printf 'END=1\nTS_TAGS=tag:a\n' | enc)"
+try "S-L1 END with a wrong value" 1 "$(printf 'TS_TAGS=tag:a\nEND=2\n' | enc)"
+try "S-L1 END only (no data)" 1 "$(printf 'END=1\n' | enc)"
+try "S-L1 duplicate END" 1 "$(printf 'TS_TAGS=tag:a\nEND=1\nEND=1\n' | enc)"
+bundle_parse "$(printf 'GIT_USER_NAME=a=b\nEND=1\n' | enc)" && [[ $B_NAME == "a=b" ]] && { pass=$((pass+1)); echo "PASS split at the first '=': value 'a=b' kept whole"; } || { fail=$((fail+1)); echo "FAIL first-= split"; }
 bundle_parse "$(printf '%s' "$GOOD" | enc)" && [[ -n $B_TS && -n $B_GH && $B_TAGS == tag:bootstrap && $B_NAME == "Dummy Person" && ${#B_EMAIL} -gt 5 ]] && { pass=$((pass+1)); echo "PASS good bundle fills all five variables (lengths ts=${#B_TS} gh=${#B_GH})"; } || { fail=$((fail+1)); echo "FAIL good bundle fields"; }
-try "shell metacharacters are inert text (never eval/source)" 0 "$(printf 'GIT_USER_NAME=$(touch /tmp/mb-pwned)`touch /tmp/mb-pwned`\n' | enc)"
+try "shell metacharacters are inert text (never eval/source)" 0 "$(printf 'GIT_USER_NAME=$(touch /tmp/mb-pwned)`touch /tmp/mb-pwned`\nEND=1\n' | enc)"
 [[ ! -e /tmp/mb-pwned ]] && echo "PASS no command substitution happened (/tmp/mb-pwned absent)" || echo "FAIL command executed"
 try "wrong prefix" 1 "XB1:AAAA"
 try "no prefix" 1 "VFNfQVVUSEtFWT0x"

@@ -42,6 +42,13 @@ class H(BaseHTTPRequestHandler):
             return self._send(200, {"id": "kDUMMY", "key": MINTED, "created": "2026-10-01T00:00:00Z"})
         rec({"path": self.path, "unexpected": True}); self._send(404, {"message": "not found"})
 
+def do_DELETE(self):
+    auth = self.headers.get("Authorization", "")
+    rec({"path": self.path, "method": "DELETE", "bearer_matches_expected": auth == "Bearer " + ACCESS})
+    if self.path == "/api/v2/tailnet/-/keys/kDUMMY": return self._send(200, {})
+    return self._send(404, {"message": "not found"})
+H.do_DELETE = do_DELETE
+
 srv = HTTPServer(("127.0.0.1", int(sys.argv[1])), H)
 print("mock api on 127.0.0.1:%s" % sys.argv[1], flush=True)
 srv.serve_forever()
