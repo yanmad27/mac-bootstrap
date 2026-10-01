@@ -1,0 +1,9 @@
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+Tag for the minted keys [tag:bootstrap]: 
+test mode: Keychain write skipped
+installed /tmp/mbev.de58hfmo/home3/.local/bin/mac-bootstrap
+sha256 ecd16f7e9ef0c3f186a3db18189c4e1182a95f0906f4289ae2f2e5afd384eede
+add it to your PATH:  export PATH="$HOME/.local/bin:$PATH"   (put that line in ~/.zprofile)
+next: mac-bootstrap handoff <user@host>   (or: mac-bootstrap bundle)
+
+# helper: -rwxr-xr-x  1 yanmad27  wheel  50184  1 Oct 18:58 /tmp/mbev.de58hfmo/home3/.local/bin/mac-bootstrap

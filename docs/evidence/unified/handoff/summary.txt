@@ -1,0 +1,39 @@
+PASS 01 hand-off over real SSH exit 0
+PASS 01 fingerprint shown by client equals the one on the target screen
+PASS 01 receiver parsed the bundle (TS key tskey-auth-, gh, tags, identity set)
+PASS 01 target screen printed LAN IP + exact handoff line
+PASS 01 inbox is empty/removed after use
+PASS 01 test mode never called security/gh stubs
+PASS 01 bundle text never echoed by the client (stdout holds none)
+PASS 02 mint request: reusable false, ephemeral false, preauthorized true, tags, short expiry
+PASS 02 token request carried the expected (dummy) secret as form field only
+PASS 03 `bundle` printed an MB1 bundle and the gh-token warning
+PASS 03 paste accepted, hidden (bundle not echoed on the receiver tty)
+PASS 04 answering n aborts, nothing sent
+PASS 04 nothing minted (mock saw no request)
+PASS 04 inbox still holds only ready (no bundle)
+PASS 04 Ctrl-C on the receiver runs the cleanup trap (inbox removed)
+PASS 05 pinned key != real host key: strict checking refuses, nothing minted/sent
+PASS 05 ssh reported the host key problem
+PASS 06 first push ok, second push rejected (exit 5), oversized rejected (exit 4), no inbox rejected (exit 3)
+PASS 06 client probe: target not waiting -> abort before minting
+PASS 07 symlinked inbox refused; no ready marker written through the link
+PASS 07 client cannot push into a symlinked inbox (aborts before minting)
+PASS 08 root without --target-user refused
+PASS 08 --target-user passes preflight on Linux then hits the clean not-yet stub
+PASS 08 non-root --target-user other refused
+PASS 08 root receiver for --target-user tuser: hand-off delivered and parsed
+PASS 09 API refusing the mint: clear error, nothing delivered
+PASS 10 hooks inert: Keychain stub and gh stub were used instead of the hook values
+PASS 10 hooks inert: curl targeted api.tailscale.com, not the mock; hook secret absent
+PASS 10 hooks inert: the mock API received no request
+PASS 11 every non-loopback/malformed MB_TEST_API_BASE rejected before any call
+PASS 12 --client-setup from a saved file: helper installed 0755, sha256 printed equals install.sh
+PASS 12 client-setup in test mode did not touch the Keychain (security stub never called)
+PASS 12 installed helper runs
+PASS 12 piped --client-setup --origin: helper downloaded, sha256 equals install.sh
+PASS 12 piped without --origin: clear refusal
+PASS 12 non-https origin refused
+PASS 13 hand-off still works through the argv-logging wrappers
+PASS 13 no secret (raw or base64) in any curl/ssh argv
+PASS 14 bash -x leaks no secret (client `bundle` and target dry-run with secrets in env)

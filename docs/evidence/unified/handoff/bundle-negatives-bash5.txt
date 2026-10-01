@@ -1,0 +1,32 @@
+bash 5.3.20(1)-release
+PASS valid bundle accepted: rc=0 
+PASS valid, no trailing newline: rc=0 
+PASS split at the first '=': value 'a=b' kept whole
+PASS good bundle fills all five variables (lengths ts=26 gh=20)
+PASS shell metacharacters are inert text (never eval/source): rc=0 
+PASS no command substitution happened (/tmp/mb-pwned absent)
+PASS wrong prefix: rc=1 (    error: bundle rejected: not an MB1 bundle)
+PASS no prefix: rc=1 (    error: bundle rejected: not an MB1 bundle)
+PASS non-base64 characters: rc=1 (    error: bundle rejected: not an MB1 bundle)
+PASS invalid base64 padding: rc=1 (    error: bundle rejected: decoded size out of range)
+PASS empty after prefix: rc=1 (    error: bundle rejected: not an MB1 bundle)
+PASS oversized encoded line (> 11000): rc=1 (    error: bundle rejected: too large)
+PASS decoded size 8200 > 8 KiB (encoded < 11000): rc=1 (    error: bundle rejected: decoded size out of range)
+PASS duplicate key: rc=1 (    error: bundle rejected: duplicate key TS_TAGS)
+PASS unknown key: rc=1 (    error: bundle rejected: unknown key)
+PASS unknown key with a secret-looking name: rc=1 (    error: bundle rejected: unknown key)
+PASS CR in a value: rc=1 (    error: bundle rejected: carriage return)
+PASS CRLF line endings: rc=1 (    error: bundle rejected: carriage return)
+PASS NUL byte: rc=1 (    error: bundle rejected: NUL byte)
+PASS empty line inside: rc=1 (    error: bundle rejected: empty line)
+PASS line without '=': rc=1 (    error: bundle rejected: line without '=')
+PASS OAuth tskey-client- in TS_AUTHKEY (never leaves the client): rc=1 (    error: bundle rejected: bad TS_AUTHKEY (must be a tskey-auth- key))
+PASS TS_AUTHKEY not tskey-auth-: rc=1 (    error: bundle rejected: bad TS_AUTHKEY (must be a tskey-auth- key))
+PASS TS_AUTHKEY with query string: rc=1 (    error: bundle rejected: bad TS_AUTHKEY (must be a tskey-auth- key))
+PASS bad tag (uppercase): rc=1 (    error: bundle rejected: bad TS_TAGS)
+PASS bad GH_TOKEN characters: rc=1 (    error: bundle rejected: bad GH_TOKEN)
+PASS control character in git name: rc=1 (    error: bundle rejected: bad GIT_USER_NAME)
+PASS git name > 200: rc=1 (    error: bundle rejected: bad GIT_USER_NAME)
+PASS bad email: rc=1 (    error: bundle rejected: bad GIT_USER_EMAIL)
+PASS empty value for a key: rc=1 (    error: bundle rejected: bad GH_TOKEN)
+bundle_parse results: pass=29 fail=0

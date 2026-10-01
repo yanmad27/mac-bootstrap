@@ -1,0 +1,95 @@
+bash 3.2.57(1)-release  (stubs in /tmp/mbcore.xWP2R2, never the real tailscale/gh)
+
+=== 1. TS_AUTHKEY=tskey-auth-... + TS_TAGS (state NeedsLogin)
+
+[5/10] tailscale up
+    BackendState: NeedsLogin
+    done
+    | tailscale argv: status --json
+    | tailscale argv: up --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.V4PMmm/tskey --timeout=120s --advertise-tags=tag:bootstrap
+    |   key file mode=600, 26 bytes, starts tskey-auth-...
+    |   key file has no query suffix
+
+=== 2. OAuth TS_AUTHKEY=tskey-client-... + TS_TAGS: query string goes INSIDE the file, never argv
+
+[5/10] tailscale up
+    BackendState: NeedsLogin
+    done
+    | tailscale argv: status --json
+    | tailscale argv: up --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.V4PMmm/tskey --timeout=120s --advertise-tags=tag:bootstrap
+    |   key file mode=600, 77 bytes, starts tskey-clien...
+    |   key file query suffix (inside the file): ?ephemeral=false&preauthorized=true
+
+=== 3. OAuth key without TS_TAGS: preflight refuses
+    | error: an OAuth TS_AUTHKEY (tskey-client-) needs TS_TAGS (e.g. tag:bootstrap)
+
+=== 4. Running node, no --reauth-tailscale: key not used
+
+[5/10] tailscale up
+    BackendState: Running
+    already present (Running) -> skip login; key not used
+    | tailscale argv: status --json
+
+=== 5. Running node + --reauth-tailscale: up --force-reauth with the key file
+
+[5/10] tailscale up
+    BackendState: Running
+    done
+    | tailscale argv: status --json
+    | tailscale argv: up --force-reauth --auth-key=file:/var/folders/15/v861mlps29g7qd9wqw7fxqtc0000gn/T//mac-bootstrap.V4PMmm/tskey --timeout=120s --advertise-tags=tag:bootstrap
+    |   key file mode=600, 26 bytes, starts tskey-auth-...
+    |   key file has no query suffix
+
+=== 6. no key and --no-wait: no browser login, manual next step recorded
+
+[5/10] tailscale up
+    needs a Tailscale key: --no-wait, not waiting for a hand-off
+    BackendState: NeedsLogin
+    no key available (no TS_AUTHKEY, no hand-off): skipped
+    | tailscale argv: status --json
+    | tailscale argv: status --json
+    | next: Join Tailscale: run 'mac-bootstrap handoff tester@<this-mac-ip>' from your client Mac while this installer waits (re-run it), or re-run with TS_AUTHKEY=... ; no browser login is used
+
+=== 7. gh not authenticated (stub: auth status exits 1) + token: token via stdin, then setup-git
+
+[7/10] gh auth
+    done
+    | gh argv: auth status --active --hostname github.com
+    | gh argv: auth login --hostname github.com --with-token
+    |   gh login stdin: 20 bytes, prefix ghp_...
+    | gh argv: auth setup-git --hostname github.com
+
+=== 8. gh already authenticated (stub exits 0): login skipped, token unused
+
+[7/10] gh auth
+    already present (stored credentials for github.com) -> skip login
+    | gh argv: auth status --active --hostname github.com
+    | gh argv: auth setup-git --hostname github.com
+
+=== 9. gh authenticated + --reauth-gh: login again via stdin
+
+[7/10] gh auth
+    done
+    | gh argv: auth status --active --hostname github.com
+    | gh argv: auth login --hostname github.com --with-token
+    |   gh login stdin: 20 bytes, prefix ghp_...
+    | gh argv: auth setup-git --hostname github.com
+
+=== 10. gh not authenticated, no token, --no-wait: no --web, manual step recorded
+
+[7/10] gh auth
+    no GH_TOKEN and no hand-off -> skip (no browser login is used)
+    | gh argv: auth status --active --hostname github.com
+    | next: Run: gh auth login --hostname github.com && gh auth setup-git --hostname github.com
+
+=== 11. git identity: existing kept; overwritten only with --set-git-identity
+
+[8/10] git identity
+    user.name: already present -> skip (use --set-git-identity to overwrite)
+    user.email: already present -> skip (use --set-git-identity to overwrite)
+    | after default run: name=[Existing Name]
+
+[8/10] git identity
+    user.name: set
+    user.email: set
+    | after --set-git-identity: name=[Dummy Person] email=[dummy@example.invalid]

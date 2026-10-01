@@ -1,0 +1,5 @@
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+Host key of 127.0.0.1 (ED25519): SHA256:eKxxBae9zQbDUQOVG5ncBKFpBC2/XT3HCoHL8NouVTM
+Does this match the screen? [y/N] y
+Connecting to tuser@127.0.0.1 (host key pinned, strict checking)
+Hand-off delivered to tuser@127.0.0.1. The target takes it from here; watch its screen.

@@ -1,5 +1,7 @@
 # Tailscale on macOS (Homebrew `tailscale` formula): non-interactive auth key login
 
+> Update (unified bootstrap): `install.sh` no longer uses an interactive login (the `tailscale up` URL, section 5 `else` branch) and never opens a browser on the target. Without a key it waits for a hand-off from your client Mac; the key there is minted per hand-off from an OAuth client (section 7). Sections 1-4 still describe how the key is consumed.
+
 Scope: the Homebrew formula `tailscale` (open-source `tailscaled` + `tailscale` CLI), **not** the App Store / standalone GUI app.
 Source pin: every source link below is tagged `v1.102.4`, the version installed on the research Mac (`brew info` offered 1.102.5 as the stable; the code paths cited are unchanged in design, but 1.102.5 was not diffed: UNCONFIRMED for that patch release).
 Method: official docs and source reading, plus read-only commands on the research Mac. Nothing was started, stopped, or changed. Identifying values (hostname, IPs, tailnet, account) are redacted or omitted.
@@ -213,3 +215,34 @@ Notes for the implementer:
 - No daemon start, login, or `tailscale set` was performed (forbidden), so the runtime behavior of 4.2, 4.5 and the launchd branch in section 5 is source-derived, not observed.
 - Source pinned to v1.102.4; the latest brew stable at the time was 1.102.5, not diffed.
 - Admin-console UI steps for key creation and node-key expiry were not exercised.
+
+## 7. OAuth client and the minted hand-off key (unified bootstrap)
+
+Source reading of Tailscale 1.102.5 (not re-run against a live tailnet here). Contract: [handoff.md](handoff.md).
+
+Facts used:
+
+- `tailscale up --auth-key=file:<path>` reads the WHOLE file. A query string belongs INSIDE the file (`tskey-client-...?ephemeral=false&preauthorized=true`), never appended to the flag (that would make the flag a different path).
+- An OAuth client secret (`tskey-client-...`) can itself be given as the auth key, but the defaults are `ephemeral=true` and `preauthorized=false`, so a non-ephemeral, preauthorized node needs the explicit query, and `--advertise-tags` is mandatory (OAuth keys only create tagged nodes). `install.sh` does this when `TS_AUTHKEY` holds a `tskey-client-` value and `TS_TAGS` is set; the query goes into the 0600 key file.
+- Tagged nodes have no key expiry by default.
+- Nothing on a node can mint keys; minting needs an API credential, so it happens on the client Mac.
+
+Hand-off key minting (client Mac only, `mac-bootstrap handoff` / `bundle`):
+
+1. The OAuth secret is read from the login Keychain (service `mac-bootstrap.tailscale-oauth`, tag in `mac-bootstrap.tailscale-tag`) and sent only to the Tailscale API: `POST /api/v2/oauth/token` (client-credentials form; the client id is embedded in the secret).
+2. With the bearer token: `POST /api/v2/tailnet/-/keys`, body `{"capabilities":{"devices":{"create":{"reusable":false,"ephemeral":false,"preauthorized":true,"tags":["tag:bootstrap"]}}},"expirySeconds":3600,"description":"mac-bootstrap handoff"}`.
+3. Only the returned `tskey-auth-` key travels to the target. It is single use (`reusable:false`), preauthorized, non-ephemeral (the node must survive sleep and outages), tagged, and valid for one hour. The secret and token reach `curl` through its stdin config, never argv.
+
+Create the OAuth client once in the admin console (Settings > OAuth clients): scope `auth_keys` (write) only, tag `tag:bootstrap` only. Policy needed once:
+
+```json
+{
+  "tagOwners": { "tag:bootstrap": ["autogroup:admin"] },
+  "grants": [{ "src": ["autogroup:member"], "dst": ["tag:bootstrap"], "ip": ["tcp:22"] }]
+}
+```
+
+(OpenSSH on TCP 22, not Tailscale SSH.) Rotate by deleting the client and re-running `--client-setup`; revoke a minted key in Settings > Keys (an already registered node stays until removed).
+
+UNCONFIRMED (no real API call was allowed): the lowest `expirySeconds` the real API accepts (3600 is used), and the exact JSON of the live responses; the client reads `access_token` and `key` and fails closed with the API's message otherwise.
+

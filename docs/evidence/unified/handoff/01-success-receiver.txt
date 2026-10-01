@@ -1,0 +1,11 @@
+harness: target user=tuser uid=1000 home=/home/tuser euid=1000
+    SSH is reachable on this machine. From your client Mac, run one of:
+      mac-bootstrap handoff tuser@172.17.0.4
+    ED25519 host-key fingerprint (it must match what the client shows): SHA256:eKxxBae9zQbDUQOVG5ncBKFpBC2/XT3HCoHL8NouVTM
+    press p to paste a bundle instead (client: mac-bootstrap bundle)
+    waiting up to 120s for a hand-off (Ctrl-C to stop)
+    bundle received over SSH and accepted
+harness: RESULT received; TS_KEY=set TS_TAGS=set GH_TOK=set GIT_NAME=set GIT_EMAIL=set
+harness: lengths ts=26 gh=20 tags=tag:bootstrap
+harness: ts key has tskey-auth- prefix
+harness: inbox after: ls: cannot access '/home/tuser/.cache/mac-bootstrap/inbox': No such file or directory

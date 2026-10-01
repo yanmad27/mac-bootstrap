@@ -1,0 +1,64 @@
+# fresh-Mac mock (empty HOME, no brew) after: branch
+
+[1/10] Preflight
+    macOS 26.7.1, arch arm64
+    mode: dry-run
+    TS_AUTHKEY: not set
+    TS_TAGS: not set
+    GH_TOKEN: not set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+
+[2/10] Homebrew
+    Homebrew's installer needs sudo (it will ask for your password on the terminal)
+    sudo needed: cache credentials for the Homebrew installer (installer runs with NONINTERACTIVE=1)
+    DRY-RUN would run: sudo -v
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o /tmp/mac-bootstrap.XXXXXX/brew-install.sh
+    DRY-RUN would run: env NONINTERACTIVE=1 /bin/bash /tmp/mac-bootstrap.XXXXXX/brew-install.sh
+    DRY-RUN would append to ~/.zprofile: eval "$(/opt/homebrew/bin/brew shellenv)"
+
+[3/10] Tailscale formula
+    DRY-RUN would run: /opt/homebrew/bin/brew install tailscale
+
+[4/10] tailscaled system daemon
+    sudo needed: tailscaled runs as root (LaunchDaemon)
+    DRY-RUN would run: sudo /opt/homebrew/bin/brew services start tailscale
+
+[5/10] tailscale up
+    needs a Tailscale key and a GitHub token: DRY-RUN would wait up to 900s for a hand-off:
+      create ~/.cache/mac-bootstrap/inbox (0700), write a ready marker, print this machine's IPs and SSH host-key fingerprint,
+      accept ONE bundle pushed over SSH by 'mac-bootstrap handoff' from your client Mac, or pasted (press p); no browser is opened
+    BackendState: NoState
+    no key yet: this is what would run once a hand-off delivers one
+    DRY-RUN would write the key to a 0600 temp file (umask 077 in a subshell), never to argv
+    DRY-RUN would run: /opt/homebrew/opt/tailscale/bin/tailscale up --auth-key=file:/tmp/mac-bootstrap.XXXXXX/tskey --timeout=120s
+    DRY-RUN would delete the key file right after
+
+[6/10] git, gh, paseo
+    DRY-RUN would run: /opt/homebrew/bin/brew install git gh
+    DRY-RUN would run: /opt/homebrew/bin/brew install --cask paseo
+
+[7/10] gh auth
+    no GH_TOKEN yet: with a hand-off this would run: printf %s <GH_TOKEN masked> | gh auth login --hostname github.com --with-token
+    DRY-RUN would run: env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST /opt/homebrew/bin/gh auth setup-git --hostname github.com
+
+[8/10] git identity
+    skipped (GIT_USER_NAME / GIT_USER_EMAIL not set)
+
+[9/10] iTerm2 shell integration
+    skipped (needs --iterm2-shell-integration)
+
+[10/10] Summary
+    DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
+    then: ssh <user>@<host>
+    --host value for the client: <this-mac-short-name> (this Mac's 'hostname -s'); iTerm2 shell integration reports 'hostname -f' = <this-mac-fqdn>, which is independent of the Tailscale name and TS_HOSTNAME
+    on the Mac you ssh from, for automatic profile switching:
+      curl -fsSL "<origin>/iterm2-client.sh" | bash -s -- --host <this-mac-short-name> --user <ssh-user> --shell-integration
+    start Paseo: open -a Paseo (desktop app), or run the paseo CLI the cask links
+    Remote Login: on
+    still manual:
+      - Set your git identity: git config --global user.name ... && git config --global user.email ...
+      - Optional: Screen Sharing: System Settings > General > Sharing > Screen Sharing (needs the macOS UI)
+exit=0

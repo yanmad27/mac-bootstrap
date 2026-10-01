@@ -1,0 +1,8 @@
+harness: target user=tuser uid=1000 home=/home/tuser euid=1000
+    error: inbox refused: /home/tuser/.cache/mac-bootstrap/inbox is not a plain directory owned by tuser (symlink or loose permissions)
+    SSH hand-off is unavailable on this machine; paste is still possible
+    press p to paste a bundle instead (client: mac-bootstrap bundle)
+    waiting up to 8s for a hand-off (Ctrl-C to stop)
+    no hand-off received (timeout)
+harness: RESULT none
+harness: inbox after: lrwxrwxrwx 1 tuser tuser 9 Oct  1 11:58 /home/tuser/.cache/mac-bootstrap/inbox -> /tmp/evil

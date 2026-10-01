@@ -1,0 +1,4 @@
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+WARNING: this bundle contains your GitHub token and a one-hour, single-use Tailscale key.
+         Paste it only into the target's prompt; do not share, save or commit it.
+MB1:<redacted bundle>

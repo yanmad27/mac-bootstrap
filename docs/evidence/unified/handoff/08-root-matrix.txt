@@ -1,0 +1,22 @@
+# root, no --target-user
+error: running as root: name the user who owns the gh/git config and the inbox with --target-user USER (or run through sudo from that user)
+exit=1
+
+# root, --target-user tuser (Linux install branch is a stub: checkpoint B)
+
+[1/10] Preflight
+    Linux, arch aarch64, target user tuser
+    mode: dry-run
+    TS_AUTHKEY: not set
+    TS_TAGS: not set
+    GH_TOKEN: not set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+error: the Linux install is not yet implemented in this install.sh
+exit=1
+
+# non-root tuser, --target-user other
+error: --target-user other needs root; run this as other instead
+exit=1

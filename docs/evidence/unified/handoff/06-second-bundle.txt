@@ -1,0 +1,4 @@
+send #1 (ready present): exit=0 stderr=''
+send #2 (bundle exists, ready present): exit=5 stderr='mac-bootstrap: a bundle was already delivered or the hand-off is closed'
+oversized (20000 bytes) with ready present: exit=4 stderr='mac-bootstrap: bundle too large'
+send with no inbox: exit=3 stderr='mac-bootstrap: the target is not waiting for a hand-off'
