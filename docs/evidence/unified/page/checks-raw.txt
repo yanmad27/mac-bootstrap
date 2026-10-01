@@ -1,0 +1,108 @@
+== JS disabled ==
+html no-js class: true | visible Copy buttons: 0 | opacity0/hidden elements: 0
+  c-hero: curl -fsSL "<your-site>/install.sh" | bash
+  c-client: curl -fsSL "<your-site>/install.sh" | bash -s -- --client-setup --origin "<your-site>"
+  c-run: curl -fsSL "<your-site>/install.sh" | bash
+  c-dry: curl -fsSL "<your-site>/install.sh" | bash -s -- --dry-run
+  c-secret: curl -fsSL "<your-site>/install.sh" | TS_AUTHKEY="$TS_AUTHKEY" GH_TOKEN="$GH_TOKEN" bash
+  c-iterm-host: curl -fsSL "<your-site>/install.sh" | bash -s -- --iterm2-shell-integration
+  c-iterm-client: curl -fsSL "<your-site>/iterm2-client.sh" | bash -s -- --host my-mac --shell-integration
+  c-iterm-client-user: curl -fsSL "<your-site>/iterm2-client.sh" | bash -s -- --host my-mac --user your-ssh-user --shell-integration
+every origin-built command shows <your-site>: true (8 checked)
+noscript note in source: true
+noscript note visible with JS off: true
+== JS enabled ==
+commands containing install.sh/iterm2-client.sh: 8 | all contain origin http://127.0.0.1:8878: true | any leftover <your-site>: false
+  c-hero: curl -fsSL "http://127.0.0.1:8878/install.sh" | bash
+  c-client: curl -fsSL "http://127.0.0.1:8878/install.sh" | bash -s -- --client-setup --origin "http://127.0.0.1:8878"
+  c-run: curl -fsSL "http://127.0.0.1:8878/install.sh" | bash
+  c-dry: curl -fsSL "http://127.0.0.1:8878/install.sh" | bash -s -- --dry-run
+  c-secret: curl -fsSL "http://127.0.0.1:8878/install.sh" | TS_AUTHKEY="$TS_AUTHKEY" GH_TOKEN="$GH_TOKEN" bash
+  c-iterm-host: curl -fsSL "http://127.0.0.1:8878/install.sh" | bash -s -- --iterm2-shell-integration
+  c-iterm-client: curl -fsSL "http://127.0.0.1:8878/iterm2-client.sh" | bash -s -- --host my-mac --shell-integration
+  c-iterm-client-user: curl -fsSL "http://127.0.0.1:8878/iterm2-client.sh" | bash -s -- --host my-mac --user your-ssh-user --shell-integration
+static commands (no origin by design): c-policy, c-nc, c-bundle, c-read1, c-read2, c-unset
+--origin argument equals serving origin: true
+  copied [c-hero] aria="Copy install command (hero)" -> "curl -fsSL \"http://127.0.0.1:8878/install.sh\" | bash"
+  copied [c-client] aria="Copy Mac one-time setup command" -> "curl -fsSL \"http://127.0.0.1:8878/install.sh\" | bash -s -- --client-setup --origin \"http://127.0.0.1:8878\""
+  copied [c-policy] aria="Copy tailnet policy snippet" -> "{" (+more lines)
+  copied [c-run] aria="Copy install command" -> "curl -fsSL \"http://127.0.0.1:8878/install.sh\" | bash"
+  copied [c-dry] aria="Copy dry-run command" -> "curl -fsSL \"http://127.0.0.1:8878/install.sh\" | bash -s -- --dry-run"
+  copied [c-bundle] aria="Copy bundle command" -> "mac-bootstrap bundle --copy"
+  copied [c-secret] aria="Copy install command with secrets" -> "curl -fsSL \"http://127.0.0.1:8878/install.sh\" | TS_AUTHKEY=\"$TS_AUTHKEY\" GH_TOKEN=\"$GH_TOKEN\" bash"
+copy buttons: 14, clipboard==displayed text for all: true mismatches: none; aria-labels unique 14 of 14
+buttons without aria-label: 0
+external requests: 0 
+console/page errors: 0 
+external URLs loaded by src/href-less tags (img/link/script src/iframe): 0
+1280px (all details open): scrollWidth=1280 (<=1280: true); Copy button overlapping its command text: 0
+390px (all details open): scrollWidth=390 (<=390: true); Copy button overlapping its command text: 0
+reduced motion: .rv count=0 tube2 animation-name=none scroll-behavior=auto
+motion enabled: .rv below fold at load=5 after scrolling .rv.in=5 of 5 still opacity 0: 0 tube2 animation=flowd
+== word count (document.body.innerText, <details> collapsed, light, reduced motion) ==
+1280x800: OLD(33d3e07) visible 617 code 63 non-code 554 | NEW visible 600 code 67 non-code 533
+390x844: OLD(33d3e07) visible 617 code 63 non-code 554 | NEW visible 600 code 67 non-code 533
+== contrast light (resolved CSS custom properties; same pair list as docs/evidence/apple/contrast.txt plus .fork text) ==
+16.28  (min 4.5)  body text  [#1d1d1f on #fbfbfd]
+16.83  (min 4.5)  body on card  [#1d1d1f on #fff]
+15.34  (min 4.5)  body on soft  [#1d1d1f on #f4f4f8]
+ 6.42  (min 4.5)  muted on bg  [#5c5c63 on #fbfbfd]
+ 6.63  (min 4.5)  muted on card  [#5c5c63 on #fff]
+ 6.05  (min 4.5)  muted on soft  [#5c5c63 on #f4f4f8]
+ 5.83  (min 4.5)  muted on hero b1  [#5c5c63 on #e8f1ff]
+ 5.94  (min 4.5)  muted on hero b2  [#5c5c63 on #e4f7ec]
+ 5.70  (min 4.5)  muted on hero b3  [#5c5c63 on #f0ebff]
+14.79  (min 4.5)  fg on hero b1  [#1d1d1f on #e8f1ff]
+15.08  (min 4.5)  fg on hero b2  [#1d1d1f on #e4f7ec]
+14.45  (min 4.5)  fg on hero b3  [#1d1d1f on #f0ebff]
+15.42  (min 4.5)  command text  [#f5f5f7 on #1d1d22]
+15.46  (min 4.5)  copy button text  [#1d1d1f on #f5f5f7]
+ 6.72  (min 4.5)  links on bg  [#0058b0 on #fbfbfd]
+ 6.95  (min 4.5)  links on card  [#0058b0 on #fff]
+ 6.33  (min 4.5)  links on soft  [#0058b0 on #f4f4f8]
+ 5.93  (min 4.5)  links on t1 (.fork)  [#0058b0 on #e3eeff]
+14.38  (min 4.5)  fg on t1 (GitHub token note, .fork)  [#1d1d1f on #e3eeff]
+15.34  (min 4.5)  code text on t1  [#1d1d1f on #f4f4f8]
+ 6.11  (min 3)  h1 em on b1 (large)  [#0058b0 on #e8f1ff]
+ 5.97  (min 3)  h1 em on b3 (large)  [#0058b0 on #f0ebff]
+ 6.95  (min 4.5)  accent-fg on accent  [#fff on #0058b0]
+ 7.28  (min 4.5)  warn on warn-bg  [#7a4300 on #fff3df]
+ 5.50  (min 4.5)  muted on t3  [#5c5c63 on #ece7fd]
+ 5.75  (min 3)  glyph g1 on t1  [#1558b8 on #e3eeff]
+ 5.16  (min 3)  glyph g2 on t2  [#0b7340 on #dcf5e8]
+ 6.37  (min 3)  glyph g3 on t3  [#5738c0 on #ece7fd]
+ 4.95  (min 3)  glyph g4 on t4  [#a84a08 on #ffeadb]
+ 5.33  (min 3)  glyph g5 on t5  [#ad2a5d on #fde3ee]
+failures: 0
+== contrast dark (resolved CSS custom properties; same pair list as docs/evidence/apple/contrast.txt plus .fork text) ==
+18.04  (min 4.5)  body text  [#f5f5f7 on #0b0b0f]
+16.55  (min 4.5)  body on card  [#f5f5f7 on #16161c]
+15.20  (min 4.5)  body on soft  [#f5f5f7 on #1e1e26]
+ 7.95  (min 4.5)  muted on bg  [#a4a4ae on #0b0b0f]
+ 7.29  (min 4.5)  muted on card  [#a4a4ae on #16161c]
+ 6.70  (min 4.5)  muted on soft  [#a4a4ae on #1e1e26]
+ 6.15  (min 4.5)  muted on hero b1  [#a4a4ae on #16263f]
+ 5.79  (min 4.5)  muted on hero b2  [#a4a4ae on #12301f]
+ 6.26  (min 4.5)  muted on hero b3  [#a4a4ae on #25203f]
+13.94  (min 4.5)  fg on hero b1  [#f5f5f7 on #16263f]
+13.14  (min 4.5)  fg on hero b2  [#f5f5f7 on #12301f]
+14.21  (min 4.5)  fg on hero b3  [#f5f5f7 on #25203f]
+18.26  (min 4.5)  command text  [#f5f5f7 on #09090c]
+15.46  (min 4.5)  copy button text  [#1d1d1f on #f5f5f7]
+ 9.75  (min 4.5)  links on bg  [#7dbbff on #0b0b0f]
+ 8.94  (min 4.5)  links on card  [#7dbbff on #16161c]
+ 8.22  (min 4.5)  links on soft  [#7dbbff on #1e1e26]
+ 7.54  (min 4.5)  links on t1 (.fork)  [#7dbbff on #16263f]
+13.94  (min 4.5)  fg on t1 (GitHub token note, .fork)  [#f5f5f7 on #16263f]
+15.20  (min 4.5)  code text on t1  [#f5f5f7 on #1e1e26]
+ 7.54  (min 3)  h1 em on b1 (large)  [#7dbbff on #16263f]
+ 7.68  (min 3)  h1 em on b3 (large)  [#7dbbff on #25203f]
+ 9.75  (min 4.5)  accent-fg on accent  [#0b0b0f on #7dbbff]
+10.61  (min 4.5)  warn on warn-bg  [#ffcf8a on #2d2410]
+ 6.26  (min 4.5)  muted on t3  [#a4a4ae on #25203f]
+ 8.02  (min 3)  glyph g1 on t1  [#8cc0ff on #16263f]
+ 8.93  (min 3)  glyph g2 on t2  [#7ee0a8 on #12301f]
+ 7.84  (min 3)  glyph g3 on t3  [#bcaeff on #25203f]
+ 8.10  (min 3)  glyph g4 on t4  [#ffb27a on #3a2616]
+ 8.08  (min 3)  glyph g5 on t5  [#ff9fc0 on #3a1a28]
+failures: 0
