@@ -1,0 +1,69 @@
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
+Linux negative tests (disposable containers, nothing installed)
+
+##### 1. non-root user without sudo (real run, no flags): refused before any change
+
+[1/10] Preflight
+    detected: Ubuntu 24.04.5 LTS (apt family)
+exit=1
+error: this user is not root and sudo is not installed: run as root (name the user with --target-user) or install sudo first (nothing was changed)
+
+##### 2. MB_OS_RELEASE=<fake alpine> WITHOUT --dry-run and WITHOUT MB_TEST: override must be INERT (the real Ubuntu os-release is used)
+
+[1/10] Preflight
+    detected: Ubuntu 24.04.5 LTS (apt family)
+exit=1
+error: this user is not root and sudo is not installed: run as root (name the user with --target-user) or install sudo first (nothing was changed)
+
+##### 3. same override WITH --dry-run: honoured (unsupported distro error)
+
+[1/10] Preflight
+    test override: reading os-release from /tmp/fake-os-release
+exit=1
+error: unsupported Linux distribution 'alpine' (ID_LIKE 'none'); supported: Ubuntu/Debian (apt), Fedora and RHEL-compatibles (dnf), Arch (pacman). Nothing was changed
+
+##### 4. same override with MB_TEST=1 (non-dry): honoured
+
+[1/10] Preflight
+    test override: reading os-release from /tmp/fake-os-release
+exit=1
+error: unsupported Linux distribution 'alpine' (ID_LIKE 'none'); supported: Ubuntu/Debian (apt), Fedora and RHEL-compatibles (dnf), Arch (pacman). Nothing was changed
+
+##### 5. root without --target-user (Linux)
+exit=1
+error: running as root: name the user who owns the gh/git config and the inbox with --target-user USER (or run through sudo from that user)
+
+##### 6. override pointing at a missing file (dry-run)
+
+[1/10] Preflight
+    test override: reading os-release from /nonexistent
+exit=1
+error: cannot detect the Linux distribution: /nonexistent is missing or unreadable (nothing was changed)
+
+##### 7. /etc/os-release and /usr/lib/os-release removed (real run, root + --target-user)
+
+[1/10] Preflight
+exit=1
+error: cannot detect the Linux distribution: /etc/os-release is missing or unreadable (nothing was changed)
+
+##### 8. Alpine (real run, root + --target-user)
+
+[1/10] Preflight
+exit=1
+error: unsupported Linux distribution 'alpine' (ID_LIKE 'none'); supported: Ubuntu/Debian (apt), Fedora and RHEL-compatibles (dnf), Arch (pacman). Nothing was changed
+
+##### 9. distro detection matrix (dry-run with fake os-release files)
+ID=ubuntu         ID_LIKE=-                      -> detected: Fake ubuntu (apt family)
+ID=debian         ID_LIKE=-                      -> detected: Fake debian (apt family)
+ID=linuxmint      ID_LIKE=ubuntu debian          -> detected: Fake linuxmint (apt family)
+ID=fedora         ID_LIKE=-                      -> detected: Fake fedora (fedora family)
+ID=rocky          ID_LIKE=rhel centos fedora     -> detected: Fake rocky (rhel family)
+ID=almalinux      ID_LIKE=rhel centos fedora     -> detected: Fake almalinux (rhel family)
+ID=centos         ID_LIKE=rhel fedora            -> detected: Fake centos (rhel family)
+ID=rhel           ID_LIKE=fedora                 -> detected: Fake rhel (rhel family)
+ID=ol             ID_LIKE=fedora                 -> detected: Fake ol (rhel family)
+ID=arch           ID_LIKE=-                      -> detected: Fake arch (pacman family)
+ID=manjaro        ID_LIKE=arch                   -> detected: Fake manjaro (pacman family)
+ID=amzn           ID_LIKE=fedora                 -> error: unsupported Linux distribution 'amzn' (ID_LIKE 'fedora'); supported: Ubuntu/Debian (apt), Fedora and RHEL-compatibles (dnf), Arch (pacman). Nothing was changed
+ID=alpine         ID_LIKE=-                      -> error: unsupported Linux distribution 'alpine' (ID_LIKE 'none'); supported: Ubuntu/Debian (apt), Fedora and RHEL-compatibles (dnf), Arch (pacman). Nothing was changed
+ID=opensuse-leap  ID_LIKE=suse opensuse          -> error: unsupported Linux distribution 'opensuse-leap' (ID_LIKE 'suse opensuse'); supported: Ubuntu/Debian (apt), Fedora and RHEL-compatibles (dnf), Arch (pacman). Nothing was changed

@@ -1,0 +1,6 @@
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+Host key of 127.0.0.1 (ED25519): SHA256:oWf8l8T5XfO1r09u6F5iPuj1X5ePTVT7vTgO01QgpSE
+It must equal the ED25519 SHA256 fingerprint printed on the target's screen.
+Does this match the screen? [y/N] y
+Connecting to tuser@127.0.0.1 (host key pinned, strict checking)
+error: the target is not waiting for a hand-off for tuser (start the installer there first; or its ready marker is stale; nothing was minted)

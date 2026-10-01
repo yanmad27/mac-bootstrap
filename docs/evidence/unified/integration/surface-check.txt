@@ -1,0 +1,87 @@
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
+== 1. every --flag shown on the page or README is a flag of install.sh / iterm2-client.sh (or of a tool the page names)
+SKIP --advertise-tags (flag of tailscale/gh/scutil shown in prose)
+SKIP --auth-key (flag of tailscale/gh/scutil shown in prose)
+PASS --badge is in --help of iterm2-client.sh
+PASS --client-setup is in --help of install.sh
+PASS --copy is in --help of install.sh
+PASS --dry-run is in --help of install.sh
+SKIP --get (flag of tailscale/gh/scutil shown in prose)
+PASS --handoff-timeout is in --help of install.sh
+PASS --help is in --help of install.sh
+PASS --host is in --help of iterm2-client.sh
+PASS --iterm2-shell-integration is in --help of install.sh
+PASS --no-wait is in --help of install.sh
+PASS --origin is in --help of install.sh
+PASS --profiles-dir is in --help of iterm2-client.sh
+PASS --reauth-gh is in --help of install.sh
+PASS --reauth-tailscale is in --help of install.sh
+PASS --set-git-identity is in --help of install.sh
+PASS --shell-integration is in --help of iterm2-client.sh
+PASS --skip-gh-auth is in --help of install.sh
+PASS --skip-tailscale-up is in --help of install.sh
+PASS --target-user is in --help of install.sh
+PASS --user is in --help of iterm2-client.sh
+SKIP --with-token (flag of tailscale/gh/scutil shown in prose)
+
+== 2. every install.sh flag in --help is shown on the page (flags table)
+PASS page shows --dry-run
+PASS page shows --skip-tailscale-up
+PASS page shows --skip-gh-auth
+PASS page shows --iterm2-shell-integration
+PASS page shows --no-wait
+PASS page shows --reauth-tailscale
+PASS page shows --reauth-gh
+PASS page shows --set-git-identity
+PASS page shows --target-user
+PASS page shows --handoff-timeout
+
+== 3. env names
+PASS TS_AUTHKEY in --help
+PASS TS_TAGS in --help
+PASS GH_TOKEN in --help
+PASS TS_HOSTNAME in --help
+PASS GIT_USER_NAME in --help
+PASS GIT_USER_EMAIL in --help
+PASS page/README env GH_TOKEN is read by install.sh
+PASS page/README env GIT_USER_EMAIL is read by install.sh
+PASS page/README env GIT_USER_NAME is read by install.sh
+PASS page/README env TS_AUTHKEY is read by install.sh
+PASS page/README env TS_HOSTNAME is read by install.sh
+PASS page/README env TS_TAGS is read by install.sh
+
+== 4. modes and commands shown on the page parse (help-only, nothing runs)
+PASS client setup: --client-setup --origin <url> --help exits 0
+PASS mac-bootstrap handoff user@IP --port N --help exits 0
+PASS mac-bootstrap bundle --copy --help exits 0
+PASS bundle rejects unknown option (exit 2)
+PASS --origin only valid with --client-setup
+PASS --help lists the three client modes
+
+== 5. flags in the table behave (Mac dry-run, nothing changes)
+PASS install.sh --dry-run exits 0
+PASS install.sh --dry-run --skip-tailscale-up --skip-gh-auth exits 0
+PASS install.sh --dry-run --no-wait exits 0
+PASS install.sh --dry-run --handoff-timeout 5 exits 0
+PASS install.sh --dry-run --reauth-tailscale --reauth-gh exits 0
+PASS install.sh --dry-run --set-git-identity exits 0
+PASS install.sh --dry-run --iterm2-shell-integration exits 0
+PASS install.sh --dry-run --target-user yanmad27 exits 0
+PASS --target-user for another user without root is refused
+PASS --handoff-timeout rejects non-numbers
+PASS --dry-run with TS_TAGS + --no-wait prints no secret and mentions no browser
+
+== 6. page claims vs checkpoint B (Linux facts)
+PASS page lists macOS, Ubuntu, Debian, Fedora, RHEL-compatible, Arch
+PASS script supports exactly those: ubuntu|debian, fedora, rhel|centos|rocky|almalinux|ol, arch
+PASS Remote Login is Mac-only in the script (wait loop opens System Settings only for OS_KIND macos)
+PASS page says Remote Login / Screen Sharing are Mac-only steps
+PASS Paseo on Linux is the CLI (npm @getpaseo/cli) and the page says so
+PASS page: gh token on Linux is a plaintext owner-only file (docs/handoff.md section 9 agrees)
+PASS page: key valid 1 hour, single-use, tagged, preauthorized == mint body
+PASS page: --handoff-timeout default 900 == script
+PASS page: step order preflight/packages/Tailscale/hand-off/git+gh/identity/summary == script order (Mac and Linux)
+PASS page: `p` pastes at a hidden prompt == receiver
+PASS no page/README text promises a browser on the target
+
+result: pass=69 fail=0

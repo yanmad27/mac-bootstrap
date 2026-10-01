@@ -1,0 +1,10 @@
+--dry-run --handoff-timeout 08                exit=2 want=2 ok
+--dry-run --handoff-timeout 0                 exit=2 want=2 ok
+--dry-run --handoff-timeout abc               exit=2 want=2 ok
+--dry-run --handoff-timeout 1000000           exit=2 want=2 ok
+--dry-run --handoff-timeout 90                exit=0 want=0 ok
+handoff u@h --port 022                        exit=2 want=2 ok
+handoff u@h --port 0                          exit=2 want=2 ok
+handoff u@h --port 65536                      exit=2 want=2 ok
+handoff u@h --port 22 --help                  exit=0 want=0 ok
+handoff u@h --port 65535 --help               exit=0 want=0 ok

@@ -1,0 +1,16 @@
+commit-base: a0fe82d (+ working tree)
+
+ShellCheck - shell script analysis tool
+version: 0.11.0
+license: GNU General Public License, version 3
+
+shellcheck -s bash public/*.sh exit=0
+GNU bash, version 5.3.20(1)-release (aarch64-apple-darwin25.6.0)
+brew bash -n public/install.sh exit=0
+brew bash -n public/iterm2-client.sh exit=0
+GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)
+/bin/bash -n public/install.sh exit=0
+/bin/bash -n public/iterm2-client.sh exit=0
+
+iterm2-client.sh byte-identical to main:
+yes (git diff main -- public/iterm2-client.sh is empty)

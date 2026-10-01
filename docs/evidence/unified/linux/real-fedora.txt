@@ -1,0 +1,858 @@
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
+image: fedora@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
+image id: sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
+platform: linux/arm64 (image architecture arm64)  native
+family: fedora   run as: root (root, --target-user tuser)
+date: 2026-10-01T21:54:09+07:00
+container: disposable, no systemd as PID 1 (docker 'sleep infinity')
+command: docker exec -it -u root mbl-fedora bash /tmp/install.sh --target-user tuser
+client: bash public/install.sh handoff tuser@127.0.0.1 --port 2233   (MB_TEST=1, mock API 127.0.0.1:18772, dummy values)
+note: sshd was started by hand in the container (docker exec -d sshd) once the installer printed its waiting banner; there is no systemd.
+
+===== installer output (full) =====
+
+[1/10] Preflight
+    detected: Fedora Linux 44 (Container Image) (fedora family)
+    Linux, arch aarch64, target user tuser
+    running as root: gh and git run as tuser
+    mode: apply
+    TS_AUTHKEY: not set
+    TS_TAGS: not set
+    GH_TOKEN: not set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+
+[2/10] Package repositories (signed)
+    fetched tailscale.repo, sha256 87206259fb7032fb4147eabccf4ffdb0b4d850d0519ef4c6991cf8c4d100ac13 (unpinned HTTPS download)
+Importing OpenPGP key 0x957F5868:
+ UserID     : "Tailscale Inc. (Package repository signing key) <info@tailscale.com>"
+ Fingerprint: 2596A99EAAB33821893C0A79458CA832957F5868
+ From       : https://pkgs.tailscale.com/stable/fedora/repo.gpg
+The key was successfully imported.
+Package                 Arch    Version                   Repository        Size
+Installing:
+ nodejs22               aarch64 1:22.23.1-2.fc44          updates      344.5 KiB
+ nodejs22-npm           noarch  1:10.9.8-1.22.23.1.2.fc44 updates        8.1 MiB
+Installing dependencies:
+ libuv                  aarch64 1:1.52.1-2.fc44           updates      616.4 KiB
+ nodejs22-bin           noarch  1:22.23.1-2.fc44          updates      142.1 KiB
+ nodejs22-libs          aarch64 1:22.23.1-2.fc44          updates       73.5 MiB
+ nodejs22-npm-bin       noarch  1:22.23.1-2.fc44          updates       12.7 KiB
+Installing weak dependencies:
+ nodejs22-docs          noarch  1:22.23.1-2.fc44          updates       49.8 MiB
+ nodejs22-full-i18n     aarch64 1:22.23.1-2.fc44          updates       31.6 MiB
+
+Transaction Summary:
+ Installing:         8 packages
+
+[ 1/10] Verify package files            100% |  98.0   B/s |   8.0   B |  00m00s
+[ 1/10] Verify package files            100% |  86.0   B/s |   8.0   B |  00m00s
+[ 2/10] Prepare transaction             100% | 320.0   B/s |   8.0   B |  00m00s
+[ 3/10] Installing libuv-1:1.52.1-2.fc4 100% |  43.2 MiB/s | 619.2 KiB |  00m00s
+[ 4/10] Installing nodejs22-libs-1:22.2 100% | 325.3 MiB/s |  73.5 MiB |  00m00s
+[ 5/10] Installing nodejs22-1:22.23.1-2 100% | 113.0 MiB/s | 347.2 KiB |  00m00s
+[ 5/10] Installing nodejs22-1:22.23.1-2 100% |  14.7 MiB/s | 347.2 KiB |  00m00s
+[ 6/10] Installing nodejs22-bin-1:22.23 100% |  17.4 MiB/s | 142.8 KiB |  00m00s
+[ 6/10] Installing nodejs22-bin-1:22.23 100% |   7.7 MiB/s | 142.8 KiB |  00m00s
+[ 7/10] Installing nodejs22-npm-1:10.9. 100% |  63.2 MiB/s |   8.5 MiB |  00m00s
+[ 7/10] Installing nodejs22-npm-1:10.9. 100% |  50.8 MiB/s |   8.5 MiB |  00m00s
+[ 8/10] Installing nodejs22-npm-bin-1:2 100% |   2.6 MiB/s |  26.3 KiB |  00m00s
+[ 8/10] Installing nodejs22-npm-bin-1:2 100% |   1.7 MiB/s |  26.3 KiB |  00m00s
+[ 9/10] Installing nodejs22-full-i18n-1 100% | 380.7 MiB/s |  31.6 MiB |  00m00s
+[10/10] Installing nodejs22-docs-1:22.2 100% |   1.8 GiB/s |  49.9 MiB |  00m00s
+[10/10] Installing nodejs22-docs-1:22.2 100% | 204.4 MiB/s |  49.9 MiB |  00m00s
+    done
+
+[3/10] Tailscale package
+Package                 Arch    Version                 Repository          Size
+Installing:
+ tailscale              aarch64 0:1.102.4-1             tailscale-stab  67.7 MiB
+Installing dependencies:
+ iproute                aarch64 0:6.17.0-2.fc44         fedora           2.5 MiB
+ iptables-legacy        aarch64 0:1.8.11-13.fc44        fedora         143.7 KiB
+ iptables-legacy-libs   aarch64 0:1.8.11-13.fc44        fedora         154.0 KiB
+ iptables-libs          aarch64 0:1.8.11-13.fc44        fedora           6.7 MiB
+ libbpf                 aarch64 2:1.6.3-2.fc44          updates        458.8 KiB
+ libmnl                 aarch64 0:1.0.5-9.fc44          fedora          95.0 KiB
+ libnetfilter_conntrack aarch64 0:1.1.1-1.fc44          fedora         151.6 KiB
+ libnfnetlink           aarch64 0:1.0.1-32.fc44         fedora          85.8 KiB
+ psmisc                 aarch64 0:23.7-7.fc44           fedora           1.1 MiB
+
+Transaction Summary:
+ Installing:        10 packages
+
+Importing OpenPGP key 0x957F5868:
+ UserID     : "Tailscale Inc. (Package repository signing key) <info@tailscale.com>"
+ Fingerprint: 2596A99EAAB33821893C0A79458CA832957F5868
+ From       : https://pkgs.tailscale.com/stable/fedora/repo.gpg
+The key was successfully imported.
+[ 1/12] Verify package files            100% | 129.0   B/s |  10.0   B |  00m00s
+[ 2/12] Prepare transaction             100% | 769.0   B/s |  10.0   B |  00m00s
+[ 3/12] Installing libmnl-0:1.0.5-9.fc4 100% |  31.4 MiB/s |  96.4 KiB |  00m00s
+[ 4/12] Installing libnfnetlink-0:1.0.1 100% |  28.4 MiB/s |  87.2 KiB |  00m00s
+[ 5/12] Installing libnetfilter_conntra 100% |  74.6 MiB/s | 152.8 KiB |  00m00s
+[ 6/12] Installing iptables-libs-0:1.8. 100% |  69.9 MiB/s |   6.7 MiB |  00m00s
+[ 7/12] Installing iptables-legacy-libs 100% |  38.0 MiB/s | 155.7 KiB |  00m00s
+[ 8/12] Installing iptables-legacy-0:1. 100% |  71.2 MiB/s | 145.9 KiB |  00m00s
+[ 8/12] Installing iptables-legacy-0:1. 100% |  71.2 MiB/s | 145.9 KiB |  00m00s
+[ 8/12] Installing iptables-legacy-0:1. 100% |   5.5 MiB/s | 145.9 KiB |  00m00s
+[ 9/12] Installing libbpf-2:1.6.3-2.fc4 100% | 112.2 MiB/s | 459.6 KiB |  00m00s
+[10/12] Installing psmisc-0:23.7-7.fc44 100% | 538.7 MiB/s |   1.1 MiB |  00m00s
+[10/12] Installing psmisc-0:23.7-7.fc44 100% |  71.8 MiB/s |   1.1 MiB |  00m00s
+[11/12] Installing iproute-0:6.17.0-2.f 100% | 165.3 MiB/s |   2.5 MiB |  00m00s
+[11/12] Installing iproute-0:6.17.0-2.f 100% |  88.6 MiB/s |   2.5 MiB |  00m00s
+[12/12] Installing tailscale-0:1.102.4- 100% | 265.1 MiB/s |  67.7 MiB |  00m00s
+[12/12] Installing tailscale-0:1.102.4- 100% | 265.1 MiB/s |  67.7 MiB |  00m00s
+[12/12] Installing tailscale-0:1.102.4- 100% | 265.1 MiB/s |  67.7 MiB |  00m00s
+[12/12] Installing tailscale-0:1.102.4- 100% | 234.2 MiB/s |  67.7 MiB |  00m00s
+    done
+
+[4/10] OpenSSH server and tailscaled services
+Package                   Arch    Version                 Repository        Size
+Upgrading:
+ systemd-libs             aarch64 0:259.9-1.fc44          updates        2.5 MiB
+   replacing systemd-libs aarch64 0:259.8-1.fc44          4b3429950e38   2.5 MiB
+Installing:
+ openssh-server           aarch64 0:10.2p1-14.fc44        updates        2.0 MiB
+Installing dependencies:
+ cryptsetup-libs          aarch64 0:2.8.8-1.fc44          updates        2.9 MiB
+ dbus-broker              aarch64 0:37-8.fc44             fedora       421.8 KiB
+ dbus-common              noarch  1:1.16.2-1.fc44         fedora        11.2 KiB
+ device-mapper            aarch64 0:1.02.212-2.fc44       fedora       438.9 KiB
+ device-mapper-libs       aarch64 0:1.02.212-2.fc44       fedora       446.2 KiB
+ expat                    aarch64 0:2.8.3-1.fc44          updates      378.4 KiB
+ kbd                      aarch64 0:2.9.0-4.fc44          updates        2.4 MiB
+ kbd-legacy               noarch  0:2.9.0-4.fc44          updates      559.6 KiB
+ kbd-misc                 noarch  0:2.9.0-4.fc44          updates        2.4 MiB
+ kmod                     aarch64 0:34.2-4.fc44           fedora       270.9 KiB
+ libfdisk                 aarch64 0:2.41.5-1.fc44         updates      418.8 KiB
+ liblastlog2              aarch64 0:2.41.5-1.fc44         updates      137.8 KiB
+ libpkgconf               aarch64 0:2.5.1-1.fc44          fedora       134.1 KiB
+ libseccomp               aarch64 0:2.6.1-2.fc44          updates      246.3 KiB
+ openssh                  aarch64 0:10.2p1-14.fc44        updates        1.4 MiB
+ pkgconf                  aarch64 0:2.5.1-1.fc44          fedora       116.8 KiB
+ pkgconf-m4               noarch  0:2.5.1-1.fc44          fedora        14.3 KiB
+ pkgconf-pkg-config       aarch64 0:2.5.1-1.fc44          fedora       990.0   B
+ systemd                  aarch64 0:259.9-1.fc44          updates       15.5 MiB
+ systemd-shared           aarch64 0:259.9-1.fc44          updates        5.2 MiB
+ util-linux               aarch64 0:2.41.5-1.fc44         updates        6.8 MiB
+ xkeyboard-config         noarch  0:2.47-1.fc44           fedora         6.4 MiB
+Installing weak dependencies:
+ dbus                     aarch64 1:1.16.2-1.fc44         fedora         0.0   B
+ diffutils                aarch64 0:3.12-5.fc44           fedora         1.6 MiB
+ kmod-libs                aarch64 0:34.2-4.fc44           fedora       158.9 KiB
+ libxkbcommon             aarch64 0:1.13.1-2.fc44         fedora       471.5 KiB
+ qrencode-libs            aarch64 0:4.1.1-12.fc44         fedora       172.7 KiB
+ systemd-networkd         aarch64 0:259.9-1.fc44          updates        2.3 MiB
+ systemd-pam              aarch64 0:259.9-1.fc44          updates        1.2 MiB
+ systemd-resolved         aarch64 0:259.9-1.fc44          updates      649.0 KiB
+ systemd-udev             aarch64 0:259.9-1.fc44          updates       15.0 MiB
+
+Transaction Summary:
+ Installing:        32 packages
+ Upgrading:          1 package
+ Replacing:          1 package
+
+[ 1/36] Verify package files            100% | 850.0   B/s |  33.0   B |  00m00s
+[ 1/36] Verify package files            100% | 785.0   B/s |  33.0   B |  00m00s
+[ 2/36] Prepare transaction             100% |   1.1 KiB/s |  34.0   B |  00m00s
+[ 3/36] Upgrading systemd-libs-0:259.9- 100% | 175.9 MiB/s |   2.5 MiB |  00m00s
+[ 4/36] Installing systemd-shared-0:259 100% | 327.6 MiB/s |   5.2 MiB |  00m00s
+[ 5/36] Installing libfdisk-0:2.41.5-1. 100% | 102.5 MiB/s | 419.9 KiB |  00m00s
+[ 6/36] Installing kbd-misc-0:2.9.0-4.f 100% |  58.7 MiB/s |   2.5 MiB |  00m00s
+[ 7/36] Installing kbd-legacy-0:2.9.0-4 100% |  29.8 MiB/s | 610.1 KiB |  00m00s
+[ 8/36] Installing kbd-0:2.9.0-4.fc44.a 100% | 149.2 MiB/s |   2.4 MiB |  00m00s
+[ 8/36] Installing kbd-0:2.9.0-4.fc44.a 100% |  82.3 MiB/s |   2.4 MiB |  00m00s
+[ 9/36] Installing libpkgconf-0:2.5.1-1 100% |  66.0 MiB/s | 135.2 KiB |  00m00s
+[10/36] Installing pkgconf-0:2.5.1-1.fc 100% |  58.2 MiB/s | 119.3 KiB |  00m00s
+[10/36] Installing pkgconf-0:2.5.1-1.fc 100% |   7.3 MiB/s | 119.3 KiB |  00m00s
+[11/36] Installing pkgconf-m4-0:2.5.1-1 100% |   7.2 MiB/s |  14.7 KiB |  00m00s
+[12/36] Installing pkgconf-pkg-config-0 100% | 253.5 KiB/s |   1.8 KiB |  00m00s
+[12/36] Installing pkgconf-pkg-config-0 100% | 147.8 KiB/s |   1.8 KiB |  00m00s
+[13/36] Installing kmod-0:34.2-4.fc44.a 100% |  67.6 MiB/s | 276.8 KiB |  00m00s
+[13/36] Installing kmod-0:34.2-4.fc44.a 100% |  16.9 MiB/s | 276.8 KiB |  00m00s
+[14/36] Installing expat-0:2.8.3-1.fc44 100% | 123.8 MiB/s | 380.4 KiB |  00m00s
+[14/36] Installing expat-0:2.8.3-1.fc44 100% | 123.8 MiB/s | 380.4 KiB |  00m00s
+[14/36] Installing expat-0:2.8.3-1.fc44 100% | 123.8 MiB/s | 380.4 KiB |  00m00s
+>>> Running sysusers scriptlet: dbus-common-1:1.16.2-1.fc44.noarch
+>>> Finished sysusers scriptlet: dbus-common-1:1.16.2-1.fc44.noarch
+>>> Scriptlet output:
+>>> Creating group 'dbus' with GID 81.
+>>> Creating user 'dbus' (System Message Bus) with UID 81 and GID 81.
+[14/36] Installing expat-0:2.8.3-1.fc44 100% |  12.8 MiB/s | 380.4 KiB |  00m00s
+>>> Running sysusers scriptlet: dbus-common-1:1.16.2-1.fc44.noarch
+>>> Finished sysusers scriptlet: dbus-common-1:1.16.2-1.fc44.noarch
+>>> Scriptlet output:
+>>> Creating group 'dbus' with GID 81.
+>>> Creating user 'dbus' (System Message Bus) with UID 81 and GID 81.
+>>> 
+[15/36] Installing dbus-common-1:1.16.2 100% |   6.6 MiB/s |  13.6 KiB |  00m00s
+[15/36] Installing dbus-common-1:1.16.2 100% |   6.6 MiB/s |  13.6 KiB |  00m00s
+[15/36] Installing dbus-common-1:1.16.2 100% |   1.5 MiB/s |  13.6 KiB |  00m00s
+[16/36] Installing dbus-broker-0:37-8.f 100% | 138.2 MiB/s | 424.5 KiB |  00m00s
+[16/36] Installing dbus-broker-0:37-8.f 100% | 138.2 MiB/s | 424.5 KiB |  00m00s
+[16/36] Installing dbus-broker-0:37-8.f 100% |  18.0 MiB/s | 424.5 KiB |  00m00s
+[17/36] Installing kmod-libs-0:34.2-4.f 100% |  52.1 MiB/s | 160.0 KiB |  00m00s
+[18/36] Installing xkeyboard-config-0:2 100% | 208.6 MiB/s |   6.5 MiB |  00m00s
+[19/36] Installing libseccomp-0:2.6.1-2 100% | 121.2 MiB/s | 248.1 KiB |  00m00s
+[20/36] Installing liblastlog2-0:2.41.5 100% |  68.3 MiB/s | 139.8 KiB |  00m00s
+[20/36] Installing liblastlog2-0:2.41.5 100% |  19.5 MiB/s | 139.8 KiB |  00m00s
+[21/36] Installing util-linux-0:2.41.5- 100% | 139.9 MiB/s |   6.9 MiB |  00m00s
+[21/36] Installing util-linux-0:2.41.5- 100% | 139.9 MiB/s |   6.9 MiB |  00m00s
+[21/36] Installing util-linux-0:2.41.5- 100% | 139.9 MiB/s |   6.9 MiB |  00m00s
+[21/36] Installing util-linux-0:2.41.5- 100% | 139.9 MiB/s |   6.9 MiB |  00m00s
+>>> Running sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'empower' with GID 999.
+[21/36] Installing util-linux-0:2.41.5- 100% | 139.9 MiB/s |   6.9 MiB |  00m00s
+>>> Running sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'empower' with GID 999.
+>>> 
+[21/36] Installing util-linux-0:2.41.5- 100% | 139.9 MiB/s |   6.9 MiB |  00m00s
+>>> Running sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'empower' with GID 999.
+>>> 
+>>> Running sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-journal' with GID 190.
+[21/36] Installing util-linux-0:2.41.5- 100% | 139.9 MiB/s |   6.9 MiB |  00m00s
+>>> Running sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'empower' with GID 999.
+>>> 
+>>> Running sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-journal' with GID 190.
+>>> 
+[21/36] Installing util-linux-0:2.41.5- 100% | 139.9 MiB/s |   6.9 MiB |  00m00s
+>>> Running sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'empower' with GID 999.
+>>> 
+>>> Running sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-journal' with GID 190.
+>>> 
+>>> Running sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-oom' with GID 998.
+>>> Creating user 'systemd-oom' (systemd Userspace OOM Killer) with UID 998 and GID 998.
+[21/36] Installing util-linux-0:2.41.5- 100% |  72.9 MiB/s |   6.9 MiB |  00m00s
+>>> Running sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'empower' with GID 999.
+>>> 
+>>> Running sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-journal' with GID 190.
+>>> 
+>>> Running sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-oom' with GID 998.
+>>> Creating user 'systemd-oom' (systemd Userspace OOM Killer) with UID 998 and GID 998.
+>>> 
+[22/36] Installing systemd-0:259.9-1.fc 100% | 170.3 MiB/s |  15.7 MiB |  00m00s
+[22/36] Installing systemd-0:259.9-1.fc 100% | 170.3 MiB/s |  15.7 MiB |  00m00s
+[22/36] Installing systemd-0:259.9-1.fc 100% |  79.9 MiB/s |  15.7 MiB |  00m00s
+[23/36] Installing device-mapper-0:1.02 100% | 108.0 MiB/s | 442.5 KiB |  00m00s
+[23/36] Installing device-mapper-0:1.02 100% |  25.4 MiB/s | 442.5 KiB |  00m00s
+[24/36] Installing device-mapper-libs-0 100% | 145.6 MiB/s | 447.3 KiB |  00m00s
+[25/36] Installing cryptsetup-libs-0:2. 100% | 587.4 MiB/s |   2.9 MiB |  00m00s
+[26/36] Installing openssh-0:10.2p1-14. 100% | 473.8 MiB/s |   1.4 MiB |  00m00s
+[26/36] Installing openssh-0:10.2p1-14. 100% | 473.8 MiB/s |   1.4 MiB |  00m00s
+[26/36] Installing openssh-0:10.2p1-14. 100% | 473.8 MiB/s |   1.4 MiB |  00m00s
+>>> Running sysusers scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Finished sysusers scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'sshd' with GID 74.
+>>> Creating user 'sshd' (Privilege-separated SSH) with UID 74 and GID 74.
+[26/36] Installing openssh-0:10.2p1-14. 100% | 473.8 MiB/s |   1.4 MiB |  00m00s
+>>> Running sysusers scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Finished sysusers scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'sshd' with GID 74.
+>>> Creating user 'sshd' (Privilege-separated SSH) with UID 74 and GID 74.
+>>> 
+[26/36] Installing openssh-0:10.2p1-14. 100% | 473.8 MiB/s |   1.4 MiB |  00m00s
+>>> Running sysusers scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Finished sysusers scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'sshd' with GID 74.
+>>> Creating user 'sshd' (Privilege-separated SSH) with UID 74 and GID 74.
+[26/36] Installing openssh-0:10.2p1-14. 100% |  52.6 MiB/s |   1.4 MiB |  00m00s
+>>> Running sysusers scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Finished sysusers scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'sshd' with GID 74.
+>>> Creating user 'sshd' (Privilege-separated SSH) with UID 74 and GID 74.
+>>> 
+[27/36] Installing openssh-server-0:10. 100% | 279.8 MiB/s |   2.0 MiB |  00m00s
+[27/36] Installing openssh-server-0:10. 100% | 279.8 MiB/s |   2.0 MiB |  00m00s
+[27/36] Installing openssh-server-0:10. 100% | 279.8 MiB/s |   2.0 MiB |  00m00s
+>>> Running %post scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Finished %post scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Scriptlet output:
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/sshd.service' → '/usr/lib/systemd/system/sshd.service'.
+[27/36] Installing openssh-server-0:10. 100% | 279.8 MiB/s |   2.0 MiB |  00m00s
+>>> Running %post scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Finished %post scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Scriptlet output:
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/sshd.service' → '/usr/lib/systemd/system/sshd.service'.
+>>> 
+[27/36] Installing openssh-server-0:10. 100% | 279.8 MiB/s |   2.0 MiB |  00m00s
+>>> Running %post scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Finished %post scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Scriptlet output:
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/sshd.service' → '/usr/lib/systemd/system/sshd.service'.
+>>> 
+>>> Running sysusers scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-coredump' with GID 997.
+>>> Creating user 'systemd-coredump' (systemd Core Dumper) with UID 997 and GID 997.
+[27/36] Installing openssh-server-0:10. 100% | 279.8 MiB/s |   2.0 MiB |  00m00s
+>>> Running %post scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Finished %post scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Scriptlet output:
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/sshd.service' → '/usr/lib/systemd/system/sshd.service'.
+>>> 
+>>> Running sysusers scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-coredump' with GID 997.
+>>> Creating user 'systemd-coredump' (systemd Core Dumper) with UID 997 and GID 997.
+>>> 
+[27/36] Installing openssh-server-0:10. 100% | 279.8 MiB/s |   2.0 MiB |  00m00s
+>>> Running %post scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Finished %post scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Scriptlet output:
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/sshd.service' → '/usr/lib/systemd/system/sshd.service'.
+>>> 
+>>> Running sysusers scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-coredump' with GID 997.
+>>> Creating user 'systemd-coredump' (systemd Core Dumper) with UID 997 and GID 997.
+>>> 
+>>> Running sysusers scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-timesync' with GID 996.
+>>> Creating user 'systemd-timesync' (systemd Time Synchronization) with UID 996 and GID 996.
+[27/36] Installing openssh-server-0:10. 100% |  38.4 MiB/s |   2.0 MiB |  00m00s
+>>> Running %post scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Finished %post scriptlet: openssh-server-0:10.2p1-14.fc44.aarch64
+>>> Scriptlet output:
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/sshd.service' → '/usr/lib/systemd/system/sshd.service'.
+>>> 
+>>> Running sysusers scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-coredump' with GID 997.
+>>> Creating user 'systemd-coredump' (systemd Core Dumper) with UID 997 and GID 997.
+>>> 
+>>> Running sysusers scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-timesync' with GID 996.
+>>> Creating user 'systemd-timesync' (systemd Time Synchronization) with UID 996 and GID 996.
+>>> 
+[28/36] Installing systemd-udev-0:259.9 100% | 280.5 MiB/s |  15.1 MiB |  00m00s
+[28/36] Installing systemd-udev-0:259.9 100% | 280.5 MiB/s |  15.1 MiB |  00m00s
+[28/36] Installing systemd-udev-0:259.9 100% | 280.5 MiB/s |  15.1 MiB |  00m00s
+>>> Running %post scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Finished %post scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Failed to preset unit: Unit systemd-tmpfiles-clear.service does not exist
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/remote-cryptsetup.target' → '/usr/lib/systemd/system/remote-cryptsetup.target'.
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/remote-veritysetup.target' → '/usr/lib/systemd/system/remote-veritysetup.target'.
+>>> Created symlink '/etc/systemd/system/systemd-homed.service.wants/systemd-homed-activate.service' → '/usr/lib/systemd/system/systemd-homed-activate.service'.
+>>> Created symlink '/etc/systemd/system/dbus-org.freedesktop.home1.service' → '/usr/lib/systemd/system/systemd-homed.service'.
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/systemd-homed.service' → '/usr/lib/systemd/system/systemd-homed.service'.
+>>> Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-network-generator.service' → '/usr/lib/systemd/system/systemd-network-generator.service'.
+>>> Created symlink '/etc/systemd/system/dbus-org.freedesktop.oom1.service' → '/usr/lib/systemd/system/systemd-oomd.service'.
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/systemd-oomd.service' → '/usr/lib/systemd/system/systemd-oomd.service'.
+>>> Created symlink '/etc/systemd/system/sockets.target.wants/systemd-oomd.socket' → '/usr/lib/systemd/system/systemd-oomd.socket'.
+>>> Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-pstore.service' → '/usr/lib/systemd/system/systemd-pstore.service'.
+[28/36] Installing systemd-udev-0:259.9 100% | 280.5 MiB/s |  15.1 MiB |  00m00s
+>>> Running %post scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Finished %post scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Failed to preset unit: Unit systemd-tmpfiles-clear.service does not exist
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/remote-cryptsetup.target' → '/usr/lib/systemd/system/remote-cryptsetup.target'.
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/remote-veritysetup.target' → '/usr/lib/systemd/system/remote-veritysetup.target'.
+>>> Created symlink '/etc/systemd/system/systemd-homed.service.wants/systemd-homed-activate.service' → '/usr/lib/systemd/system/systemd-homed-activate.service'.
+>>> Created symlink '/etc/systemd/system/dbus-org.freedesktop.home1.service' → '/usr/lib/systemd/system/systemd-homed.service'.
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/systemd-homed.service' → '/usr/lib/systemd/system/systemd-homed.service'.
+>>> Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-network-generator.service' → '/usr/lib/systemd/system/systemd-network-generator.service'.
+>>> Created symlink '/etc/systemd/system/dbus-org.freedesktop.oom1.service' → '/usr/lib/systemd/system/systemd-oomd.service'.
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/systemd-oomd.service' → '/usr/lib/systemd/system/systemd-oomd.service'.
+>>> Created symlink '/etc/systemd/system/sockets.target.wants/systemd-oomd.socket' → '/usr/lib/systemd/system/systemd-oomd.socket'.
+>>> Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-pstore.service' → '/usr/lib/systemd/system/systemd-pstore.service'.
+>>> 
+[28/36] Installing systemd-udev-0:259.9 100% | 280.5 MiB/s |  15.1 MiB |  00m00s
+>>> Running %post scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Finished %post scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Failed to preset unit: Unit systemd-tmpfiles-clear.service does not exist
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/remote-cryptsetup.target' → '/usr/lib/systemd/system/remote-cryptsetup.target'.
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/remote-veritysetup.target' → '/usr/lib/systemd/system/remote-veritysetup.target'.
+>>> Created symlink '/etc/systemd/system/systemd-homed.service.wants/systemd-homed-activate.service' → '/usr/lib/systemd/system/systemd-homed-activate.service'.
+>>> Created symlink '/etc/systemd/system/dbus-org.freedesktop.home1.service' → '/usr/lib/systemd/system/systemd-homed.service'.
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/systemd-homed.service' → '/usr/lib/systemd/system/systemd-homed.service'.
+>>> Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-network-generator.service' → '/usr/lib/systemd/system/systemd-network-generator.service'.
+>>> Created symlink '/etc/systemd/system/dbus-org.freedesktop.oom1.service' → '/usr/lib/systemd/system/systemd-oomd.service'.
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/systemd-oomd.service' → '/usr/lib/systemd/system/systemd-oomd.service'.
+>>> Created symlink '/etc/systemd/system/sockets.target.wants/systemd-oomd.socket' → '/usr/lib/systemd/system/systemd-oomd.socket'.
+>>> Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-pstore.service' → '/usr/lib/systemd/system/systemd-pstore.service'.
+>>> 
+>>> Running sysusers scriptlet: systemd-networkd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-networkd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-network' with GID 192.
+>>> Creating user 'systemd-network' (systemd Network Management) with UID 192 and GID 192.
+[28/36] Installing systemd-udev-0:259.9 100% |  40.7 MiB/s |  15.1 MiB |  00m00s
+>>> Running %post scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Finished %post scriptlet: systemd-udev-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Failed to preset unit: Unit systemd-tmpfiles-clear.service does not exist
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/remote-cryptsetup.target' → '/usr/lib/systemd/system/remote-cryptsetup.target'.
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/remote-veritysetup.target' → '/usr/lib/systemd/system/remote-veritysetup.target'.
+>>> Created symlink '/etc/systemd/system/systemd-homed.service.wants/systemd-homed-activate.service' → '/usr/lib/systemd/system/systemd-homed-activate.service'.
+>>> Created symlink '/etc/systemd/system/dbus-org.freedesktop.home1.service' → '/usr/lib/systemd/system/systemd-homed.service'.
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/systemd-homed.service' → '/usr/lib/systemd/system/systemd-homed.service'.
+>>> Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-network-generator.service' → '/usr/lib/systemd/system/systemd-network-generator.service'.
+>>> Created symlink '/etc/systemd/system/dbus-org.freedesktop.oom1.service' → '/usr/lib/systemd/system/systemd-oomd.service'.
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/systemd-oomd.service' → '/usr/lib/systemd/system/systemd-oomd.service'.
+>>> Created symlink '/etc/systemd/system/sockets.target.wants/systemd-oomd.socket' → '/usr/lib/systemd/system/systemd-oomd.socket'.
+>>> Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-pstore.service' → '/usr/lib/systemd/system/systemd-pstore.service'.
+>>> 
+>>> Running sysusers scriptlet: systemd-networkd-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-networkd-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-network' with GID 192.
+>>> Creating user 'systemd-network' (systemd Network Management) with UID 192 and GID 192.
+>>> 
+[29/36] Installing systemd-networkd-0:2 100% | 384.4 MiB/s |   2.3 MiB |  00m00s
+[29/36] Installing systemd-networkd-0:2 100% | 384.4 MiB/s |   2.3 MiB |  00m00s
+[29/36] Installing systemd-networkd-0:2 100% |  79.5 MiB/s |   2.3 MiB |  00m00s
+[30/36] Installing systemd-pam-0:259.9- 100% | 412.1 MiB/s |   1.2 MiB |  00m00s
+[30/36] Installing systemd-pam-0:259.9- 100% | 412.1 MiB/s |   1.2 MiB |  00m00s
+>>> Running sysusers scriptlet: systemd-resolved-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-resolved-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-resolve' with GID 193.
+>>> Creating user 'systemd-resolve' (systemd Resolver) with UID 193 and GID 193.
+[30/36] Installing systemd-pam-0:259.9- 100% |  72.7 MiB/s |   1.2 MiB |  00m00s
+>>> Running sysusers scriptlet: systemd-resolved-0:259.9-1.fc44.aarch64
+>>> Finished sysusers scriptlet: systemd-resolved-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Creating group 'systemd-resolve' with GID 193.
+>>> Creating user 'systemd-resolve' (systemd Resolver) with UID 193 and GID 193.
+>>> 
+[31/36] Installing systemd-resolved-0:2 100% | 159.5 MiB/s | 653.4 KiB |  00m00s
+[31/36] Installing systemd-resolved-0:2 100% | 159.5 MiB/s | 653.4 KiB |  00m00s
+[31/36] Installing systemd-resolved-0:2 100% | 159.5 MiB/s | 653.4 KiB |  00m00s
+>>> Running %post scriptlet: systemd-resolved-0:259.9-1.fc44.aarch64
+>>> Finished %post scriptlet: systemd-resolved-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Created symlink '/etc/systemd/system/dbus-org.freedesktop.resolve1.service' → '/usr/lib/systemd/system/systemd-resolved.service'.
+>>> Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-resolved.service' → '/usr/lib/systemd/system/systemd-resolved.service'.
+>>> Created symlink '/etc/systemd/system/sockets.target.wants/systemd-resolved-varlink.socket' → '/usr/lib/systemd/system/systemd-resolved-varlink.socket'.
+>>> Created symlink '/etc/systemd/system/sockets.target.wants/systemd-resolved-monitor.socket' → '/usr/lib/systemd/system/systemd-resolved-monitor.socket'.
+[31/36] Installing systemd-resolved-0:2 100% |  21.3 MiB/s | 653.4 KiB |  00m00s
+>>> Running %post scriptlet: systemd-resolved-0:259.9-1.fc44.aarch64
+>>> Finished %post scriptlet: systemd-resolved-0:259.9-1.fc44.aarch64
+>>> Scriptlet output:
+>>> Created symlink '/etc/systemd/system/dbus-org.freedesktop.resolve1.service' → '/usr/lib/systemd/system/systemd-resolved.service'.
+>>> Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-resolved.service' → '/usr/lib/systemd/system/systemd-resolved.service'.
+>>> Created symlink '/etc/systemd/system/sockets.target.wants/systemd-resolved-varlink.socket' → '/usr/lib/systemd/system/systemd-resolved-varlink.socket'.
+>>> Created symlink '/etc/systemd/system/sockets.target.wants/systemd-resolved-monitor.socket' → '/usr/lib/systemd/system/systemd-resolved-monitor.socket'.
+>>> 
+[32/36] Installing libxkbcommon-0:1.13. 100% | 154.0 MiB/s | 473.2 KiB |  00m00s
+[33/36] Installing dbus-1:1.16.2-1.fc44 100% |   0.0   B/s | 124.0   B |  00m00s
+[34/36] Installing qrencode-libs-0:4.1. 100% |  85.2 MiB/s | 174.6 KiB |  00m00s
+[35/36] Installing diffutils-0:3.12-5.f 100% | 541.0 MiB/s |   1.6 MiB |  00m00s
+[35/36] Installing diffutils-0:3.12-5.f 100% |  90.2 MiB/s |   1.6 MiB |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  20.5 KiB/s |  20.0   B |  00m00s
+[36/36] Removing systemd-libs-0:259.8-1 100% |  48.0   B/s |  20.0   B |  00m00s
+    generated missing SSH host keys
+    sshd -t: ok
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+
+[5/10] tailscale up
+    needs a GitHub token: waiting for a hand-off from your client Mac
+    no SSH server is listening on port 22 here; press p to paste a bundle
+    press p to paste a bundle instead (client: mac-bootstrap bundle)
+    waiting up to 900s for a hand-off (Ctrl-C to stop)
+    SSH is reachable on this machine. From your client Mac, run one of:
+      mac-bootstrap handoff tuser@172.17.0.4
+    ED25519 SHA256 host-key fingerprint (it must match what the client shows): SHA256:uRo1vUcFnc/UqYER31l8CEZf20X5oshbwOAFDCn5t8M
+    bundle received over SSH and accepted
+    hand-off received: Tailscale key set, GitHub token set, git identity set
+    skipped: tailscaled is not running (no systemd); NOT joined to the tailnet
+
+[6/10] git, gh, paseo
+Package                     Arch    Version                 Repository      Size
+Installing:
+ gh                         aarch64 0:2.97.0-2.fc44         updates     37.1 MiB
+ git                        aarch64 0:2.55.0-1.fc44         updates     57.7 KiB
+Installing dependencies:
+ git-core                   aarch64 0:2.55.0-1.fc44         updates     24.8 MiB
+ git-core-doc               noarch  0:2.55.0-1.fc44         updates     18.9 MiB
+ groff-base                 aarch64 0:1.23.0-12.fc44        fedora       4.2 MiB
+ less                       aarch64 0:704-4.fc44            updates    607.5 KiB
+ libedit                    aarch64 0:3.1-59.20260512cvs.fc updates    280.3 KiB
+ libgit2                    aarch64 0:1.9.7-1.fc44          updates      1.3 MiB
+ libssh2                    aarch64 0:1.11.1-9.fc44         updates    350.5 KiB
+ llhttp                     aarch64 0:9.3.1-1.fc44          fedora     152.7 KiB
+ mpdecimal                  aarch64 0:4.0.1-3.fc44          fedora     281.1 KiB
+ ncurses                    aarch64 0:6.6-1.fc44            fedora     895.4 KiB
+ oniguruma                  aarch64 0:6.9.10-4.fc44         fedora     766.7 KiB
+ openssh-clients            aarch64 0:10.2p1-14.fc44        updates      2.7 MiB
+ perl-AutoLoader            noarch  0:5.74-525.fc44         updates     20.6 KiB
+ perl-B                     aarch64 0:1.89-525.fc44         updates    545.3 KiB
+ perl-Carp                  noarch  0:1.54-521.fc44         fedora      46.6 KiB
+ perl-Class-Struct          noarch  0:0.68-525.fc44         updates     25.4 KiB
+ perl-Data-Dumper           aarch64 0:2.192-523.fc44        updates    135.6 KiB
+ perl-Digest                noarch  0:1.20-521.fc44         fedora      35.3 KiB
+ perl-Digest-MD5            aarch64 0:2.59-521.fc44         fedora     103.6 KiB
+ perl-DynaLoader            aarch64 0:1.57-525.fc44         updates     32.1 KiB
+ perl-Encode                aarch64 4:3.21-521.fc44         fedora       4.8 MiB
+ perl-Errno                 aarch64 0:1.38-525.fc44         updates      8.4 KiB
+ perl-Error                 noarch  1:0.17030-3.fc44        fedora      76.8 KiB
+ perl-Exporter              noarch  0:5.79-521.fc44         fedora      54.3 KiB
+ perl-Fcntl                 aarch64 0:1.20-525.fc44         updates     92.7 KiB
+ perl-File-Basename         noarch  0:2.86-525.fc44         updates     14.0 KiB
+ perl-File-Path             noarch  0:2.18-522.fc44         fedora      63.5 KiB
+ perl-File-Temp             noarch  1:0.231.200-2.fc44      fedora     163.7 KiB
+ perl-File-stat             noarch  0:1.14-525.fc44         updates     12.5 KiB
+ perl-FileHandle            noarch  0:2.05-525.fc44         updates      9.4 KiB
+ perl-Getopt-Long           noarch  1:2.58-521.fc44         fedora     144.5 KiB
+ perl-Getopt-Std            noarch  0:1.14-525.fc44         updates     11.2 KiB
+ perl-Git                   noarch  0:2.55.0-1.fc44         updates     64.4 KiB
+ perl-HTTP-Tiny             noarch  0:0.096-1.fc44          updates    162.4 KiB
+ perl-IO                    aarch64 0:1.55-525.fc44         updates    191.3 KiB
+ perl-IO-Socket-IP          noarch  0:0.43-522.fc44         fedora     100.3 KiB
+ perl-IO-Socket-SSL         noarch  0:2.098-2.fc44          fedora     723.5 KiB
+ perl-IPC-Open3             noarch  0:1.24-525.fc44         updates     27.7 KiB
+ perl-MIME-Base32           noarch  0:1.303-25.fc44         fedora      30.7 KiB
+ perl-MIME-Base64           aarch64 0:3.16-521.fc44         fedora      93.9 KiB
+ perl-Net-SSLeay            aarch64 0:1.94-12.fc44          fedora       1.4 MiB
+ perl-POSIX                 aarch64 0:2.23-525.fc44         updates    261.5 KiB
+ perl-PathTools             aarch64 0:3.94-521.fc44         fedora     223.9 KiB
+ perl-Pod-Escapes           noarch  1:1.07-521.fc44         fedora      24.9 KiB
+ perl-Pod-Perldoc           noarch  0:3.28.01-522.fc44      fedora     163.7 KiB
+ perl-Pod-Simple            noarch  1:3.47-4.fc44           fedora     565.3 KiB
+ perl-Pod-Usage             noarch  4:2.05-521.fc44         fedora      86.3 KiB
+ perl-Scalar-List-Utils     aarch64 5:1.70-2.fc44           fedora     152.8 KiB
+ perl-SelectSaver           noarch  0:1.02-525.fc44         updates      2.2 KiB
+ perl-Socket                aarch64 4:2.043-1.fc44          updates    145.8 KiB
+ perl-Storable              aarch64 1:3.37-522.fc44         fedora     243.1 KiB
+ perl-Symbol                noarch  0:1.09-525.fc44         updates      6.8 KiB
+ perl-Term-ANSIColor        noarch  0:5.01-522.fc44         fedora      97.5 KiB
+ perl-Term-Cap              noarch  0:1.18-521.fc44         fedora      29.3 KiB
+ perl-TermReadKey           aarch64 0:2.38-27.fc44          fedora     107.9 KiB
+ perl-Text-ParseWords       noarch  0:3.31-521.fc44         fedora      13.6 KiB
+ perl-Text-Tabs+Wrap        noarch  0:2024.001-521.fc44     fedora      22.6 KiB
+ perl-Time-HiRes            aarch64 4:1.9778-521.fc44       fedora     151.6 KiB
+ perl-Time-Local            noarch  2:1.350-521.fc44        fedora      69.0 KiB
+ perl-URI                   noarch  0:5.36-1.fc44           updates    275.7 KiB
+ perl-Unicode-Normalize     aarch64 0:1.32-521.fc44         fedora     524.4 KiB
+ perl-base                  noarch  0:2.27-525.fc44         updates     12.6 KiB
+ perl-constant              noarch  0:1.33-522.fc44         fedora      26.2 KiB
+ perl-if                    noarch  0:0.61.000-525.fc44     updates      5.8 KiB
+ perl-interpreter           aarch64 4:5.42.3-525.fc44       updates    174.9 KiB
+ perl-lib                   aarch64 0:0.65-525.fc44         updates      8.5 KiB
+ perl-libnet                noarch  0:3.15-522.fc44         fedora     289.4 KiB
+ perl-libs                  aarch64 4:5.42.3-525.fc44       updates     11.6 MiB
+ perl-locale                noarch  0:1.13-525.fc44         updates      6.1 KiB
+ perl-mro                   aarch64 0:1.29-525.fc44         updates     81.5 KiB
+ perl-overload              noarch  0:1.40-525.fc44         updates     71.6 KiB
+ perl-overloading           noarch  0:0.02-525.fc44         updates      4.9 KiB
+ perl-parent                noarch  1:0.244-521.fc44        fedora      10.3 KiB
+ perl-podlators             noarch  1:6.0.2-521.fc44        fedora     317.5 KiB
+ perl-vars                  noarch  0:1.05-525.fc44         updates      3.9 KiB
+ python-pip-wheel           noarch  0:26.0.1-3.fc44         updates      1.2 MiB
+ python3                    aarch64 0:3.14.7-1.fc44         updates     84.8 KiB
+ python3-libs               aarch64 0:3.14.7-1.fc44         updates     45.6 MiB
+Installing weak dependencies:
+ 7zip                       aarch64 0:26.03-1.fc44          updates      3.2 MiB
+ bat                        aarch64 0:0.26.1-4.fc44         updates      4.9 MiB
+ less-color                 aarch64 0:704-4.fc44            updates      2.4 KiB
+ perl-NDBM_File             aarch64 0:1.18-525.fc44         updates     72.4 KiB
+ python-unversioned-command noarch  0:3.14.7-1.fc44         updates     23.0   B
+ python3-html2text          noarch  0:2025.4.15-6.fc44      fedora     289.4 KiB
+ unzip                      aarch64 0:6.0-69.fc44           fedora     533.8 KiB
+
+Transaction Summary:
+ Installing:        87 packages
+
+[ 1/89] Verify package files            100% | 743.0   B/s |  87.0   B |  00m00s
+[ 2/89] Prepare transaction             100% |   1.0 KiB/s |  87.0   B |  00m00s
+[ 3/89] Installing less-0:704-4.fc44.aa 100% | 110.0 MiB/s | 611.2 KiB |  00m00s
+[ 3/89] Installing less-0:704-4.fc44.aa 100% |  18.1 MiB/s | 611.2 KiB |  00m00s
+[ 4/89] Installing libssh2-0:1.11.1-9.f 100% |  57.3 MiB/s | 352.2 KiB |  00m00s
+[ 5/89] Installing llhttp-0:9.3.1-1.fc4 100% |  37.6 MiB/s | 154.1 KiB |  00m00s
+[ 6/89] Installing libgit2-0:1.9.7-1.fc 100% |  96.0 MiB/s |   1.3 MiB |  00m00s
+[ 7/89] Installing oniguruma-0:6.9.10-4 100% |  93.8 MiB/s | 768.8 KiB |  00m00s
+[ 8/89] Installing python-pip-wheel-0:2 100% | 203.9 MiB/s |   1.2 MiB |  00m00s
+[ 9/89] Installing mpdecimal-0:4.0.1-3. 100% |  39.4 MiB/s | 282.6 KiB |  00m00s
+[10/89] Installing python3-libs-0:3.14. 100% |  81.3 MiB/s |  46.0 MiB |  00m01s
+[11/89] Installing python3-0:3.14.7-1.f 100% |  84.5 MiB/s |  86.5 KiB |  00m00s
+[11/89] Installing python3-0:3.14.7-1.f 100% |   4.4 MiB/s |  86.5 KiB |  00m00s
+[12/89] Installing libedit-0:3.1-59.202 100% |  55.1 MiB/s | 282.0 KiB |  00m00s
+[13/89] Installing openssh-clients-0:10 100% | 245.1 MiB/s |   2.7 MiB |  00m00s
+[13/89] Installing openssh-clients-0:10 100% | 245.1 MiB/s |   2.7 MiB |  00m00s
+[13/89] Installing openssh-clients-0:10 100% |  51.8 MiB/s |   2.7 MiB |  00m00s
+[14/89] Installing git-core-0:2.55.0-1. 100% | 266.0 MiB/s |  24.8 MiB |  00m00s
+[14/89] Installing git-core-0:2.55.0-1. 100% | 302.6 MiB/s |  24.8 MiB |  00m00s
+[15/89] Installing git-core-doc-0:2.55. 100% | 954.4 MiB/s |  19.1 MiB |  00m00s
+[16/89] Installing ncurses-0:6.6-1.fc44 100% | 220.2 MiB/s | 902.0 KiB |  00m00s
+[16/89] Installing ncurses-0:6.6-1.fc44 100% | 220.2 MiB/s | 902.0 KiB |  00m00s
+[16/89] Installing ncurses-0:6.6-1.fc44 100% |  40.0 MiB/s | 902.0 KiB |  00m00s
+[17/89] Installing groff-base-0:1.23.0- 100% | 190.7 MiB/s |   4.2 MiB |  00m00s
+[17/89] Installing groff-base-0:1.23.0- 100% | 190.7 MiB/s |   4.2 MiB |  00m00s
+[17/89] Installing groff-base-0:1.23.0- 100% |  85.6 MiB/s |   4.2 MiB |  00m00s
+[18/89] Installing perl-Digest-0:1.20-5 100% |  12.1 MiB/s |  37.1 KiB |  00m00s
+[19/89] Installing perl-FileHandle-0:2. 100% |   2.4 MiB/s |   9.8 KiB |  00m00s
+[20/89] Installing perl-B-0:1.89-525.fc 100% |  18.5 MiB/s | 548.6 KiB |  00m00s
+[21/89] Installing perl-Digest-MD5-0:2. 100% |  12.9 MiB/s | 105.5 KiB |  00m00s
+[22/89] Installing perl-libnet-0:3.15-5 100% |  32.0 MiB/s | 294.7 KiB |  00m00s
+[23/89] Installing perl-Data-Dumper-0:2 100% |  33.6 MiB/s | 137.5 KiB |  00m00s
+[24/89] Installing perl-Unicode-Normali 100% |  39.6 MiB/s | 526.7 KiB |  00m00s
+[25/89] Installing perl-MIME-Base32-0:1 100% |   6.3 MiB/s |  32.2 KiB |  00m00s
+[26/89] Installing perl-URI-0:5.36-1.fc 100% |  25.7 MiB/s | 289.5 KiB |  00m00s
+[27/89] Installing perl-IO-Socket-IP-0: 100% |  24.9 MiB/s | 102.2 KiB |  00m00s
+[28/89] Installing perl-AutoLoader-0:5. 100% |   4.1 MiB/s |  21.0 KiB |  00m00s
+[29/89] Installing perl-IO-Socket-SSL-0 100% | 118.4 MiB/s | 727.6 KiB |  00m00s
+[30/89] Installing perl-locale-0:1.13-5 100% |   3.2 MiB/s |   6.5 KiB |  00m00s
+[31/89] Installing perl-Net-SSLeay-0:1. 100% |  89.5 MiB/s |   1.4 MiB |  00m00s
+[32/89] Installing perl-Time-Local-2:1. 100% |  23.0 MiB/s |  70.6 KiB |  00m00s
+[33/89] Installing perl-Time-HiRes-4:1. 100% |  50.0 MiB/s | 153.7 KiB |  00m00s
+[34/89] Installing perl-if-0:0.61.000-5 100% |   3.0 MiB/s |   6.2 KiB |  00m00s
+[35/89] Installing perl-Pod-Escapes-1:1 100% |  12.7 MiB/s |  25.9 KiB |  00m00s
+[36/89] Installing perl-File-Path-0:2.1 100% |  31.5 MiB/s |  64.5 KiB |  00m00s
+[37/89] Installing perl-Text-Tabs+Wrap- 100% |   7.8 MiB/s |  23.9 KiB |  00m00s
+[38/89] Installing perl-Pod-Simple-1:3. 100% |  62.4 MiB/s | 574.9 KiB |  00m00s
+[39/89] Installing perl-HTTP-Tiny-0:0.0 100% |  53.5 MiB/s | 164.5 KiB |  00m00s
+[40/89] Installing perl-Class-Struct-0: 100% | 665.3 KiB/s |  25.9 KiB |  00m00s
+[41/89] Installing perl-IPC-Open3-0:1.2 100% | 678.2 KiB/s |  28.5 KiB |  00m00s
+[42/89] Installing perl-File-Temp-1:0.2 100% |  20.2 MiB/s | 165.5 KiB |  00m00s
+[43/89] Installing perl-POSIX-0:2.23-52 100% |  42.8 MiB/s | 262.8 KiB |  00m00s
+[44/89] Installing perl-Term-Cap-0:1.18 100% |  10.0 MiB/s |  30.6 KiB |  00m00s
+[45/89] Installing perl-Term-ANSIColor- 100% |  32.3 MiB/s |  99.2 KiB |  00m00s
+[46/89] Installing perl-podlators-1:6.0 100% | 104.6 MiB/s | 321.4 KiB |  00m00s
+[46/89] Installing perl-podlators-1:6.0 100% |  14.9 MiB/s | 321.4 KiB |  00m00s
+[47/89] Installing perl-Pod-Perldoc-0:3 100% | 165.3 MiB/s | 169.2 KiB |  00m00s
+[47/89] Installing perl-Pod-Perldoc-0:3 100% |   8.7 MiB/s | 169.2 KiB |  00m00s
+[48/89] Installing perl-File-stat-0:1.1 100% |   6.4 MiB/s |  13.1 KiB |  00m00s
+[49/89] Installing perl-SelectSaver-0:1 100% |   1.3 MiB/s |   2.6 KiB |  00m00s
+[50/89] Installing perl-Socket-4:2.043- 100% |  48.1 MiB/s | 147.8 KiB |  00m00s
+[51/89] Installing perl-Symbol-0:1.09-5 100% |   3.5 MiB/s |   7.3 KiB |  00m00s
+[52/89] Installing perl-Pod-Usage-4:2.0 100% |  10.7 MiB/s |  87.9 KiB |  00m00s
+[52/89] Installing perl-Pod-Usage-4:2.0 100% |   6.1 MiB/s |  87.9 KiB |  00m00s
+[53/89] Installing perl-IO-0:1.55-525.f 100% |  63.7 MiB/s | 195.6 KiB |  00m00s
+[54/89] Installing perl-overloading-0:0 100% |   1.8 MiB/s |   5.6 KiB |  00m00s
+[55/89] Installing perl-mro-0:1.29-525. 100% |  26.9 MiB/s |  82.6 KiB |  00m00s
+[56/89] Installing perl-base-0:2.27-525 100% |  12.7 MiB/s |  13.0 KiB |  00m00s
+[57/89] Installing perl-Fcntl-0:1.20-52 100% |  45.8 MiB/s |  93.8 KiB |  00m00s
+[58/89] Installing perl-Text-ParseWords 100% |   7.1 MiB/s |  14.6 KiB |  00m00s
+[59/89] Installing perl-Getopt-Long-1:2 100% |  35.9 MiB/s | 147.2 KiB |  00m00s
+[60/89] Installing perl-Storable-1:3.37 100% |  79.6 MiB/s | 244.7 KiB |  00m00s
+[61/89] Installing perl-overload-0:1.40 100% |  35.2 MiB/s |  72.0 KiB |  00m00s
+[62/89] Installing perl-Getopt-Std-0:1. 100% |   5.7 MiB/s |  11.8 KiB |  00m00s
+[63/89] Installing perl-vars-0:1.05-525 100% |   1.4 MiB/s |   4.3 KiB |  00m00s
+[64/89] Installing perl-File-Basename-0 100% |   7.1 MiB/s |  14.6 KiB |  00m00s
+[65/89] Installing perl-Errno-0:1.38-52 100% |   8.6 MiB/s |   8.8 KiB |  00m00s
+[66/89] Installing perl-MIME-Base64-0:3 100% |  46.9 MiB/s |  96.1 KiB |  00m00s
+[67/89] Installing perl-parent-1:0.244- 100% |  10.7 MiB/s |  11.0 KiB |  00m00s
+[68/89] Installing perl-Scalar-List-Uti 100% |  30.6 MiB/s | 156.5 KiB |  00m00s
+[69/89] Installing perl-constant-0:1.33 100% |  13.4 MiB/s |  27.4 KiB |  00m00s
+[70/89] Installing perl-Encode-4:3.21-5 100% | 220.1 MiB/s |   4.8 MiB |  00m00s
+[70/89] Installing perl-Encode-4:3.21-5 100% | 121.0 MiB/s |   4.8 MiB |  00m00s
+[71/89] Installing perl-DynaLoader-0:1. 100% |  10.6 MiB/s |  32.5 KiB |  00m00s
+[72/89] Installing perl-PathTools-0:3.9 100% |  74.4 MiB/s | 228.4 KiB |  00m00s
+[73/89] Installing perl-Carp-0:1.54-521 100% |  46.6 MiB/s |  47.7 KiB |  00m00s
+[74/89] Installing perl-Exporter-0:5.79 100% |  27.1 MiB/s |  55.6 KiB |  00m00s
+[75/89] Installing perl-libs-4:5.42.3-5 100% | 163.2 MiB/s |  11.7 MiB |  00m00s
+[76/89] Installing perl-interpreter-4:5 100% |  19.2 MiB/s | 176.5 KiB |  00m00s
+[76/89] Installing perl-interpreter-4:5 100% |  10.8 MiB/s | 176.5 KiB |  00m00s
+[77/89] Installing perl-TermReadKey-0:2 100% |  26.9 MiB/s | 110.1 KiB |  00m00s
+[78/89] Installing perl-Error-1:0.17030 100% |  39.0 MiB/s |  80.0 KiB |  00m00s
+[79/89] Installing perl-lib-0:0.65-525. 100% |   8.7 MiB/s |   8.9 KiB |  00m00s
+[80/89] Installing git-0:2.55.0-1.fc44. 100% |  57.6 MiB/s |  59.0 KiB |  00m00s
+[81/89] Installing perl-Git-0:2.55.0-1. 100% |  21.3 MiB/s |  65.4 KiB |  00m00s
+[82/89] Installing perl-NDBM_File-0:1.1 100% |  18.0 MiB/s |  73.5 KiB |  00m00s
+[83/89] Installing gh-0:2.97.0-2.fc44.a 100% | 377.6 MiB/s |  37.2 MiB |  00m00s
+[83/89] Installing gh-0:2.97.0-2.fc44.a 100% | 175.5 MiB/s |  37.2 MiB |  00m00s
+[84/89] Installing python3-html2text-0: 100% |  97.0 MiB/s | 297.9 KiB |  00m00s
+[84/89] Installing python3-html2text-0: 100% |  13.2 MiB/s | 297.9 KiB |  00m00s
+[85/89] Installing python-unversioned-c 100% |  51.9 KiB/s | 424.0   B |  00m00s
+[85/89] Installing python-unversioned-c 100% |  29.6 KiB/s | 424.0   B |  00m00s
+[86/89] Installing bat-0:0.26.1-4.fc44. 100% | 350.7 MiB/s |   4.9 MiB |  00m00s
+[86/89] Installing bat-0:0.26.1-4.fc44. 100% | 153.4 MiB/s |   4.9 MiB |  00m00s
+[87/89] Installing less-color-0:704-4.f 100% | 221.1 KiB/s |   2.7 KiB |  00m00s
+[87/89] Installing less-color-0:704-4.f 100% | 126.3 KiB/s |   2.7 KiB |  00m00s
+[88/89] Installing 7zip-0:26.03-1.fc44. 100% | 266.1 MiB/s |   3.2 MiB |  00m00s
+[88/89] Installing 7zip-0:26.03-1.fc44. 100% |  81.9 MiB/s |   3.2 MiB |  00m00s
+[89/89] Installing unzip-0:6.0-69.fc44. 100% |  65.6 MiB/s | 537.3 KiB |  00m00s
+[89/89] Installing unzip-0:6.0-69.fc44. 100% |  65.6 MiB/s | 537.3 KiB |  00m00s
+[89/89] Installing unzip-0:6.0-69.fc44. 100% |  65.6 MiB/s | 537.3 KiB |  00m00s
+[89/89] Installing unzip-0:6.0-69.fc44. 100% |   1.0 MiB/s | 537.3 KiB |  00m01s
+    npm prefix /usr/local is writable by this user: installing Paseo without sudo
+\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|
+added 294 packages in 36s
+|    paseo 0.10.2 (npm @getpaseo/cli, latest; the daemon is not started)
+    done
+
+[7/10] gh auth
+error validating token: HTTP 401: Bad credentials (https://api.github.com/)
+Try authenticating with:  gh auth login -h github.com
+    gh login FAILED (token rejected, no network, or gh error): not logged in; the token was not kept
+
+[8/10] git identity
+    user.name: set
+    user.email: set
+
+[9/10] iTerm2 shell integration
+    skipped (macOS only)
+
+[10/10] Summary
+    Tailscale: NOT started (no systemd), so there is no tailnet IP or name
+    SSH server: listening on port 22
+    start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
+    sshd effective settings: PasswordAuthentication yes, PermitRootLogin prohibit-password (this installer changes neither)
+    WARNING: SSH password login is ON. Consider key-only login (PasswordAuthentication no) once your key works; not changed here
+    NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3.
+    still manual:
+      - Start tailscaled, then run: sudo tailscale up (or re-run this installer on a systemd host)
+      - gh login failed: run 'gh auth login --hostname github.com --with-token' with a valid token, then 'gh auth setup-git --hostname github.com'
+
+===== installer exit status: 3 =====
+
+===== client (Mac) / emulation-limit output =====
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+Host key of 127.0.0.1 (ED25519): SHA256:uRo1vUcFnc/UqYER31l8CEZf20X5oshbwOAFDCn5t8M
+It must equal the ED25519 SHA256 fingerprint printed on the target's screen.
+Does this match the screen? [y/N] y
+Connecting to tuser@127.0.0.1 (host key pinned, strict checking)
+Bundle taken by the receiver on tuser@127.0.0.1; check the target's screen for the result.
+
+===== client exit status: 0 =====
+
+===== postcondition probes =====
+$ (root) echo tailscale: $(tailscale version | head -1); echo sshd: $( (command -v sshd || echo /usr/sbin/sshd) | xargs -I{} sh -c '{} -V 2>&1 | head -1'); git --version; gh --version | head -1; echo node: $(node --version); echo paseo: $(paseo --version)
+tailscale: 1.102.4
+sshd: OpenSSH_10.2p1, OpenSSL 3.5.7 9 Jun 2026
+git version 2.55.0
+gh version 2.97.0 (2026-07-31)
+node: v22.23.1
+paseo: 0.10.2
+
+$ (root) command -v gh; ls -l $(command -v gh)
+/usr/sbin/gh
+-rwxr-xr-x 1 root root 38230400 Jul 31 00:00 /usr/sbin/gh
+
+$ (root) $(command -v sshd || echo /usr/sbin/sshd) -t; echo sshd -t exit=$?
+sshd -t exit=0
+
+$ (tuser) gh auth status 2>&1 | head -3; echo gh-auth-status-exit=${PIPESTATUS[0]}
+You are not logged into any GitHub hosts. To log in, run: gh auth login
+gh-auth-status-exit=1
+
+$ (tuser) git config --global user.name; git config --global user.email
+Dummy Person
+dummy@example.invalid
+
+$ (tuser) ls -la ~/.cache/mac-bootstrap/inbox 2>&1 | head -2; ls -A ~/.cache/mac-bootstrap 2>&1
+ls: cannot access '/home/tuser/.cache/mac-bootstrap/inbox': No such file or directory
+
+$ (root) ls -A /tmp | grep -E 'tskey|mac-bootstrap\.' || echo none
+none
+
+$ (root) grep -hE '^(PasswordAuthentication|PermitRootLogin)' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/* 2>/dev/null || echo '(no PasswordAuthentication/PermitRootLogin lines written)'; git -C / log -0 2>/dev/null; true
+(no PasswordAuthentication/PermitRootLogin lines written)
+
+===== rerun (idempotence): bash install.sh --no-wait --target-user tuser =====
+[1/10] Preflight
+    detected: Fedora Linux 44 (Container Image) (fedora family)
+    Linux, arch aarch64, target user tuser
+    running as root: gh and git run as tuser
+    mode: apply
+    TS_AUTHKEY: not set
+    TS_TAGS: not set
+    GH_TOKEN: not set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+[2/10] Package repositories (signed)
+    tailscale dnf repo already configured -> skip
+    node v22.23.1 at /usr/sbin/node and npm: ok (>= 20) -> skip
+    done
+[3/10] Tailscale package
+    already present -> skip
+[4/10] OpenSSH server and tailscaled services
+    already present -> skip: openssh-server
+    sshd -t: ok
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+[5/10] tailscale up
+    needs a GitHub token: --no-wait, not waiting for a hand-off
+    skipped: tailscaled is not running (no systemd); NOT joined to the tailnet
+[6/10] git, gh, paseo
+    already present -> skip: git gh
+    paseo: already present -> skip (0.10.2)
+    done
+[7/10] gh auth
+    no GH_TOKEN and no hand-off -> skip (no browser login is used)
+[8/10] git identity
+    skipped (GIT_USER_NAME / GIT_USER_EMAIL not set)
+[9/10] iTerm2 shell integration
+    skipped (macOS only)
+[10/10] Summary
+    Tailscale: NOT started (no systemd), so there is no tailnet IP or name
+    SSH server: listening on port 22
+    start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
+    sshd effective settings: PasswordAuthentication yes, PermitRootLogin prohibit-password (this installer changes neither)
+    WARNING: SSH password login is ON. Consider key-only login (PasswordAuthentication no) once your key works; not changed here
+    NOT COMPLETE: tailscaled and sshd were not enabled or started (systemd is not PID 1); the Tailscale join did not happen. Exit status 3.
+    still manual:
+      - Start tailscaled, then run: sudo tailscale up (or re-run this installer on a systemd host)
+      - Run: gh auth login --hostname github.com && gh auth setup-git --hostname github.com
+      - Set your git identity: git config --global user.name ... && git config --global user.email ...
+===== rerun exit status: 3 =====

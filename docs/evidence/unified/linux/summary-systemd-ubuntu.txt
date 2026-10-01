@@ -1,0 +1,10 @@
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
+PASS ubuntu container booted systemd as PID 1
+PASS ubuntu hand-off delivered over real SSH into the installer's own ssh unit (no manual sshd)
+PASS ubuntu gh login with the dummy token failed cleanly; honest exit 4 (not complete)
+PASS ubuntu installer reported tailscaled and the ssh unit enabled and active
+PASS ubuntu sshd -T report printed (effective PasswordAuthentication/PermitRootLogin)
+PASS ubuntu probes: tailscaled and the ssh unit (or ssh.socket) enabled and active; port 22 listening
+PASS ubuntu C1: socket-activated ssh keeps working (ssh.socket active+enabled)
+PASS ubuntu probes: tools, sshd -t, git identity set, inbox removed
+PASS ubuntu rerun is idempotent (all present -> skip; units already active)

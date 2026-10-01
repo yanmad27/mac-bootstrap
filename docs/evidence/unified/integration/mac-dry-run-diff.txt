@@ -1,0 +1,2 @@
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
+diff vs checkpoint A mac/dry-run-after.txt (header lines ignored): IDENTICAL

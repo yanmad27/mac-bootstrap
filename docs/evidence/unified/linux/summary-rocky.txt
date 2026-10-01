@@ -1,0 +1,10 @@
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
+PASS rocky dry-run exits 0 and shows the numbered flow
+PASS rocky dry-run: dummy TS_AUTHKEY/GH_TOKEN absent from the output
+PASS rocky dry-run changed nothing (no tailscale/gh/node installed)
+PASS rocky hand-off delivered over real SSH
+PASS rocky installer exit status 3 (services not started, honestly reported)
+PASS rocky gh login with the dummy token failed cleanly (script continued)
+PASS rocky probes: all tools present (tailscale, sshd, git, gh, node >= 20, paseo)
+PASS rocky probes: sshd -t ok, git identity set, inbox removed
+PASS rocky rerun is idempotent (everything already present -> skip, no reinstall)

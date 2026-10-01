@@ -1,0 +1,3 @@
+iTerm2 commands, iTerm2 section body (heading number excluded) and the read-the-script paragraph: old 33d3e07 vs new
+IDENTICAL (byte-for-byte; only the h2 numbering '4.'->'3.' differs and is excluded)
+diff lines in vercel.json, scripts, handoff.md:        0

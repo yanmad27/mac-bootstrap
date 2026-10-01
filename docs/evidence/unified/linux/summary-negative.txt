@@ -1,0 +1,12 @@
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
+PASS non-root without sudo: clear error, exit 1, before changes
+PASS os-release override without --dry-run is inert (Ubuntu still detected, override not announced)
+PASS override honoured with --dry-run
+PASS override honoured with MB_TEST=1
+PASS root without --target-user refused
+PASS missing os-release (override path) -> clear error
+PASS none of the refusals changed the package set
+PASS really missing os-release -> clear error before changes
+PASS unsupported distro (alpine): clear error, exit 1, before changes
+PASS alpine package set unchanged
+PASS matrix: ubuntu/debian/mint -> apt, fedora -> fedora, rocky/alma/centos/rhel/ol -> rhel, arch/manjaro -> pacman; amzn/alpine/suse unsupported

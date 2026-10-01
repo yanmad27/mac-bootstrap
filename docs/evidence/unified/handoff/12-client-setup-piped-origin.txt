@@ -1,0 +1,16 @@
+# piped with --origin (local http origin, test mode only)
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+Tag for the minted keys [tag:bootstrap]: 
+test mode: Keychain write skipped
+installed /tmp/mbev.rplh2si2/home4/.local/bin/mac-bootstrap
+sha256 b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
+add it to your PATH:  export PATH="$HOME/.local/bin:$PATH"   (put that line in ~/.zprofile)
+next: mac-bootstrap handoff <user@host>   (or: mac-bootstrap bundle)
+
+# piped WITHOUT --origin
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+error: this was run from a pipe, so the script cannot copy itself: add --origin "<origin>" (or save install.sh and run it from the file)
+
+# piped with a non-https origin outside the test allowance
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+error: --origin must be https://host[:port]

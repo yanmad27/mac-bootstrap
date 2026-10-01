@@ -1,0 +1,71 @@
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
+image: rockylinux@sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
+image id: sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
+platform: linux/arm64 (image architecture arm64)  native
+family: rocky   run as: tuser (sudo)
+date: 2026-10-01T21:54:30+07:00
+command: docker exec -u tuser -e TS_AUTHKEY=<dummy> -e GH_TOKEN=<dummy> -e TS_TAGS=tag:bootstrap mbl-rocky bash /tmp/install.sh --dry-run 
+
+
+[1/10] Preflight
+    detected: Rocky Linux 9.3 (Blue Onyx) (rhel family)
+    Linux, arch aarch64, target user tuser
+    not root: system changes use sudo
+    mode: dry-run
+    TS_AUTHKEY: set
+    TS_TAGS: set
+    GH_TOKEN: set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+
+[2/10] Package repositories (signed)
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://pkgs.tailscale.com/stable/centos/9/tailscale.repo -o /tmp/mac-bootstrap.XXXXXX/tailscale.repo
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/tailscale.repo /etc/yum.repos.d/tailscale.repo
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://cli.github.com/packages/rpm/gh-cli.repo -o /tmp/mac-bootstrap.XXXXXX/gh-cli.repo
+    DRY-RUN would run: sudo install -m 0644 /tmp/mac-bootstrap.XXXXXX/gh-cli.repo /etc/yum.repos.d/gh-cli.repo
+    DRY-RUN would run: sudo dnf -y -q module enable nodejs:22
+    DRY-RUN would run: sudo dnf -y -q install nodejs npm
+    done
+
+[3/10] Tailscale package
+    DRY-RUN would run: sudo dnf -y -q install tailscale
+
+[4/10] OpenSSH server and tailscaled services
+    DRY-RUN would run: sudo dnf -y -q install openssh-server
+    would generate SSH host keys only if none exist (ssh-keygen -A), then validate with sshd -t
+    systemd is not PID 1 (no /run/systemd/system; a container?): tailscaled and sshd were NOT enabled or started
+    packages are installed; start sshd and tailscaled yourself, or run this on a systemd host
+    firewalld: not active
+
+[5/10] tailscale up
+    skipped: tailscaled is not running (no systemd); NOT joined to the tailnet
+
+[6/10] git, gh, paseo
+    DRY-RUN would run: sudo dnf -y -q install git gh
+    npm's global prefix is checked in the real run: no sudo when this user can write it, otherwise sudo with the resolved npm path
+    DRY-RUN would run: npm install -g --no-fund --no-audit @getpaseo/cli
+
+[7/10] gh auth
+    DRY-RUN would run: printf %s <GH_TOKEN masked> | env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST /usr/bin/gh auth login --hostname github.com --with-token
+    DRY-RUN would run: env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST /usr/bin/gh auth setup-git --hostname github.com
+
+[8/10] git identity
+    skipped (GIT_USER_NAME / GIT_USER_EMAIL not set)
+
+[9/10] iTerm2 shell integration
+    skipped (macOS only)
+
+[10/10] Summary
+    DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
+    then: ssh tuser@<host>
+    SSH server: not listening on port 22
+    start Paseo: run 'paseo' (the CLI is installed; its daemon was not started)
+    DRY-RUN would read the effective PasswordAuthentication/PermitRootLogin with sshd -T and warn if password login is on (nothing is changed)
+    DRY-RUN: a real run here would end NOT COMPLETE (tailscaled and sshd would not be started: systemd is not PID 1) with exit status 3; this dry-run changed nothing and exits 0.
+    still manual:
+      - Start tailscaled, then run: sudo tailscale up (or re-run this installer on a systemd host)
+      - Set your git identity: git config --global user.name ... && git config --global user.email ...
+
+exit=0

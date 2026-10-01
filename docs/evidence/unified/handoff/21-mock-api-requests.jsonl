@@ -1,0 +1,3 @@
+{"argv_leak_check": "n/a", "client_secret_matches_expected": true, "form_fields": ["client_id", "client_secret", "grant_type"], "grant_type": ["client_credentials"], "method": "POST", "path": "/api/v2/oauth/token"}
+{"bearer_matches_expected": true, "body": {"capabilities": {"devices": {"create": {"ephemeral": false, "preauthorized": true, "reusable": false, "tags": ["tag:bootstrap"]}}}, "description": "mac-bootstrap handoff", "expirySeconds": 3600}, "content_type": "application/json", "method": "POST", "path": "/api/v2/tailnet/-/keys"}
+{"bearer_matches_expected": true, "method": "DELETE", "path": "/api/v2/tailnet/-/keys/kDUMMY"}

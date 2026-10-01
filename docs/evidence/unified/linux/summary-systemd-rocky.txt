@@ -1,0 +1,9 @@
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
+PASS rocky container booted systemd as PID 1
+PASS rocky hand-off delivered over real SSH into the installer's own ssh unit (no manual sshd)
+PASS rocky gh login with the dummy token failed cleanly; honest exit 4 (not complete)
+PASS rocky installer reported tailscaled and the ssh unit enabled and active
+PASS rocky sshd -T report printed (effective PasswordAuthentication/PermitRootLogin)
+PASS rocky probes: tailscaled and the ssh unit (or ssh.socket) enabled and active; port 22 listening
+PASS rocky probes: tools, sshd -t, git identity set, inbox removed
+PASS rocky rerun is idempotent (all present -> skip; units already active)

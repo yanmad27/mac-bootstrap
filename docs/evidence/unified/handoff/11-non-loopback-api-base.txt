@@ -1,0 +1,8 @@
+MB_TEST=1 with a non-loopback or malformed MB_TEST_API_BASE (curl/gh/security stubs record calls; none happened)
+https://api.tailscale.com                     exit=1 rejected=True
+http://127.0.0.1.evil.example:80              exit=1 rejected=True
+http://localhost:80                           exit=1 rejected=True
+http://10.0.0.1:80                            exit=1 rejected=True
+http://127.0.0.1:80@evil.example              exit=1 rejected=True
+http://127.0.0.1                              exit=1 rejected=True
+http://127.0.0.1:80/x                         exit=1 rejected=True
