@@ -5,21 +5,25 @@
 #       [--skip-gh-auth] [--iterm2-shell-integration] [-h|--help]
 #
 # Optional environment: TS_AUTHKEY, GH_TOKEN, TS_HOSTNAME, GIT_USER_NAME, GIT_USER_EMAIL.
-# Secrets are copied into non-exported variables and unset from the environment as the
-# first action, so no child process inherits them. They never appear in argv, logs or
-# `set -x`; the Tailscale key goes through a 0600 temp file (--auth-key=file:...), the
-# GitHub token through stdin.
+# Empty values count as unset. Secrets are copied into non-exported variables and unset
+# from the environment as the first action, so no child process inherits them (internal
+# names are unset first, so a caller-exported TS_KEY/GH_TOK cannot stay exported). They
+# never appear in argv, logs or `set -x`; the Tailscale key goes through a 0600 temp file
+# (--auth-key=file:...), the GitHub token through stdin.
 #
 # Test seam: MB_BREW_CANDIDATES (colon-separated brew paths) overrides Homebrew discovery.
 # It is honoured only together with --dry-run and is inert otherwise.
 #
-# Residual curl|bash risks this script cannot close:
+# curl|bash hardening: the whole script is one `{ ... }` group whose closing brace is the
+# last line, so bash must parse all of it before running anything; a truncated download is
+# a syntax error and nothing executes. Residual risks this script cannot close:
 #  - an empty or fully failed download makes `bash` read an empty script and exit 0
 #    silently (the outer shell, not this script, owns pipefail for `curl | bash`);
-#  - a download truncated exactly before the trailing `main "$@"` line runs nothing,
-#    and one truncated inside that line runs `main` without its arguments (flags lost,
-#    defaults applied). Everything else is inside functions, so a truncation earlier
-#    is a syntax error and nothing executes. Use --dry-run first if in doubt.
+#  - the Homebrew installer and the iTerm2 shell-integration files are downloaded over
+#    HTTPS (TLS 1.2+) from their upstream HEAD/latest locations and are NOT pinned or
+#    checksum-verified (accepted risk); the sha256 of the shell-integration file is
+#    printed so you can compare it. Use --dry-run first if in doubt.
+{
 set -euo pipefail
 
 readonly BREW_INSTALL_URL="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
@@ -27,7 +31,10 @@ readonly TS_SOCKET="/var/run/tailscaled.socket"
 readonly TS_PLIST="/Library/LaunchDaemons/com.tailscale.tailscaled.plist"
 readonly ITERM_SI_BASE="https://iterm2.com/shell_integration"
 readonly TOTAL=10
+readonly CURL=(curl --proto '=https' --tlsv1.2 -fsSL)
+readonly GH_ENV=(env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST)
 
+unset TS_KEY GH_TOK
 DRY_RUN=0
 SKIP_TS_UP=0
 SKIP_GH_AUTH=0
@@ -38,6 +45,8 @@ TS_HOST=""
 GIT_NAME=""
 GIT_EMAIL=""
 BREW=""
+BREWCMD=""
+HAVE_BREW=0
 PREFIX=""
 TMPD=""
 TSBIN=""
@@ -71,17 +80,20 @@ cleanup() {
 
 ensure_tmp() {
   if [[ -z $TMPD ]]; then
-    umask 077
-    TMPD=$(mktemp -d "${TMPDIR:-/tmp}/mac-bootstrap.XXXXXX")
+    TMPD=$(umask 077; mktemp -d "${TMPDIR:-/tmp}/mac-bootstrap.XXXXXX")
   fi
+}
+
+dry() {
+  printf '    DRY-RUN would run:'
+  printf ' %q' "$@"
+  printf '\n'
 }
 
 # run <cmd...>: execute, or print in dry-run. Children never read the script from stdin.
 run() {
   if ((DRY_RUN)); then
-    printf '    DRY-RUN would run:'
-    printf ' %q' "$@"
-    printf '\n'
+    dry "$@"
   else
     "$@" </dev/null
   fi
@@ -153,7 +165,7 @@ step_preflight() {
 }
 
 persist_shellenv() {
-  local line="eval \"\$(${BREW:-$(default_prefix)/bin/brew} shellenv)\""
+  local line="eval \"\$($BREWCMD shellenv)\""
   local rc="$HOME/.zprofile"
   if [[ -f $rc ]] && grep -qF -- "$line" "$rc"; then
     note "shellenv already in ~/.zprofile -> skip"
@@ -172,30 +184,32 @@ step_homebrew() {
   else
     note "Homebrew's installer needs sudo (it will ask for your password on the terminal)"
     if ((DRY_RUN)); then
-      note "DRY-RUN would run: sudo -v   (reason: cache credentials for the Homebrew installer)"
-      note "DRY-RUN would run: curl -fsSL $BREW_INSTALL_URL -o <temp>/brew-install.sh"
-      note "DRY-RUN would run: env NONINTERACTIVE=1 /bin/bash <temp>/brew-install.sh"
+      note "sudo needed: cache credentials for the Homebrew installer (installer runs with NONINTERACTIVE=1)"
+      dry sudo -v
+      dry "${CURL[@]}" "$BREW_INSTALL_URL" -o /tmp/mac-bootstrap.XXXXXX/brew-install.sh
+      dry env NONINTERACTIVE=1 /bin/bash /tmp/mac-bootstrap.XXXXXX/brew-install.sh
     else
       have_tty || die "Homebrew install needs a terminal for the sudo password"
       sudo -v
       ensure_tmp
-      curl -fsSL "$BREW_INSTALL_URL" -o "$TMPD/brew-install.sh"
+      "${CURL[@]}" "$BREW_INSTALL_URL" -o "$TMPD/brew-install.sh"
       NONINTERACTIVE=1 /bin/bash "$TMPD/brew-install.sh" </dev/null
       find_brew || die "Homebrew installer finished but brew was not found"
       say "    done"
     fi
   fi
   if [[ -n $BREW ]]; then
+    HAVE_BREW=1
     eval "$("$BREW" shellenv)"
     PREFIX=$("$BREW" --prefix)
+    BREWCMD=$BREW
   else
-    PREFIX=/nonexistent-homebrew-prefix
+    PREFIX=$(default_prefix)
+    BREWCMD="$PREFIX/bin/brew"
   fi
   persist_shellenv
   TSBIN="$PREFIX/opt/tailscale/bin"
 }
-
-socket_up() { [[ -n $BREW && -S $TS_SOCKET ]]; }
 
 step_tailscale_formula() {
   step 3 "Tailscale formula"
@@ -205,24 +219,56 @@ step_tailscale_formula() {
   if brew_formula tailscale; then
     say "    already present -> skip"
   else
-    run "${BREW:-brew}" install tailscale
+    run "$BREWCMD" install tailscale
     ((DRY_RUN)) || say "    done"
   fi
 }
 
+socket_up() { ((HAVE_BREW)) && [[ -S $TS_SOCKET ]]; }
+plist_present() { ((HAVE_BREW)) && [[ -e $TS_PLIST ]]; }
+
+daemon_program() {
+  local b=""
+  if [[ -r $TS_PLIST ]]; then
+    b=$(plutil -extract ProgramArguments.0 raw -o - "$TS_PLIST" 2>/dev/null || true)
+  fi
+  if [[ -z $b ]]; then
+    b=$(launchctl print system/com.tailscale.tailscaled 2>/dev/null | sed -n 's/^[[:space:]]*program = //p' | head -n1 || true)
+  fi
+  printf '%s' "$b"
+}
+
+check_existing_daemon() {
+  local b
+  b=$(daemon_program)
+  case $b in
+    "$PREFIX/opt/tailscale/bin/tailscaled" | "$PREFIX/bin/tailscaled" | "$PREFIX/Cellar/tailscale/"*)
+      note "existing com.tailscale.tailscaled runs the Homebrew binary -> ok"
+      ;;
+    *)
+      note "WARNING: an existing com.tailscale.tailscaled LaunchDaemon runs ${b:-an unknown binary (could not read it without sudo)}"
+      note "         it is not Homebrew's opt/tailscale/bin/tailscaled, so it will not follow 'brew upgrade'"
+      note "         and can drift from the brew tailscale client (version mismatch)."
+      note "         I will not start a second daemon next to it and will not remove it. To switch to the"
+      note "         Homebrew-managed daemon, run: sudo tailscaled uninstall-system-daemon, then re-run this script."
+      ;;
+  esac
+}
+
 step_tailscaled() {
   step 4 "tailscaled system daemon"
+  if plist_present; then check_existing_daemon; fi
   if socket_up; then
     say "    already present (socket $TS_SOCKET) -> skip"
     return
   fi
   note "sudo needed: tailscaled runs as root (LaunchDaemon)"
   local i
-  if [[ -n $BREW && -e $TS_PLIST ]]; then
-    note "reusing existing $TS_PLIST"
+  if plist_present; then
+    note "reusing existing $TS_PLIST (no second daemon is started)"
     run sudo launchctl load -w "$TS_PLIST"
   else
-    run sudo "${BREW:-brew}" services start tailscale
+    run sudo "$BREWCMD" services start tailscale
   fi
   if ((DRY_RUN)); then return; fi
   for i in $(seq 1 30); do
@@ -235,7 +281,7 @@ step_tailscaled() {
 
 ts_state() {
   local s=""
-  if [[ -x $TSBIN/tailscale ]] && socket_up; then
+  if ((HAVE_BREW)) && [[ -x $TSBIN/tailscale ]] && socket_up; then
     s=$("$TSBIN/tailscale" status --json 2>/dev/null | plutil -extract BackendState raw -o - - 2>/dev/null || true)
   fi
   echo "${s:-NoState}"
@@ -271,7 +317,7 @@ step_tailscale_up() {
     *)
       if [[ -n $TS_KEY ]]; then
         if ((DRY_RUN)); then
-          note "DRY-RUN would write the key to a 0600 temp file (umask 077), never to argv"
+          note "DRY-RUN would write the key to a 0600 temp file (umask 077 in a subshell), never to argv"
           keyfile="/tmp/mac-bootstrap.XXXXXX/tskey"
         else
           ensure_tmp
@@ -289,7 +335,7 @@ step_tailscale_up() {
       else
         note "no TS_AUTHKEY: interactive login; open the printed URL in a browser"
         if ((DRY_RUN)); then
-          run "${ts_cmd[@]}" up --timeout=300s ${extra[@]+"${extra[@]}"}
+          dry "${ts_cmd[@]}" up --timeout=300s ${extra[@]+"${extra[@]}"}
         else
           "${ts_cmd[@]}" up --timeout=300s ${extra[@]+"${extra[@]}"} </dev/null
           say "    done"
@@ -306,60 +352,59 @@ step_tools() {
     if brew_formula "$f"; then note "$f: already present -> skip"; else missing+=("$f"); fi
   done
   if ((${#missing[@]})); then
-    run "${BREW:-brew}" install "${missing[@]}"
+    run "$BREWCMD" install "${missing[@]}"
   fi
   if brew_cask paseo; then
     note "paseo: already present -> skip"
   else
-    run "${BREW:-brew}" install --cask paseo
+    run "$BREWCMD" install --cask paseo
   fi
   if ((DRY_RUN)); then return; fi
   say "    done"
-}
-
-gh_clean() {
-  env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN "$PREFIX/bin/gh" "$@"
 }
 
 step_gh_auth() {
   step 7 "gh auth"
   if ((SKIP_GH_AUTH)); then
     say "    skipped (--skip-gh-auth)"
-    NEXT_STEPS+=("Run: gh auth login && gh auth setup-git")
+    NEXT_STEPS+=("Run: gh auth login --hostname github.com && gh auth setup-git --hostname github.com")
     return
   fi
   local gh="$PREFIX/bin/gh" authed=0
-  if [[ -x $gh ]] && gh_clean auth status >/dev/null 2>&1; then authed=1; fi
+  if ((HAVE_BREW)) && [[ -x $gh ]] && "${GH_ENV[@]}" "$gh" auth status --active --hostname github.com >/dev/null 2>&1; then
+    authed=1
+  fi
   if ((authed)); then
-    say "    already present (stored credentials) -> skip login"
+    say "    already present (stored credentials for github.com) -> skip login"
   elif [[ -n $GH_TOK ]]; then
     if ((DRY_RUN)); then
-      note "DRY-RUN would run: printf <GH_TOKEN, masked> | env -u GH_TOKEN -u GITHUB_TOKEN gh auth login --with-token"
+      printf '    DRY-RUN would run: printf %%s <GH_TOKEN masked> |'
+      printf ' %q' "${GH_ENV[@]}" "$gh" auth login --hostname github.com --with-token
+      printf '\n'
     else
-      printf '%s' "$GH_TOK" | gh_clean auth login --with-token
+      printf '%s' "$GH_TOK" | "${GH_ENV[@]}" "$gh" auth login --hostname github.com --with-token
       GH_TOK=""
       authed=1
       say "    done"
     fi
   elif have_tty; then
     if ((DRY_RUN)); then
-      note "DRY-RUN would run: gh auth login --hostname github.com --git-protocol https --web  (stdin from /dev/tty)"
+      note "interactive login, stdin from /dev/tty"
+      dry "${GH_ENV[@]}" "$gh" auth login --hostname github.com --git-protocol https --web
     else
-      gh_clean auth login --hostname github.com --git-protocol https --web </dev/tty >/dev/tty
+      "${GH_ENV[@]}" "$gh" auth login --hostname github.com --git-protocol https --web </dev/tty >/dev/tty
       authed=1
       say "    done"
     fi
   else
     say "    no GH_TOKEN and no terminal -> skip"
-    NEXT_STEPS+=("Run: gh auth login && gh auth setup-git")
+    NEXT_STEPS+=("Run: gh auth login --hostname github.com && gh auth setup-git --hostname github.com")
     return
   fi
-  if ((authed || DRY_RUN)); then
-    if ((DRY_RUN)); then
-      note "DRY-RUN would run: gh auth setup-git"
-    else
-      gh_clean auth setup-git
-    fi
+  if ((DRY_RUN)); then
+    dry "${GH_ENV[@]}" "$gh" auth setup-git --hostname github.com
+  elif ((authed)); then
+    "${GH_ENV[@]}" "$gh" auth setup-git --hostname github.com
   fi
 }
 
@@ -375,11 +420,13 @@ step_git_identity() {
   for i in 0 1; do
     [[ -n ${vals[i]} ]] || continue
     cur=""
-    [[ -x $git ]] && cur=$("$git" config --global --get "${keys[i]}" 2>/dev/null || true)
+    if ((HAVE_BREW)) && [[ -x $git ]]; then
+      cur=$("$git" config --global --get "${keys[i]}" 2>/dev/null || true)
+    fi
     if [[ -n $cur ]]; then
       note "${keys[i]}: already present -> skip (never overwritten)"
     elif ((DRY_RUN)); then
-      note "DRY-RUN would run: git config --global ${keys[i]} ${vals[i]}"
+      dry "$git" config --global "${keys[i]}" "${vals[i]}"
     else
       "$git" config --global "${keys[i]}" "${vals[i]}"
       note "${keys[i]}: set"
@@ -393,7 +440,7 @@ step_iterm2() {
     say "    skipped (needs --iterm2-shell-integration)"
     return
   fi
-  local sh rc file url line
+  local sh rc file url line sum
   sh=$(basename "${SHELL:-/bin/zsh}")
   case $sh in
     zsh) rc="$HOME/.zshrc" ;;
@@ -409,13 +456,16 @@ step_iterm2() {
   line="test -e \"\${HOME}/.iterm2_shell_integration.$sh\" && source \"\${HOME}/.iterm2_shell_integration.$sh\" # mac-bootstrap iterm2"
   if [[ -s $file ]]; then
     note "iterm2_shell_integration.$sh in home: already present -> skip download"
+    note "sha256 of installed file: $(shasum -a 256 <"$file" | cut -d' ' -f1)"
   elif ((DRY_RUN)); then
-    note "DRY-RUN would run: curl -fsSL $url -o ~/.iterm2_shell_integration.$sh"
+    dry "${CURL[@]}" "$url" -o "$file"
   else
     ensure_tmp
-    curl -fsSL "$url" -o "$TMPD/si"
+    "${CURL[@]}" "$url" -o "$TMPD/si"
     [[ -s $TMPD/si ]] || die "empty iTerm2 shell integration download"
+    sum=$(shasum -a 256 <"$TMPD/si" | cut -d' ' -f1)
     mv "$TMPD/si" "$file"
+    note "installed ~/.iterm2_shell_integration.$sh, sha256 $sum (unpinned download)"
   fi
   if [[ -f $rc ]] && grep -qF "# mac-bootstrap iterm2" "$rc"; then
     note "source line already in ~${rc#"$HOME"} -> skip"
@@ -425,23 +475,33 @@ step_iterm2() {
     { [[ -s $rc ]] && printf '\n'; printf '%s\n' "$line"; } >>"$rc"
     note "appended source line to ~${rc#"$HOME"}"
   fi
-  NEXT_STEPS+=("Open a new terminal tab so iTerm2 shell integration loads (also install it on the Mac you ssh into for automatic profile switching)")
+  NEXT_STEPS+=("Open a new terminal tab so iTerm2 shell integration loads")
 }
 
 step_summary() {
   step 10 "Summary"
-  local ip="" name=""
+  local ip="" name="" short fqdn
   if ((DRY_RUN)); then
     note "DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)"
     note "then: ssh <user>@<host>"
-  elif [[ -x $TSBIN/tailscale ]]; then
-    ip=$("$TSBIN/tailscale" ip -4 2>/dev/null | head -n1 || true)
-    name=$("$TSBIN/tailscale" status --json 2>/dev/null | plutil -extract Self.DNSName raw -o - - 2>/dev/null || true)
-    name=${name%.}
-    note "Tailscale IP: ${ip:-unavailable}"
-    note "MagicDNS name: ${name:-unavailable}"
-    if [[ -n $name ]]; then note "connect: ssh $USER@$name"; fi
+    short="<this-mac-short-name>"
+    fqdn="<this-mac-fqdn>"
+  else
+    if [[ -x $TSBIN/tailscale ]]; then
+      ip=$("$TSBIN/tailscale" ip -4 2>/dev/null | head -n1 || true)
+      name=$("$TSBIN/tailscale" status --json 2>/dev/null | plutil -extract Self.DNSName raw -o - - 2>/dev/null || true)
+      name=${name%.}
+      note "Tailscale IP: ${ip:-unavailable}"
+      note "MagicDNS name: ${name:-unavailable}"
+      if [[ -n $name ]]; then note "connect: ssh $USER@$name"; fi
+    fi
+    short=$(hostname -s 2>/dev/null || echo unknown)
+    fqdn=$(hostname -f 2>/dev/null || echo unknown)
   fi
+  note "name iTerm2 shell integration reports for this Mac: $short (hostname -f: $fqdn); independent of the Tailscale name"
+  note "on the Mac you ssh from, for automatic profile switching:"
+  note "  curl -fsSL \"<origin>/iterm2-client.sh\" | bash -s -- --host $short --user <ssh-user> --shell-integration"
+  note "start Paseo: open -a Paseo (desktop app), or run the paseo CLI the cask links"
   NEXT_STEPS+=("Enable Remote Login: System Settings > General > Sharing > Remote Login (needs the macOS UI)")
   say "    still manual:"
   local s
@@ -449,9 +509,11 @@ step_summary() {
 }
 
 main() {
+  unset TS_KEY GH_TOK
   TS_KEY=${TS_AUTHKEY-}
   GH_TOK=${GH_TOKEN-}
   unset TS_AUTHKEY GH_TOKEN
+  export -n TS_KEY GH_TOK
   TS_HOST=${TS_HOSTNAME-}
   GIT_NAME=${GIT_USER_NAME-}
   GIT_EMAIL=${GIT_USER_EMAIL-}
@@ -472,3 +534,4 @@ main() {
 }
 
 main "$@"
+}

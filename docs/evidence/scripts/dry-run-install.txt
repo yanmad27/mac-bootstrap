@@ -18,6 +18,11 @@
     already present -> skip
 
 [4/10] tailscaled system daemon
+    WARNING: an existing com.tailscale.tailscaled LaunchDaemon runs /usr/local/bin/tailscaled
+             it is not Homebrew's opt/tailscale/bin/tailscaled, so it will not follow 'brew upgrade'
+             and can drift from the brew tailscale client (version mismatch).
+             I will not start a second daemon next to it and will not remove it. To switch to the
+             Homebrew-managed daemon, run: sudo tailscaled uninstall-system-daemon, then re-run this script.
     already present (socket /var/run/tailscaled.socket) -> skip
 
 [5/10] tailscale up
@@ -30,22 +35,26 @@
     paseo: already present -> skip
 
 [7/10] gh auth
-    already present (stored credentials) -> skip login
-    DRY-RUN would run: gh auth setup-git
+    already present (stored credentials for github.com) -> skip login
+    DRY-RUN would run: env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST /opt/homebrew/bin/gh auth setup-git --hostname github.com
 
 [8/10] git identity
-    DRY-RUN would run: git config --global user.name Dry Run
-    DRY-RUN would run: git config --global user.email dry@example.com
+    DRY-RUN would run: /opt/homebrew/bin/git config --global user.name Dry\ Run
+    DRY-RUN would run: /opt/homebrew/bin/git config --global user.email dry@example.com
 
 [9/10] iTerm2 shell integration
-    DRY-RUN would run: curl -fsSL https://iterm2.com/shell_integration/zsh -o ~/.iterm2_shell_integration.zsh
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://iterm2.com/shell_integration/zsh -o ~/.iterm2_shell_integration.zsh
     DRY-RUN would append to ~/.zshrc: test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh" # mac-bootstrap iterm2
 
 [10/10] Summary
     DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
     then: ssh <user>@<host>
+    name iTerm2 shell integration reports for this Mac: <this-mac-short-name> (hostname -f: <this-mac-fqdn>); independent of the Tailscale name
+    on the Mac you ssh from, for automatic profile switching:
+      curl -fsSL "<origin>/iterm2-client.sh" | bash -s -- --host <this-mac-short-name> --user <ssh-user> --shell-integration
+    start Paseo: open -a Paseo (desktop app), or run the paseo CLI the cask links
     still manual:
-      - Open a new terminal tab so iTerm2 shell integration loads (also install it on the Mac you ssh into for automatic profile switching)
+      - Open a new terminal tab so iTerm2 shell integration loads
       - Enable Remote Login: System Settings > General > Sharing > Remote Login (needs the macOS UI)
 exit=0
 
@@ -63,45 +72,50 @@ exit=0
 
 [2/10] Homebrew
     Homebrew's installer needs sudo (it will ask for your password on the terminal)
-    DRY-RUN would run: sudo -v   (reason: cache credentials for the Homebrew installer)
-    DRY-RUN would run: curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o <temp>/brew-install.sh
-    DRY-RUN would run: env NONINTERACTIVE=1 /bin/bash <temp>/brew-install.sh
+    sudo needed: cache credentials for the Homebrew installer (installer runs with NONINTERACTIVE=1)
+    DRY-RUN would run: sudo -v
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o /tmp/mac-bootstrap.XXXXXX/brew-install.sh
+    DRY-RUN would run: env NONINTERACTIVE=1 /bin/bash /tmp/mac-bootstrap.XXXXXX/brew-install.sh
     DRY-RUN would append to ~/.zprofile: eval "$(/opt/homebrew/bin/brew shellenv)"
 
 [3/10] Tailscale formula
-    DRY-RUN would run: brew install tailscale
+    DRY-RUN would run: /opt/homebrew/bin/brew install tailscale
 
 [4/10] tailscaled system daemon
     sudo needed: tailscaled runs as root (LaunchDaemon)
-    DRY-RUN would run: sudo brew services start tailscale
+    DRY-RUN would run: sudo /opt/homebrew/bin/brew services start tailscale
 
 [5/10] tailscale up
     BackendState: NoState
-    DRY-RUN would write the key to a 0600 temp file (umask 077), never to argv
-    DRY-RUN would run: /nonexistent-homebrew-prefix/opt/tailscale/bin/tailscale up --auth-key=file:/tmp/mac-bootstrap.XXXXXX/tskey --timeout=120s --hostname=my-mac
+    DRY-RUN would write the key to a 0600 temp file (umask 077 in a subshell), never to argv
+    DRY-RUN would run: /opt/homebrew/opt/tailscale/bin/tailscale up --auth-key=file:/tmp/mac-bootstrap.XXXXXX/tskey --timeout=120s --hostname=my-mac
     DRY-RUN would delete the key file right after
 
 [6/10] git, gh, paseo
-    DRY-RUN would run: brew install git gh
-    DRY-RUN would run: brew install --cask paseo
+    DRY-RUN would run: /opt/homebrew/bin/brew install git gh
+    DRY-RUN would run: /opt/homebrew/bin/brew install --cask paseo
 
 [7/10] gh auth
-    DRY-RUN would run: printf <GH_TOKEN, masked> | env -u GH_TOKEN -u GITHUB_TOKEN gh auth login --with-token
-    DRY-RUN would run: gh auth setup-git
+    DRY-RUN would run: printf %s <GH_TOKEN masked> | env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST /opt/homebrew/bin/gh auth login --hostname github.com --with-token
+    DRY-RUN would run: env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST /opt/homebrew/bin/gh auth setup-git --hostname github.com
 
 [8/10] git identity
-    DRY-RUN would run: git config --global user.name Dry Run
-    DRY-RUN would run: git config --global user.email dry@example.com
+    DRY-RUN would run: /opt/homebrew/bin/git config --global user.name Dry\ Run
+    DRY-RUN would run: /opt/homebrew/bin/git config --global user.email dry@example.com
 
 [9/10] iTerm2 shell integration
-    DRY-RUN would run: curl -fsSL https://iterm2.com/shell_integration/zsh -o ~/.iterm2_shell_integration.zsh
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://iterm2.com/shell_integration/zsh -o /var/folders/p1/8rxjnfr52glb3jrnqf4kx2ch0000gn/T/tmp.V0OwvnKQko/home/.iterm2_shell_integration.zsh
     DRY-RUN would append to ~/.zshrc: test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh" # mac-bootstrap iterm2
 
 [10/10] Summary
     DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
     then: ssh <user>@<host>
+    name iTerm2 shell integration reports for this Mac: <this-mac-short-name> (hostname -f: <this-mac-fqdn>); independent of the Tailscale name
+    on the Mac you ssh from, for automatic profile switching:
+      curl -fsSL "<origin>/iterm2-client.sh" | bash -s -- --host <this-mac-short-name> --user <ssh-user> --shell-integration
+    start Paseo: open -a Paseo (desktop app), or run the paseo CLI the cask links
     still manual:
-      - Open a new terminal tab so iTerm2 shell integration loads (also install it on the Mac you ssh into for automatic profile switching)
+      - Open a new terminal tab so iTerm2 shell integration loads
       - Enable Remote Login: System Settings > General > Sharing > Remote Login (needs the macOS UI)
 exit=0
 
@@ -119,26 +133,27 @@ exit=0
 
 [2/10] Homebrew
     Homebrew's installer needs sudo (it will ask for your password on the terminal)
-    DRY-RUN would run: sudo -v   (reason: cache credentials for the Homebrew installer)
-    DRY-RUN would run: curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o <temp>/brew-install.sh
-    DRY-RUN would run: env NONINTERACTIVE=1 /bin/bash <temp>/brew-install.sh
+    sudo needed: cache credentials for the Homebrew installer (installer runs with NONINTERACTIVE=1)
+    DRY-RUN would run: sudo -v
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o /tmp/mac-bootstrap.XXXXXX/brew-install.sh
+    DRY-RUN would run: env NONINTERACTIVE=1 /bin/bash /tmp/mac-bootstrap.XXXXXX/brew-install.sh
     DRY-RUN would append to ~/.zprofile: eval "$(/opt/homebrew/bin/brew shellenv)"
 
 [3/10] Tailscale formula
-    DRY-RUN would run: brew install tailscale
+    DRY-RUN would run: /opt/homebrew/bin/brew install tailscale
 
 [4/10] tailscaled system daemon
     sudo needed: tailscaled runs as root (LaunchDaemon)
-    DRY-RUN would run: sudo brew services start tailscale
+    DRY-RUN would run: sudo /opt/homebrew/bin/brew services start tailscale
 
 [5/10] tailscale up
     BackendState: NoState
     no TS_AUTHKEY: interactive login; open the printed URL in a browser
-    DRY-RUN would run: /nonexistent-homebrew-prefix/opt/tailscale/bin/tailscale up --timeout=300s
+    DRY-RUN would run: /opt/homebrew/opt/tailscale/bin/tailscale up --timeout=300s
 
 [6/10] git, gh, paseo
-    DRY-RUN would run: brew install git gh
-    DRY-RUN would run: brew install --cask paseo
+    DRY-RUN would run: /opt/homebrew/bin/brew install git gh
+    DRY-RUN would run: /opt/homebrew/bin/brew install --cask paseo
 
 [7/10] gh auth
     skipped (--skip-gh-auth)
@@ -152,8 +167,12 @@ exit=0
 [10/10] Summary
     DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
     then: ssh <user>@<host>
+    name iTerm2 shell integration reports for this Mac: <this-mac-short-name> (hostname -f: <this-mac-fqdn>); independent of the Tailscale name
+    on the Mac you ssh from, for automatic profile switching:
+      curl -fsSL "<origin>/iterm2-client.sh" | bash -s -- --host <this-mac-short-name> --user <ssh-user> --shell-integration
+    start Paseo: open -a Paseo (desktop app), or run the paseo CLI the cask links
     still manual:
-      - Run: gh auth login && gh auth setup-git
+      - Run: gh auth login --hostname github.com && gh auth setup-git --hostname github.com
       - Set your git identity: git config --global user.name ... && git config --global user.email ...
       - Enable Remote Login: System Settings > General > Sharing > Remote Login (needs the macOS UI)
 exit=0
@@ -172,26 +191,27 @@ exit=0
 
 [2/10] Homebrew
     Homebrew's installer needs sudo (it will ask for your password on the terminal)
-    DRY-RUN would run: sudo -v   (reason: cache credentials for the Homebrew installer)
-    DRY-RUN would run: curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o <temp>/brew-install.sh
-    DRY-RUN would run: env NONINTERACTIVE=1 /bin/bash <temp>/brew-install.sh
+    sudo needed: cache credentials for the Homebrew installer (installer runs with NONINTERACTIVE=1)
+    DRY-RUN would run: sudo -v
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o /tmp/mac-bootstrap.XXXXXX/brew-install.sh
+    DRY-RUN would run: env NONINTERACTIVE=1 /bin/bash /tmp/mac-bootstrap.XXXXXX/brew-install.sh
     DRY-RUN would append to ~/.zprofile: eval "$(/opt/homebrew/bin/brew shellenv)"
 
 [3/10] Tailscale formula
-    DRY-RUN would run: brew install tailscale
+    DRY-RUN would run: /opt/homebrew/bin/brew install tailscale
 
 [4/10] tailscaled system daemon
     sudo needed: tailscaled runs as root (LaunchDaemon)
-    DRY-RUN would run: sudo brew services start tailscale
+    DRY-RUN would run: sudo /opt/homebrew/bin/brew services start tailscale
 
 [5/10] tailscale up
     BackendState: NoState
     no TS_AUTHKEY: interactive login; open the printed URL in a browser
-    DRY-RUN would run: /nonexistent-homebrew-prefix/opt/tailscale/bin/tailscale up --timeout=300s
+    DRY-RUN would run: /opt/homebrew/opt/tailscale/bin/tailscale up --timeout=300s
 
 [6/10] git, gh, paseo
-    DRY-RUN would run: brew install git gh
-    DRY-RUN would run: brew install --cask paseo
+    DRY-RUN would run: /opt/homebrew/bin/brew install git gh
+    DRY-RUN would run: /opt/homebrew/bin/brew install --cask paseo
 
 [7/10] gh auth
     no GH_TOKEN and no terminal -> skip
@@ -205,8 +225,12 @@ exit=0
 [10/10] Summary
     DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
     then: ssh <user>@<host>
+    name iTerm2 shell integration reports for this Mac: <this-mac-short-name> (hostname -f: <this-mac-fqdn>); independent of the Tailscale name
+    on the Mac you ssh from, for automatic profile switching:
+      curl -fsSL "<origin>/iterm2-client.sh" | bash -s -- --host <this-mac-short-name> --user <ssh-user> --shell-integration
+    start Paseo: open -a Paseo (desktop app), or run the paseo CLI the cask links
     still manual:
-      - Run: gh auth login && gh auth setup-git
+      - Run: gh auth login --hostname github.com && gh auth setup-git --hostname github.com
       - Set your git identity: git config --global user.name ... && git config --global user.email ...
       - Enable Remote Login: System Settings > General > Sharing > Remote Login (needs the macOS UI)
 exit=0
@@ -215,5 +239,20 @@ exit=0
 unknown flag exit=2 stderr_first_line=unknown option: --bogus
 bad TS_HOSTNAME exit=1 stderr=error: TS_HOSTNAME must match ^[A-Za-z0-9-]{1,63}$
 help exit=0
+
+### F. inherited-export proof (items 2,3): caller exports TS_KEY=x GH_TOK=y plus TS_AUTHKEY/GH_TOKEN; a fake brew (dry-run seam) records the NAMES of its environment and its umask
+install.sh exit=0
+secret-named vars seen by child brew: 0 (expect 0); child umask: umask=0022 (caller umask: 0022)
+negative control (fake brew run directly with the same exports): 4 of 4 visible
+
+### G. predicted prefix when brew is missing (item 5): arm64 -> /opt/homebrew, x86_64 -> /usr/local (see B-D above); x86_64 via arch -x86_64 if Rosetta is available:
+    macOS 26.6, arch x86_64
+[2/10] Homebrew
+    Homebrew's installer needs sudo (it will ask for your password on the terminal)
+    sudo needed: cache credentials for the Homebrew installer (installer runs with NONINTERACTIVE=1)
+    DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o /tmp/mac-bootstrap.XXXXXX/brew-install.sh
+    DRY-RUN would run: env NONINTERACTIVE=1 /bin/bash /tmp/mac-bootstrap.XXXXXX/brew-install.sh
+    DRY-RUN would append to ~/.zprofile: eval "$(/usr/local/bin/brew shellenv)"
+    DRY-RUN would run: /usr/local/bin/brew install tailscale
 
 bash used: GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)
