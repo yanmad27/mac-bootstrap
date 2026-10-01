@@ -11,4 +11,29 @@ bash -n public/install.sh exit=0
 bash -n public/iterm2-client.sh exit=0
 /bin/bash(3.2) -n public/iterm2-client.sh exit=0
 
-sha256 install.sh=6b41c2518bbed72c iterm2-client.sh=6bdc3dff2461b81f
+sha256 install.sh=2f85ba462ddb3bc5 iterm2-client.sh=69a9d1aee8f15f59
+
+== truncation proof (item 1): each script cut at offsets; run as 'cat cut | bash -s -- --dry-run'
+-- public/install.sh size=   17991 group_open@1676 main_line@17979 closing_brace@17989
+   cut@1656: bash -n exit=0, run stdout_bytes=0, run exit=0
+   cut@1677: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@4497: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@8995: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@13493: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@17983: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@17988: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@17988: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@17989: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@17989: bash -n exit=2, run stdout_bytes=0, run exit=2
+-- public/iterm2-client.sh size=    7745 group_open@1550 main_line@7733 closing_brace@7743
+   cut@1530: bash -n exit=0, run stdout_bytes=0, run exit=0
+   cut@1551: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@1936: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@3872: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@5808: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@7737: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@7742: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@7742: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@7743: bash -n exit=2, run stdout_bytes=0, run exit=2
+   cut@7743: bash -n exit=2, run stdout_bytes=0, run exit=2
+(cuts before the opening brace are inside the header comment: nothing executes, exit 0 = the documented empty-download residual; cut@n-2 only drops the final newline+brace char -> syntax error)

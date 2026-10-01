@@ -8,13 +8,15 @@ DRY-RUN: would write /tmp/mb-profiles-test/mac-bootstrap-mybox.tail1234.ts.net.j
       "Guid": "94FD1793-C6D8-5DA1-03E8-4309287624A3",
       "Dynamic Profile Parent Name": "Default",
       "Badge Text": "my \"box\" \\ 1",
-      "Bound Hosts": ["mybox", "mybox.*.ts.net", "mybox.tail1234.ts.net", "alice@mybox", "alice@mybox.*.ts.net", "alice@mybox.tail1234.ts.net"]
+      "Bound Hosts": ["mybox", "mybox.*", "mybox.tail1234.ts.net", "alice@mybox", "alice@mybox.*", "alice@mybox.tail1234.ts.net"]
     }
   ]
 }
+note: automatic profile switching also needs iTerm2 shell integration on this Mac (rerun with --shell-integration) and on mybox.tail1234.ts.net.
 
 ### python3 -m json.tool
-exit=0
+Extra data: line 12 column 1 (char 361)
+exit=1
 ### plutil -lint
 /tmp/ic.json: (Unexpected character { at line 1)
 exit=1
@@ -34,6 +36,16 @@ args [--host] exit=2 invalid --host (allowed: letters, digits, dots, hyphens)
 args [--nope] exit=2 unknown option: --nope
 no args:
 exit=2 --host is required
+
+### --shell-integration dry-run (writes nothing) and long-host filename (item 9,10)
+DRY-RUN: would write /tmp/mb-p2/mac-bootstrap-mybox.json
+      "Bound Hosts": ["mybox", "mybox.*", "alice@mybox", "alice@mybox.*"]
+DRY-RUN would run: curl --proto =https --tlsv1.2 -fsSL https://iterm2.com/shell_integration/zsh -o ~/.iterm2_shell_integration.zsh
+DRY-RUN would append to ~/.zshrc: test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh" # mac-bootstrap iterm2
+DRY-RUN: would write /tmp/mb-p2/mac-bootstrap-aaaaaaaaaaaaaa...aaaaaaaaaaaaaaaaaaaaaaaaaa-aa3f7cbe.json
+filename length for 245-char host: 88 (< 255)
+64-char label rejected: exit=2
+ls: /tmp/mb-p2: No such file or directory
 
 ### real write into a temp dir (not the real DynamicProfiles), twice (idempotent), then lint
 run 1 exit=0
