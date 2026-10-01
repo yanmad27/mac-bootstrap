@@ -1,4 +1,4 @@
-# flags/env in --help vs page (public/index.html)
+# flags/env in --help vs page (public/index.html), scripts at main d61bb5a
 ## install.sh
 ok   --dry-run
 ok   --help
@@ -16,5 +16,5 @@ ok   --dry-run
 ok   --help
 ok   --host
 ok   --profiles-dir
+ok   --shell-integration
 ok   --user
-client --shell-integration: NOT in merged ee91b8b script yet; page follows Lead contract

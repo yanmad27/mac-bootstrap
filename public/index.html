@@ -136,14 +136,14 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 <p>Re-run the install command with shell integration:</p>
 <div class="cmd"><pre><code id="c-iterm-host"></code></pre><button type="button" data-copy="c-iterm-host">Copy</button></div>
 <h3>On the client Mac (the one you SSH from)</h3>
-<p>Replace <code>my-mac</code> with the remote Mac's short local hostname (see below). <code>--shell-integration</code> installs iTerm2 shell integration on the client as well.</p>
+<p>Replace <code>my-mac</code> with the short hostname that <code>install.sh</code> prints in its final summary on the bootstrapped Mac (see below). <code>--shell-integration</code> installs iTerm2 shell integration on the client as well.</p>
 <div class="cmd"><pre><code id="c-iterm-client"></code></pre><button type="button" data-copy="c-iterm-client">Copy</button></div>
 <p>If your SSH user differs from your client user, add <code>--user &lt;ssh-user&gt;</code>:</p>
 <div class="cmd"><pre><code id="c-iterm-client-user"></code></pre><button type="button" data-copy="c-iterm-client-user">Copy</button></div>
 <table>
 <thead><tr><th>Client option</th><th>What it does</th></tr></thead>
 <tbody>
-<tr><td><code>--host &lt;name&gt;</code></td><td>Required. The remote Mac's short local hostname.</td></tr>
+<tr><td><code>--host &lt;name&gt;</code></td><td>Required. The short hostname from <code>install.sh</code>'s final summary (not the Tailscale name).</td></tr>
 <tr><td><code>--user &lt;name&gt;</code></td><td>SSH user; adds <code>user@host</code> rules.</td></tr>
 <tr><td><code>--badge &lt;text&gt;</code></td><td>Badge text (default: the host).</td></tr>
 <tr><td><code>--shell-integration</code></td><td>Also install iTerm2 shell integration on this client.</td></tr>
@@ -153,7 +153,8 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 </tbody>
 </table>
 <h3>Which name for <code>--host</code></h3>
-<p>iTerm2's shell integration reports the remote's <code>hostname -f</code>, usually <code>&lt;LocalHostName&gt;.local</code>. That is <strong>not</strong> the Tailscale/MagicDNS name or <code>TS_HOSTNAME</code>. Use the remote Mac's short local hostname: run <code>scutil --get LocalHostName</code> on it. The profile rules also match <code>&lt;host&gt;.*</code>, so both <code>.local</code> and <code>*.ts.net</code> names match.</p>
+<p>Use the short hostname (<code>hostname -s</code>) that <code>install.sh</code> prints in its final summary on the bootstrapped Mac, including its ready-made client command. iTerm2's shell integration reports the remote's <code>hostname -f</code>, usually <code>&lt;that-name&gt;.local</code>, and the profile rules match <code>&lt;host&gt;.*</code>, so the short name matches both <code>.local</code> and <code>*.ts.net</code> names. <code>--host</code> is <strong>not</strong> the Tailscale/MagicDNS name and not <code>TS_HOSTNAME</code>.</p>
+<p>If you no longer have the summary, <code>scutil --get LocalHostName</code> on that Mac is usually the same value, but it can differ when macOS <code>HostName</code> is set or DHCP supplies a name; prefer the printed value.</p>
 <p>This writes one Dynamic Profile, <code>mac-bootstrap-&lt;host&gt;.json</code>, into the profiles directory. <strong>What to expect:</strong> when a session SSHes into that host, iTerm2 switches to the profile automatically and shows the badge, and switches back when the SSH session ends.</p>
 
 <h2 id="done">Done</h2>
