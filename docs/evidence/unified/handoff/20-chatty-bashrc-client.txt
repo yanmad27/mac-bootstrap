@@ -1,3 +1,23 @@
+# the target user's ~/.bashrc printed (over ssh):
+Welcome to the box 0123456789abcdef
+MBNONCE=ffff
+123456
+
+# client output:
+TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
+Host key of 127.0.0.1 (ED25519): SHA256:oWf8l8T5XfO1r09u6F5iPuj1X5ePTVT7vTgO01QgpSE
+It must equal the ED25519 SHA256 fingerprint printed on the target's screen.
+Does this match the screen? [y/N] y
+Connecting to tuser@127.0.0.1 (host key pinned, strict checking)
+Welcome to the box 0123456789abcdef
+MBNONCE=ffff
+123456
+Welcome to the box 0123456789abcdef
+MBNONCE=ffff
+123456
+Bundle taken by the receiver on tuser@127.0.0.1; check the target's screen for the result.
+
+# receiver:
 harness: target user=tuser uid=1000 home=/home/tuser euid=1000
     SSH is reachable on this machine. From your client Mac, run one of:
       mac-bootstrap handoff tuser@172.17.0.2

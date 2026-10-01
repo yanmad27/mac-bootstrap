@@ -51,7 +51,21 @@ check("C2 first run ok", "exit=0" in o1 or "exit=3" in o1, o1[-300:])
 check("C2 rerun with nodesource.list present and nodejs absent: NodeSource plan, no apt error, node >= 20 again", ("exit=3" in o3 or "exit=0" in o3) and "NodeSource apt repo already configured" in o3 and "E: Unable" not in o3 and "dpkg: error" not in o3, o3[-400:])
 v = dx("mbf-c2", "tuser", "node --version; npm --version; paseo --version"); sect("C2 versions after rerun", v)
 check("C2 node 22 + npm present after the rerun", "v22" in v or "v20" in v or "v2" in v, v)
+# ---- R2: NodeSource configured as deb822 .sources (not nodesource.list): do not add a second repo
+dx("mbf-c2", "tuser", "sudo apt-get remove -y -qq nodejs >/dev/null 2>&1; sudo rm -f /etc/apt/sources.list.d/nodesource.list; printf 'Types: deb\\nURIs: https://deb.nodesource.com/node_22.x\\nSuites: nodistro\\nComponents: main\\nSigned-By: /usr/share/keyrings/nodesource.gpg\\n' | sudo tee /etc/apt/sources.list.d/nodesource.sources >/dev/null")
+o4 = strip(run("mbf-c2")); sect("R2 rerun with a deb822 nodesource.sources and nodejs absent", o4[-3000:])
+l = dx("mbf-c2", "tuser", "ls /etc/apt/sources.list.d/ | grep -i nodesource; node --version")
+sect("R2 files after", l)
+check("R2 deb822 .sources counts as configured: no second NodeSource repo added, node installed", "nodesource.sources" in l and "nodesource.list" not in l and "NodeSource apt repo already configured (/etc/apt/sources.list.d/nodesource.sources)" in o4 and "v22" in l, l + o4[-300:])
 sh("docker rm -f mbf-c2 >/dev/null")
+
+# ---- R6: configured NodeSource repo that offers Node < 20 -> clear error naming the file, before any irreversible step
+mk("mbf-r6", "printf 'deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main\\n' > /etc/apt/sources.list.d/nodesource.list")
+o = dx("mbf-r6", "tuser", "bash /opt/fn-harness.sh /opt/install.sh 'LINUX_FAMILY=apt; NODE_PLAN=nodesource; DRY_RUN=0; apt_candidate_major() { echo 18; }; linux_ensure_node; echo exit=$?'; echo outer-exit=$?")
+sect("R6 NodeSource repo for node_18.x configured (apt_candidate_major stubbed to 18)", o)
+check("R6 old NodeSource repo: error names the file and how to fix it", "/etc/apt/sources.list.d/nodesource.list" in o and "older than the 20" in o and "node_22.x" in o, o)
+sh("docker rm -f mbf-r6 >/dev/null")
+
 
 # ---- C3: preinstalled distro nodejs 18 -> upgraded BEFORE any irreversible step
 mk("mbf-c3", "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nodejs npm >/dev/null 2>&1; node --version > /root/node-before.txt")

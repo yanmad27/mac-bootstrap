@@ -1,4 +1,4 @@
-install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
 == 1. every --flag shown on the page or README is a flag of install.sh / iterm2-client.sh (or of a tool the page names)
 SKIP --advertise-tags (flag of tailscale/gh/scutil shown in prose)
 SKIP --auth-key (flag of tailscale/gh/scutil shown in prose)

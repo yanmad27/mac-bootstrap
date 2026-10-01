@@ -1,5 +1,5 @@
 ready = '<pid> <nonce>' written by the receiver; a live sleeping process stands in for it
-probe (live pid): exit=0 stdout(nonce)='abc123'
+probe (live pid): exit=0 stdout='MBNONCE=abc123'
 send #1: exit=0
 send #2 (bundle exists): exit=5 stderr='mac-bootstrap: a bundle was already delivered or the hand-off is closed'
 oversized (20000 bytes): exit=4 stderr='mac-bootstrap: bundle too large'

@@ -1,8 +1,9 @@
-install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
 PASS 01 hand-off over real SSH exit 0
 PASS 01 fingerprint shown by client equals the one on the target screen
 PASS 01 receiver parsed the bundle (TS key tskey-auth-, gh, tags, identity set)
 PASS 01 target screen printed LAN IP + exact handoff line
+PASS 01 N2/R4: client says the bundle was TAKEN by the receiver and to check the target screen (not "delivered")
 PASS 01 inbox is empty/removed after use
 PASS 01 test mode never called security/gh stubs
 PASS 01 bundle text never echoed by the client (stdout holds none)
@@ -41,6 +42,9 @@ PASS 16 S-M1/S-L5: bundle not taken within 15 s -> client removes it, reports fa
 PASS 16 S-L5: the minted key was revoked by id (DELETE /api/v2/tailnet/-/keys/<id>) with the bearer token
 PASS 17 C7: leading zeros, 0, non-numbers, >65535 rejected; valid values accepted
 PASS 18 S-L3: existing different helper -> both sha256 shown, default/No keeps it, y replaces it, identical needs no prompt
+PASS 20 R1/N3: chatty ~/.bashrc (banner, numbers, a fake MBNONCE= line BEFORE the real one) does not break the probe; hand-off succeeds
+PASS 21 N5: Ctrl-C while waiting -> trap revokes the minted key (DELETE .../keys/<id> with the bearer), client exits non-zero
+PASS 22 P1: no readable ED25519 key -> no hand-off lines, 'use paste', SSH hand-off closed (ready removed): client refuses before minting
 PASS 13 hand-off still works through the argv-logging wrappers
 PASS 13 no secret (raw or base64) in any curl/ssh argv
 PASS 14 bash -x leaks no secret (client `bundle` and target dry-run with secrets in env)

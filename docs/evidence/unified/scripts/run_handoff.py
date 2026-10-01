@@ -32,7 +32,7 @@ def ev(name, text):
 
 def check(label, ok, detail=""):
     results.append((label, ok, detail))
-    print(("PASS " if ok else "FAIL ") + label + (" -- " + detail if detail and not ok else ""), flush=True)
+    print(("PASS " if ok else "FAIL ") + label + (" -- " + str(detail) if detail and not ok else ""), flush=True)
 
 def sh(cmd, **kw):
     return subprocess.run(cmd, shell=True, capture_output=True, text=True, **kw)
@@ -111,6 +111,7 @@ check("01 fingerprint shown by client equals the one on the target screen",
 check("01 receiver parsed the bundle (TS key tskey-auth-, gh, tags, identity set)",
       "RESULT received; TS_KEY=set TS_TAGS=set GH_TOK=set GIT_NAME=set GIT_EMAIL=set" in r.log and "tskey-auth- prefix" in r.log)
 check("01 target screen printed LAN IP + exact handoff line", re.search(r"mac-bootstrap handoff tuser@\d+\.\d+\.\d+\.\d+", r.log) is not None)
+check("01 N2/R4: client says the bundle was TAKEN by the receiver and to check the target screen (not \"delivered\")", "taken by the receiver" in c.log and "check the target's screen for the result" in c.log and "delivered" not in c.log.lower(), c.log[-300:])
 check("01 inbox is empty/removed after use", "bundle" not in r.log.split("inbox after:")[-1] and "ready" not in r.log.split("inbox after:")[-1])
 check("01 test mode never called security/gh stubs", stub_calls() == "", stub_calls())
 check("01 bundle text never echoed by the client (stdout holds none)", not c.bundles())
@@ -192,12 +193,12 @@ dexec("tuser", "rm -rf ~/.cache/mac-bootstrap")
 noin = ssh_run(RS("abc123"), "MB1:EEEE\n")
 ev("06-second-bundle.txt",
    "ready = '<pid> <nonce>' written by the receiver; a live sleeping process stands in for it\n"
-   "probe (live pid): exit=%d stdout(nonce)=%r\nsend #1: exit=%d\nsend #2 (bundle exists): exit=%d stderr=%r\noversized (20000 bytes): exit=%d stderr=%r\n"
+   "probe (live pid): exit=%d stdout=%r\nsend #1: exit=%d\nsend #2 (bundle exists): exit=%d stderr=%r\noversized (20000 bytes): exit=%d stderr=%r\n"
    "wrong nonce: exit=%d stderr=%r\nSTALE ready (pid not alive) probe: exit=%d ; send: exit=%d stderr=%r\nno inbox: exit=%d stderr=%r\n"
    % (pr.returncode, pr.stdout.strip(), p1.returncode, p2.returncode, p2.stderr.strip(), big.returncode, big.stderr.strip(), wn.returncode, wn.stderr.strip(),
       stale_probe.returncode, stale_send.returncode, stale_send.stderr.strip(), noin.returncode, noin.stderr.strip()))
 check("06 probe returns the nonce; first push ok, second push exit 5, oversized exit 4",
-      (pr.returncode, pr.stdout.strip(), p1.returncode, p2.returncode, big.returncode) == (0, "abc123", 0, 5, 4), str((pr.returncode, pr.stdout, p1.returncode, p2.returncode, big.returncode)))
+      (pr.returncode, pr.stdout.strip(), p1.returncode, p2.returncode, big.returncode) == (0, "MBNONCE=abc123", 0, 5, 4), str((pr.returncode, pr.stdout, p1.returncode, p2.returncode, big.returncode)))
 check("06 S-M1: wrong nonce, stale ready (dead pid) and no inbox are all refused (exit 3) on probe and send",
       (wn.returncode, stale_probe.returncode, stale_send.returncode, noin.returncode) == (3, 3, 3, 3), str((wn.returncode, stale_probe.returncode, stale_send.returncode, noin.returncode)))
 # the client's own probe refuses before minting when the target is not waiting
@@ -357,6 +358,50 @@ ev("18-helper-replace.txt", "# 1 first install\n" + c1.log + "\n# 2 existing hel
 check("18 S-L3: existing different helper -> both sha256 shown, default/No keeps it, y replaces it, identical needs no prompt",
       "installed sha256" in c2.log and "new       sha256" in c2.log and kept and "keeping the existing helper" in c2.log and now == want and "already identical" in c4.log and "Replace it?" not in c4.log,
       str(("installed sha256" in c2.log, "new       sha256" in c2.log, kept, "keeping the existing helper" in c2.log, now == want, "already identical" in c4.log, "Replace it?" not in c4.log)))
+
+# ---------------------------------------------------------------- 20 chatty shell startup file (R1/N3): MBNONCE= marker, last match wins
+dexec("tuser", "cp -f ~/.bashrc /tmp/bashrc.orig 2>/dev/null || : > /tmp/bashrc.orig")
+open(T + "/noise", "w").write('echo "Welcome to the box 0123456789abcdef"\necho "MBNONCE=ffff"\necho 123456\n')
+sh("docker cp %s/noise mb-sshd:/tmp/noise" % T)
+dexec("tuser", "cat /tmp/noise /tmp/bashrc.orig > ~/.bashrc")
+noise = dexec("tuser", "true").stdout
+sshnoise = ssh_run("true").stdout
+reset_inbox()
+mock, mlog = start_mock("m20.jsonl")
+r = receiver(); r.wait_for("waiting up to", 40)
+c = client_handoff("y\n"); cs = c.wait(60); r.wait_for("harness: RESULT", 40); r.wait(30)
+mock.terminate()
+dexec("tuser", "cp -f /tmp/bashrc.orig ~/.bashrc 2>/dev/null || : > ~/.bashrc")
+ev("20-chatty-bashrc-client.txt", "# the target user's ~/.bashrc printed (over ssh):\n" + sshnoise + "\n# client output:\n" + c.log + "\n# receiver:\n" + r.log)
+check("20 R1/N3: chatty ~/.bashrc (banner, numbers, a fake MBNONCE= line BEFORE the real one) does not break the probe; hand-off succeeds", "MBNONCE=ffff" in sshnoise and cs == 0 and "RESULT received" in r.log, (cs, sshnoise))
+
+# ---------------------------------------------------------------- 21 client interrupted before the hand-off is confirmed (N5): minted key revoked
+mk_ready(alive=True)
+mock, mlog = start_mock("m21.jsonl")
+c = client_handoff("y\n")
+t0 = time.time()
+while time.time() - t0 < 30:   # harness-only wait for the mint request to reach the mock
+    if os.path.exists(mlog) and "/keys" in open(mlog).read() and "DELETE" not in open(mlog).read(): break
+    time.sleep(0.2)
+time.sleep(2.5)  # the bundle is sent; the client is now in its 15 s wait for the receiver to take it
+c.send("\x03"); cs = c.wait(30)
+reqs21 = [json.loads(l) for l in open(mlog)]
+shutil.copy(mlog, os.path.join(OUT, "21-mock-api-requests.jsonl"))
+ev("21-interrupt-revoke-client.txt", c.log)
+mock.terminate(); dexec("tuser", "kill $(cat /tmp/sleeper.pid) 2>/dev/null; true")
+check("21 N5: Ctrl-C while waiting -> trap revokes the minted key (DELETE .../keys/<id> with the bearer), client exits non-zero", cs != 0 and "revoking the minted key" in c.log and any(q.get("method") == "DELETE" and q["bearer_matches_expected"] for q in reqs21), (cs, c.log[-300:]))
+
+# ---------------------------------------------------------------- 22 target without an ED25519 fingerprint (P1): SSH hand-off closed
+dexec("root", "mv /etc/ssh/ssh_host_ed25519_key.pub /etc/ssh/ssh_host_ed25519_key.pub.off")
+reset_inbox()
+mock, mlog = start_mock("m22.jsonl")
+r = receiver(timeout=40); r.wait_for("waiting up to", 40); r.wait_for("hand-off is closed", 20)
+c = client_handoff("y\n"); cs = c.wait(40)
+r.send("\x03"); r.wait(20); mock.terminate()
+dexec("root", "mv /etc/ssh/ssh_host_ed25519_key.pub.off /etc/ssh/ssh_host_ed25519_key.pub")
+ev("22-no-fingerprint-receiver.txt", r.log); ev("22-no-fingerprint-client.txt", c.log)
+check("22 P1: no readable ED25519 key -> no hand-off lines, 'use paste', SSH hand-off closed (ready removed): client refuses before minting",
+      "no readable ED25519 host key" in r.log and "mac-bootstrap handoff tuser@" not in r.log and cs != 0 and "not waiting" in c.log and (not os.path.exists(mlog) or open(mlog).read() == ""), r.log[-300:])
 
 # ---------------------------------------------------------------- 13 no secret in argv (curl/ssh wrappers log argv, then run the real tool)
 argv_log = os.path.join(T, "argv.log"); open(argv_log, "w").close()

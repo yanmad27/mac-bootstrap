@@ -1,0 +1,4 @@
+harness: target user=tuser uid=1000 home=/home/tuser euid=1000
+    SSH is reachable, but this machine has no readable ED25519 host key, so the client cannot verify it: the SSH hand-off is closed; use paste (press p; client: mac-bootstrap bundle)
+    press p to paste a bundle instead (client: mac-bootstrap bundle)
+    waiting up to 40s for a hand-off (Ctrl-C to stop)

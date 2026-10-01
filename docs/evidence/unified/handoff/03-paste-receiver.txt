@@ -1,7 +1,7 @@
 harness: target user=tuser uid=1000 home=/home/tuser euid=1000
     SSH is reachable on this machine. From your client Mac, run one of:
       mac-bootstrap handoff tuser@172.17.0.2
-    ED25519 SHA256 host-key fingerprint (it must match what the client shows): SHA256:0bdPaFVg5WnrSjJL0nKH1t/TWM4D7Q0cga+Gm+/19h8
+    ED25519 SHA256 host-key fingerprint (it must match what the client shows): SHA256:oWf8l8T5XfO1r09u6F5iPuj1X5ePTVT7vTgO01QgpSE
     press p to paste a bundle instead (client: mac-bootstrap bundle)
     waiting up to 90s for a hand-off (Ctrl-C to stop)
     Paste the bundle (input hidden), then Enter; empty line cancels: 

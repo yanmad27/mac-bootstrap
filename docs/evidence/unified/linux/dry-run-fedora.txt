@@ -1,9 +1,9 @@
-install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
 image: fedora@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
 image id: sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
 platform: linux/arm64 (image architecture arm64)  native
 family: fedora   run as: root (root, --target-user tuser)
-date: 2026-10-01T21:28:47+07:00
+date: 2026-10-01T21:54:09+07:00
 command: docker exec -u root -e TS_AUTHKEY=<dummy> -e GH_TOKEN=<dummy> -e TS_TAGS=tag:bootstrap mbl-fedora bash /tmp/install.sh --dry-run --target-user tuser
 
 

@@ -1,9 +1,9 @@
-install.sh sha256: 4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10
+install.sh sha256: b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17
 image: rockylinux@sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
 image id: sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
 platform: linux/arm64 (image architecture arm64)  native
 family: rocky   run as: tuser (sudo)
-date: 2026-10-01T21:29:06+07:00
+date: 2026-10-01T21:54:30+07:00
 container: disposable, no systemd as PID 1 (docker 'sleep infinity')
 command: docker exec -it -u tuser mbl-rocky bash /tmp/install.sh 
 client: bash public/install.sh handoff tuser@127.0.0.1 --port 2234   (MB_TEST=1, mock API 127.0.0.1:18773, dummy values)
@@ -94,8 +94,8 @@ note: sshd was started by hand in the container (docker exec -d sshd) once the i
     press p to paste a bundle instead (client: mac-bootstrap bundle)
     waiting up to 900s for a hand-off (Ctrl-C to stop)
     SSH is reachable on this machine. From your client Mac, run one of:
-      mac-bootstrap handoff tuser@172.17.0.5
-    ED25519 SHA256 host-key fingerprint (it must match what the client shows): SHA256:yuYOforhTEnrmHtpridN9Ii3T90l6KyuOZOrVXPPC9M
+      mac-bootstrap handoff tuser@172.17.0.3
+    ED25519 SHA256 host-key fingerprint (it must match what the client shows): SHA256:1fO+sNp0EKwLzz2Qp1D4o0vDqjcHAn3h0JvEfZXRnYk
     bundle received over SSH and accepted
     hand-off received: Tailscale key set, GitHub token set, git identity set
     skipped: tailscaled is not running (no systemd); NOT joined to the tailnet
@@ -221,11 +221,11 @@ Try authenticating with:  gh auth login -h github.com
 
 ===== client (Mac) / emulation-limit output =====
 TEST MODE (MB_TEST=1): dummy values only; the real Keychain and gh are never read
-Host key of 127.0.0.1 (ED25519): SHA256:yuYOforhTEnrmHtpridN9Ii3T90l6KyuOZOrVXPPC9M
+Host key of 127.0.0.1 (ED25519): SHA256:1fO+sNp0EKwLzz2Qp1D4o0vDqjcHAn3h0JvEfZXRnYk
 It must equal the ED25519 SHA256 fingerprint printed on the target's screen.
 Does this match the screen? [y/N] y
 Connecting to tuser@127.0.0.1 (host key pinned, strict checking)
-Hand-off delivered to tuser@127.0.0.1 and taken by the receiver. Watch its screen for the result.
+Bundle taken by the receiver on tuser@127.0.0.1; check the target's screen for the result.
 
 ===== client exit status: 0 =====
 

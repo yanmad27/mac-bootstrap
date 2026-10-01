@@ -10,7 +10,7 @@ LOG=$W/calls.log; : >"$LOG"
 cat >"$W/opt/tailscale/bin/tailscale" <<STUB
 #!/bin/bash
 echo "tailscale argv: \$*" >>$LOG
-if [ "\$1" = status ]; then echo "{\"BackendState\":\"\${STUB_STATE:-NeedsLogin}\"}"; exit 0; fi
+if [ "\$1" = status ]; then printf '{\\n  "BackendState": "%s"\\n}\\n' "\${STUB_STATE:-NeedsLogin}"; exit 0; fi
 for a in "\$@"; do case \$a in --auth-key=file:*)
   f=\${a#--auth-key=file:}; c=\$(cat "\$f"); m=\$(stat -f %Lp "\$f")
   echo "  key file mode=\$m, \${#c} bytes, starts \${c:0:11}..." >>$LOG
@@ -55,6 +55,9 @@ TS_KEY=""; NO_WAIT=1; STUB_STATE=NeedsLogin; NEXT_STEPS=(); step_tailscale_up; s
 SKIP_GH_AUTH=0
 scn "6b. C6: no terminal and no --no-wait: the installer does NOT block for a hand-off (behaves as --no-wait)"
 TS_KEY=""; NO_WAIT=0; STUB_STATE=NeedsLogin; NEXT_STEPS=(); step_tailscale_up; show; printf '    | next: %s\n' "${NEXT_STEPS[@]}"
+scn "6c. item 4: Linux, node Stopped (stub): plain 'up' without pref flags, operator set separately with 'set'"
+OS_KIND=linux; SUDO_CMD=(); TARGET_USER=tester; TS_KEY=""; TS_TAGS_V=tag:bootstrap; STUB_STATE=Stopped; NO_WAIT=1; step_tailscale_up; show
+OS_KIND=macos; TS_TAGS_V=""
 scn "7. gh not authenticated (stub: auth status exits 1) + token: token via stdin, then setup-git"
 GH_TOK=ghp_DUMMYghtoken0001; export STUB_GH_RC=1; step_gh_auth; show
 scn "8. gh already authenticated (stub exits 0): login skipped, token unused"

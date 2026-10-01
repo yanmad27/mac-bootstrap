@@ -54,7 +54,7 @@ readonly CURL=(curl --proto '=https' --tlsv1.2 -fsSL)
 readonly GH_ENV=(env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST)
 # Remote commands run by the client over SSH (plain sh, no `eval`, bundle on stdin). The receiver writes
 # "<pid> <nonce>" into the ready marker; the SSH side refuses a ready whose pid is not alive.
-readonly RC_PROBE="sh -c 'd=\"\$HOME/.cache/mac-bootstrap/inbox\"; if test -L \"\$d\" || test ! -d \"\$d\" || test -L \"\$d/ready\" || test ! -f \"\$d/ready\" || test -e \"\$d/bundle\"; then exit 3; fi; read rp rn <\"\$d/ready\" || exit 3; case \"\$rp\" in \"\"|*[!0-9]*) exit 3;; esac; case \"\$rn\" in \"\"|*[!0-9a-f]*) exit 3;; esac; if kill -0 \"\$rp\" 2>/dev/null || test -d \"/proc/\$rp\" || ps -p \"\$rp\" >/dev/null 2>&1; then echo \"\$rn\"; exit 0; fi; exit 3'"
+readonly RC_PROBE="sh -c 'd=\"\$HOME/.cache/mac-bootstrap/inbox\"; if test -L \"\$d\" || test ! -d \"\$d\" || test -L \"\$d/ready\" || test ! -f \"\$d/ready\" || test -e \"\$d/bundle\"; then exit 3; fi; read rp rn <\"\$d/ready\" || exit 3; case \"\$rp\" in \"\"|*[!0-9]*) exit 3;; esac; case \"\$rn\" in \"\"|*[!0-9a-f]*) exit 3;; esac; if kill -0 \"\$rp\" 2>/dev/null || test -d \"/proc/\$rp\" || ps -p \"\$rp\" >/dev/null 2>&1; then echo \"MBNONCE=\$rn\"; exit 0; fi; exit 3'"
 readonly RC_WAIT="sh -c 'd=\"\$HOME/.cache/mac-bootstrap/inbox\"; i=0; while test -e \"\$d/bundle\" && test \"\$i\" -lt 15; do sleep 1; i=\$((i+1)); done; if test -e \"\$d/bundle\"; then rm -f \"\$d/bundle\"; exit 6; fi; exit 0'"
 
 unset TS_KEY GH_TOK
@@ -90,6 +90,7 @@ B_NAME=""
 B_EMAIL=""
 MINT_TOK=""
 MINT_ID=""
+HANDOFF_PENDING=0
 HELPER_SUM=""
 HELPER_DO=1
 HELPER_DEST=""
@@ -156,6 +157,11 @@ step() { printf '\n[%s/%s] %s\n' "$1" "$TOTAL" "$2"; }
 err() { printf '    error: %s\n' "$*" >&2; }
 
 cleanup() {
+  if ((HANDOFF_PENDING)); then
+    HANDOFF_PENDING=0
+    err "interrupted before the hand-off was confirmed: revoking the minted key"
+    revoke_key || true
+  fi
   inbox_cleanup
   if [[ -n $CM_SOCK && -S $CM_SOCK ]]; then
     ssh -S "$CM_SOCK" -O exit x >/dev/null 2>&1 </dev/null || true
@@ -508,7 +514,9 @@ target_screen() {
     fp=$(ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub -E sha256 2>/dev/null | awk '{print $2}' || true)
   fi
   if [[ -z $fp ]]; then
-    note "SSH is reachable, but this machine has no readable ED25519 host key, so the client cannot verify it: use paste (press p; client: mac-bootstrap bundle)"
+    note "SSH is reachable, but this machine has no readable ED25519 host key, so the client cannot verify it: the SSH hand-off is closed; use paste (press p; client: mac-bootstrap bundle)"
+    if [[ -n $INBOX ]]; then as_target rm -f -- "$INBOX/ready"; fi
+    INBOX_OPEN=0
     return 0
   fi
   note "SSH is reachable on this machine. From your client Mac, run one of:"
@@ -532,7 +540,7 @@ wait_for_handoff() {
     if ((INBOX_OPEN)); then target_screen; fi
     shown=1
   elif [[ $OS_KIND == macos ]]; then
-    note "Remote Login is off. Opening System Settings > General > Sharing: turn on Remote Login (or press p to paste a bundle instead)"
+    note "Remote Login is off. Opening System Settings (or System Preferences) > Sharing > Remote Login: turn it on (or press p to paste a bundle instead)"
     if ! open "x-apple.systempreferences:com.apple.Sharing-Settings.extension" >/dev/null 2>&1; then
       note "could not open System Settings; open it by hand: System Settings (or System Preferences) > Sharing > Remote Login"
     fi
@@ -962,13 +970,14 @@ cmd_bundle() {
 
 handoff_fail() {
   local msg=$1
+  HANDOFF_PENDING=0
   if revoke_key; then msg="$msg The minted key was revoked."; else msg="$msg Revoke the minted key in the Tailscale admin console (it is single-use and expires in one hour)."; fi
   MINT_TOK=""
   die "$msg"
 }
 
 cmd_handoff() {
-  local user host re scan fp ans kc rc nonce
+  local user host re scan fp ans kc rc nonce probe_out
   client_guard
   [[ -n $CL_HOST ]] || die "usage: mac-bootstrap handoff <user@host> [--port N]"
   re='^[A-Za-z0-9._][A-Za-z0-9._-]*@[A-Za-z0-9][A-Za-z0-9.:%_-]*$'
@@ -1003,12 +1012,16 @@ cmd_handoff() {
   say "Connecting to $CL_HOST (host key pinned, strict checking)"
   ssh "${opts[@]}" -MNf -- "$CL_HOST" </dev/null || die "ssh login failed (nothing was minted or sent)"
   rc=0
-  nonce=$(ssh "${opts[@]}" -- "$CL_HOST" "$RC_PROBE" </dev/null) || rc=$?
+  probe_out=$(ssh "${opts[@]}" -- "$CL_HOST" "$RC_PROBE" </dev/null) || rc=$?
+  # chatty shell startup files may print extra lines: take the LAST MBNONCE=<hex> line; no match fails closed
+  nonce=$(printf '%s\n' "$probe_out" | tr -d '\r' | sed -n 's/^MBNONCE=\([0-9a-f]\{1,32\}\)$/\1/p' | tail -n1)
+  probe_out=""
   re='^[0-9a-f]{1,32}$'
   if ((rc != 0)) || ! [[ $nonce =~ $re ]]; then
     die "the target is not waiting for a hand-off for $user (start the installer there first; or its ready marker is stale; nothing was minted)"
   fi
   client_collect
+  HANDOFF_PENDING=1
   rc=0
   printf '%s\n' "$BUNDLE" | ssh "${opts[@]}" -- "$CL_HOST" "$(rc_send "$nonce")" || rc=$?
   BUNDLE=""
@@ -1020,8 +1033,9 @@ cmd_handoff() {
   if ((rc != 0)); then
     handoff_fail "the target did not take the bundle within 15 s (it was removed from the inbox)."
   fi
+  HANDOFF_PENDING=0
   MINT_TOK=""
-  say "Hand-off delivered to $CL_HOST and taken by the receiver. Watch its screen for the result."
+  say "Bundle taken by the receiver on $CL_HOST; check the target's screen for the result."
 }
 
 # ---------------------------------------------------------------------------------------
@@ -1226,7 +1240,8 @@ node_diag() {
   if command -v node >/dev/null 2>&1; then printf 'node %s at %s' "$(node --version 2>/dev/null)" "$(command -v node)"; else printf 'no node'; fi
 }
 
-apt_nodesource_configured() { grep -rqsF 'deb.nodesource.com' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; }
+apt_nodesource_configured() { grep -rqsF 'nodesource.com' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; }
+apt_nodesource_files() { grep -rlsF 'nodesource.com' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null | tr '\n' ' ' | sed 's/ $//'; }
 
 # Install-or-upgrade (also when the package is already present, e.g. an old distro nodejs).
 pm_upgrade() {
@@ -1244,6 +1259,9 @@ linux_ensure_node() {
     return 0
   fi
   if command -v node >/dev/null 2>&1; then note "found $(node_diag): too old for Paseo (needs >= 20) or npm is missing: installing/upgrading"; fi
+  if [[ $LINUX_FAMILY == apt && $NODE_PLAN == nodesource ]] && ((!DRY_RUN)) && apt_nodesource_configured && (($(apt_candidate_major) < 20)); then
+    die "a NodeSource apt repo is configured ($(apt_nodesource_files)) but it offers Node $(apt_candidate_major).x, older than the 20 that Paseo needs. Edit that file to use node_22.x (deb https://deb.nodesource.com/node_22.x nodistro main) or remove it, run 'sudo apt-get update', and re-run; nothing irreversible has been done yet"
+  fi
   case $LINUX_FAMILY in
     apt)
       if [[ $NODE_PLAN == nodesource ]]; then pm_upgrade nodejs; else pm_upgrade nodejs npm; fi
@@ -1265,7 +1283,7 @@ linux_ensure_node() {
   esac
   if ((!DRY_RUN)); then
     hash -r
-    node_ok || die "Paseo needs Node >= 20 with npm, but this machine has $(node_diag) after the install. Remove or fix the old node (PATH order?) and re-run; nothing irreversible has been done yet (Tailscale is not joined)"
+    node_ok || die "Paseo needs Node >= 20 with npm, but this machine has $(node_diag) after the install$(if [[ $LINUX_FAMILY == apt ]] && apt_nodesource_configured; then printf ' (NodeSource repo files: %s; check which node_NN.x they use)' "$(apt_nodesource_files)"; fi). Remove or fix the old node (PATH order?) and re-run; nothing irreversible has been done yet (Tailscale is not joined)"
   fi
 }
 
@@ -1331,8 +1349,8 @@ step_linux_repos() {
         priv install -m 0644 "$(tmpref github-cli.list)" /etc/apt/sources.list.d/github-cli.list
       fi
       if [[ $NODE_PLAN == nodesource ]]; then
-        if [[ -f /etc/apt/sources.list.d/nodesource.list ]]; then
-          note "NodeSource apt repo already configured -> skip"
+        if apt_nodesource_configured; then
+          note "NodeSource apt repo already configured ($(apt_nodesource_files)) -> skip"
         else
           fetch "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" nodesource-repo.gpg.key
           if ((DRY_RUN)); then
@@ -1690,14 +1708,14 @@ step_tailscale_up() {
         want_up=1
       else
         if [[ $OS_KIND == linux ]]; then
-          if [[ -n $TS_TAGS_V ]]; then
-            extra+=(--advertise-tags="$TS_TAGS_V")
-            note "stopped node: re-applying the known tags with --advertise-tags (UNTESTED on a real node)"
-          else
-            note "stopped node: no TS_TAGS known, so tags are not re-applied (the node keeps its stored prefs; UNTESTED)"
-          fi
+          # prefs persist: plain `up` with no pref flags, then the operator (and hostname) separately (UNTESTED on a real node)
+          note "stopped node: plain 'tailscale up' without pref flags (stored prefs, tags included, are kept); operator set separately (UNTESTED)"
+          run "${ts_cmd[@]}" up --timeout=120s
+          run "${ts_cmd[@]}" set --operator="$TARGET_USER"
+          if [[ -n $TS_HOST ]]; then run "${ts_cmd[@]}" set --hostname="$TS_HOST"; fi
+        else
+          run "${ts_cmd[@]}" up --timeout=120s ${extra[@]+"${extra[@]}"}
         fi
-        run "${ts_cmd[@]}" up --timeout=120s ${extra[@]+"${extra[@]}"}
         ((DRY_RUN)) || say "    done"
       fi
       ;;

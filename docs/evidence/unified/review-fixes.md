@@ -1,6 +1,6 @@
 # Review fixes: item -> fix -> evidence
 
-Frozen `public/install.sh` sha256: `4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b95d4251ef30fb88dfa10`. Every current summary starts with this value. Paths are under `docs/evidence/unified/`. "code" = verified by reading the code plus ShellCheck/`bash -n`, no functional test (listed honestly).
+Frozen `public/install.sh` sha256: `b914176ba7514835474d4f4a5d163d5b76736b742a7ebdc2377caeb8b4c27a17` (round 2; round 1 was `4ffad9cb…`, whose evidence was regenerated on this sha). Every current summary starts with this value. Paths are under `docs/evidence/unified/`. "code" = verified by reading the code plus ShellCheck/`bash -n`, no functional test (listed honestly).
 
 | ID | Fix | Evidence |
 |---|---|---|
@@ -28,3 +28,18 @@ Frozen `public/install.sh` sha256: `4ffad9cb0fb1794da905338d5bf50c21dc07e2dfbb4b
 | S-P4 | Linux summary prints effective `PasswordAuthentication`/`PermitRootLogin` from `sshd -T` and warns when password login is on; nothing is changed | `linux/systemd-*.txt`, `linux/real-*.txt` (summary lines) |
 
 New systemd evidence (native arm64, `--privileged`, `--skip-tailscale-up`, so no key ever reached Tailscale): `linux/systemd-{ubuntu,debian,rocky}.txt` with the real SSH hand-off into the installer-enabled ssh unit; `linux/systemd-fedora.txt` with a CONTAINER LIMIT (see header: sshd refuses every non-root login after the key is accepted, PAM account check `pam_acct_mgmt = 9`; run with `--no-wait` and env secrets instead).
+
+## Round 2 (final repair round): item -> fix -> evidence
+
+| ID | Fix | Evidence |
+|---|---|---|
+| R1/N3 | the probe prints `MBNONCE=<hex>`; the client takes the LAST matching line (CR stripped); no match fails closed | `handoff/20-chatty-bashrc-client.txt` (a `~/.bashrc` that prints a banner, digits and a fake `MBNONCE=ffff` before the real line: hand-off still succeeds); no-match case: `handoff/06-second-bundle.txt`, `15-stale-ready-client.txt` |
+| R2 | NodeSource is not added whenever `apt_nodesource_configured` (any `nodesource.com` line in `sources.list` or `sources.list.d`, deb822 `.sources` included); the message names the files | `linux/fixes-tests.txt` R2 (deb822 `.sources` + nodejs absent: no second repo, node installed) |
+| R6 | configured NodeSource repo offering Node < 20 -> error naming the file and the fix (before any install) | `linux/fixes-tests.txt` R6 (candidate stubbed to 18 with a `node_18.x` list file) |
+| C10 Stopped | Linux Stopped: plain `tailscale up --timeout=120s`, then `tailscale set --operator=<user>` (and hostname) separately; marked UNTESTED | `handoff/target-core-stub.txt` scenario 6c (stub tailscale argv); no real `up` ran |
+| C10 macOS text | first message reads "System Settings (or System Preferences) > Sharing > Remote Login" | code only (macOS Remote Login path not run; the page text already matches) |
+| N2/R4 | after the bundle disappears the client says "Bundle taken by the receiver on <host>; check the target's screen for the result." | `handoff/01-success-client.txt` + check 01 in `handoff/summary.txt` |
+| N5 | client trap (EXIT/INT/TERM) revokes a minted key whose delivery was not confirmed, bearer via `-K -` | `handoff/21-interrupt-revoke-client.txt`, `handoff/21-mock-api-requests.jsonl` (DELETE recorded after Ctrl-C) |
+| P1 | no ED25519 fingerprint -> `ready` removed and the SSH hand-off closed, message says so | `handoff/22-no-fingerprint-receiver.txt`, `22-no-fingerprint-client.txt` (client refuses before minting) |
+
+Documented in `docs/handoff.md` section 8 (PARTIAL / ACCEPTED-RISK, with reasons): N1 pid reuse (bounded by the 15 s consume wait + revoke, PARTIAL); N4/R3 hidepid `/proc` with a root receiver fails closed, use paste (ACCEPTED-RISK); R5 hand-off while the target is at the `p` prompt fails safely (ACCEPTED-RISK); L2 `~/.ssh/config` kept on purpose, minus proxies/forwarding (ACCEPTED-RISK); L3 helper is a second download over the same TLS origin, first install has no prompt (ACCEPTED-RISK); `END=1` means older helpers are rejected (contract note).
