@@ -1,0 +1,12 @@
+production deployment for c782f7a (scrubbed: no tokens, team/project IDs, emails)
+deployment ID : dpl_B5MFjdohE1QVLxnkirbMJ1p2nhEh
+url           : https://mac-bootstrap-e7dr28c2q-yanmad27.vercel.app
+alias         : mac-bootstrap-seven.vercel.app
+target        : production
+state         : READY
+source        : git
+githubCommitSha : c782f7a727a0ca837ae05dc00b830994dcef6ec0
+githubCommitRef : main
+githubCommitMessage : Merge branch 'visual': visual-first page
+created       : Thu Oct 01 2026 14:50:10 GMT+0700
+read-only commands: vercel ls mac-bootstrap --prod; vercel inspect <url>; vercel api /v13/deployments/<id>

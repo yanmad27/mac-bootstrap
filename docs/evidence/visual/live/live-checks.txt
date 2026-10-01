@@ -1,0 +1,21 @@
+live URL https://mac-bootstrap-seven.vercel.app, Chromium (Playwright), 2026-10-01
+[1280-light] details: 13 total, 0 open at screenshot; page height 3531px; scrollWidth 1280
+[1280-light] svg.dg elements 4; visible (non-zero box) 2: dg-wide 760x100 aria-label="Process: 1 turn on Screen Sharing and Remote Login by hand, ..." | dg-wide 760x228 aria-label="Architecture: the client Mac runs iTerm2 with shell integrat..."
+[1280-light] hidden variants: dg-narrow, dg-narrow
+[1280-light] copy buttons 10: clipboard==displayed 10/10; mismatches: none
+[1280-light] commands containing curl: 6; every curl URL starts with https://mac-bootstrap-seven.vercel.app: true
+[1280-light] aria-labels unique: 10/10
+[1280-dark] details: 13 total, 0 open at screenshot; page height 3531px; scrollWidth 1280
+[1280-dark] svg.dg elements 4; visible (non-zero box) 2: dg-wide 760x100 aria-label="Process: 1 turn on Screen Sharing and Remote Login by hand, ..." | dg-wide 760x228 aria-label="Architecture: the client Mac runs iTerm2 with shell integrat..."
+[1280-dark] hidden variants: dg-narrow, dg-narrow
+[390-light] details: 13 total, 0 open at screenshot; page height 5072px; scrollWidth 390 (<=390: true)
+[390-light] svg.dg elements 4; visible (non-zero box) 2: dg-narrow 361x437 aria-label="Process: 1 turn on Screen Sharing and Remote Login by hand, ..." | dg-narrow 361x502 aria-label="Architecture: the client Mac runs iTerm2 with shell integrat..."
+[390-light] hidden variants: dg-wide, dg-wide
+[390-light] copy buttons 10: clipboard==displayed 10/10; mismatches: none
+[390-light] commands containing curl: 6; every curl URL starts with https://mac-bootstrap-seven.vercel.app: true
+[390-light] aria-labels unique: 10/10
+[390-dark] details: 13 total, 0 open at screenshot; page height 5072px; scrollWidth 390 (<=390: true)
+[390-dark] svg.dg elements 4; visible (non-zero box) 2: dg-narrow 361x437 aria-label="Process: 1 turn on Screen Sharing and Remote Login by hand, ..." | dg-narrow 361x502 aria-label="Architecture: the client Mac runs iTerm2 with shell integrat..."
+[390-dark] hidden variants: dg-wide, dg-wide
+external (non same-origin) requests across 4 variants: 0
+console/page errors or warnings (incl. CSP): 0

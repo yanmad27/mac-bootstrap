@@ -1,0 +1,5 @@
+repo commit: c782f7a727a0ca837ae05dc00b830994dcef6ec0
+/ live=0c306f7afbcb0e752b665fd6552a236afb5b088beea34f36bde9ab5dd9829377 repo=0c306f7afbcb0e752b665fd6552a236afb5b088beea34f36bde9ab5dd9829377 MATCH
+/install.sh live=ef9fe3727c689c12ae18ed99a632cf65075f4e07c4e69068c1c94493a9b1ba30 repo=ef9fe3727c689c12ae18ed99a632cf65075f4e07c4e69068c1c94493a9b1ba30 MATCH
+/iterm2-client.sh live=1b2ff479f8d6a238c4f5757dc279925b9f5b147de1446f56d10489371ffc92ce repo=1b2ff479f8d6a238c4f5757dc279925b9f5b147de1446f56d10489371ffc92ce MATCH
+(prior evidence docs/evidence/live/sha-compare.txt: install.sh ef9fe372…, iterm2-client.sh 1b2ff479… — unchanged: compare above)
