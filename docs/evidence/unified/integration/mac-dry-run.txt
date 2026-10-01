@@ -1,0 +1,59 @@
+# Mac: bash public/install.sh --dry-run on the merged tree
+
+[1/10] Preflight
+    macOS 26.7.1, arch arm64
+    mode: dry-run
+    TS_AUTHKEY: not set
+    TS_TAGS: not set
+    GH_TOKEN: not set
+    TS_HOSTNAME: not set
+    GIT_USER_NAME: not set
+    GIT_USER_EMAIL: not set
+    done
+
+[2/10] Homebrew
+    already present -> skip (/opt/homebrew/bin/brew)
+    DRY-RUN would append to ~/.zprofile: eval "$(/opt/homebrew/bin/brew shellenv)"
+
+[3/10] Tailscale formula
+    already present -> skip
+
+[4/10] tailscaled system daemon
+    WARNING: an existing com.tailscale.tailscaled LaunchDaemon runs /usr/local/bin/tailscaled
+             it is not Homebrew's opt/tailscale/bin/tailscaled, so it will not follow 'brew upgrade'
+             and can drift from the brew tailscale client (version mismatch).
+             I will not start a second daemon next to it and will not remove it. To switch to the
+             Homebrew-managed daemon, run: sudo tailscaled uninstall-system-daemon, then re-run this script.
+    already present (socket /var/run/tailscaled.socket) -> skip
+
+[5/10] tailscale up
+    BackendState: Running
+    already present (Running) -> skip login; key not used
+
+[6/10] git, gh, paseo
+    gh: already present -> skip
+    DRY-RUN would run: /opt/homebrew/bin/brew install git
+    DRY-RUN would run: /opt/homebrew/bin/brew install --cask paseo
+
+[7/10] gh auth
+    already present (stored credentials for github.com) -> skip login
+    DRY-RUN would run: env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN -u GH_HOST /opt/homebrew/bin/gh auth setup-git --hostname github.com
+
+[8/10] git identity
+    skipped (GIT_USER_NAME / GIT_USER_EMAIL not set)
+
+[9/10] iTerm2 shell integration
+    skipped (needs --iterm2-shell-integration)
+
+[10/10] Summary
+    DRY-RUN: would show the Tailscale IP and MagicDNS name here (nothing changed)
+    then: ssh <user>@<host>
+    --host value for the client: <this-mac-short-name> (this Mac's 'hostname -s'); iTerm2 shell integration reports 'hostname -f' = <this-mac-fqdn>, which is independent of the Tailscale name and TS_HOSTNAME
+    on the Mac you ssh from, for automatic profile switching:
+      curl -fsSL "<origin>/iterm2-client.sh" | bash -s -- --host <this-mac-short-name> --user <ssh-user> --shell-integration
+    start Paseo: open -a Paseo (desktop app), or run the paseo CLI the cask links
+    Remote Login: on
+    still manual:
+      - Set your git identity: git config --global user.name ... && git config --global user.email ...
+      - Optional: Screen Sharing: System Settings > General > Sharing > Screen Sharing (needs the macOS UI)
+exit=0

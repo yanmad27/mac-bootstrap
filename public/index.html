@@ -277,11 +277,11 @@ details{padding:.1rem .95rem}
 
 <section class="step" aria-labelledby="install">
 <div class="sh"><span class="ic t2" aria-hidden="true"><svg aria-hidden="true"><use href="#i-term"/></svg></span><h2 id="install">2. On each new machine</h2></div>
-<p>macOS, Ubuntu, Debian, Fedora, RHEL or Arch. No browser opens on it.</p>
+<p>macOS, Ubuntu, Debian, Fedora, RHEL-compatible (Rocky, Alma) or Arch. No browser opens on it.</p>
 <ol class="steps">
 <li><strong>Mac only:</strong> the script opens System Settings &rsaquo; Sharing. Turn on Remote Login (Screen Sharing is optional, by hand).</li>
 <li>Run the command below on the new machine and type the sudo password.</li>
-<li>On your Mac, run the printed <code>mac-bootstrap handoff user@IP</code>, check the fingerprint matches the new machine's screen, and type its password.</li>
+<li>On your Mac, run the printed <code>mac-bootstrap handoff user@IP</code>, check the fingerprint matches the new machine's screen, and type its password if asked.</li>
 <li>Done: it joins your tailnet, logs <code>gh</code> in and sets your git identity.</li>
 </ol>
 <p class="lbl">The command (run it on the new machine):</p>
@@ -352,7 +352,7 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 </details>
 <details>
 <summary>Order of steps and sudo</summary>
-<p>The script runs: preflight, packages (Homebrew on a Mac, your distro's package manager on Linux), Tailscale, the wait for the hand-off, git and gh, git identity, summary. You may be asked for your password more than once (<code>sudo</code>), for example to start the daemon.</p>
+<p>The script runs: preflight, packages (Homebrew on a Mac, your distro's package manager on Linux), Tailscale, the wait for the hand-off, git, gh and Paseo (the CLI on Linux), git identity, summary. You may be asked for your password more than once (<code>sudo</code>), for example to start the daemon.</p>
 </details>
 <details>
 <summary>macOS notes (Homebrew <code>tailscale</code> formula)</summary>

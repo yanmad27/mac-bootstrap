@@ -1,0 +1,2 @@
+diff vs checkpoint A (mac/dry-run-after.txt), header line ignored:
+IDENTICAL

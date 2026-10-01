@@ -1,12 +1,12 @@
 # mac-bootstrap
 
-Bootstraps a Mac or Linux machine (Ubuntu/Debian, Fedora/RHEL, Arch) for remote access over Tailscale, with no browser ever opening on the new machine. One command installs Tailscale, git, gh and the rest (Homebrew and Paseo on a Mac). An optional step sets up iTerm2 on both Macs.
+Bootstraps a Mac or Linux machine (Ubuntu/Debian, Fedora, RHEL-compatible, Arch) for remote access over Tailscale, with no browser ever opening on the new machine. One command installs Tailscale, git, gh and Paseo (Homebrew and the Paseo app on a Mac, the Paseo CLI on Linux). An optional step sets up iTerm2 on both Macs.
 
 How it works (the frozen contract is [docs/handoff.md](docs/handoff.md)):
 
 1. **Once, on your Mac.** In the Tailscale admin console add `tagOwners` for `tag:bootstrap` plus a grant to TCP 22, and create an OAuth client with only the Auth Keys (write) scope and that tag. Then run `curl -fsSL "<origin>/install.sh" | bash -s -- --client-setup --origin "<origin>"`, which stores the OAuth secret in your Keychain and installs the `mac-bootstrap` helper.
 2. **On each new machine.** Run `curl -fsSL "<origin>/install.sh" | bash` and type the sudo password (on a Mac, turn on Remote Login when System Settings opens; Screen Sharing is optional, by hand).
-3. **Hand-off.** On your Mac run the printed `mac-bootstrap handoff user@IP`, check the fingerprint matches the new machine's screen, and type its password. The new machine joins your tailnet (tagged, single-use key minted on your Mac; the OAuth secret never leaves it), logs `gh` in and gets your git identity. Fallback: `mac-bootstrap bundle --copy` on your Mac, then press `p` on the new machine and paste.
+3. **Hand-off.** On your Mac run the printed `mac-bootstrap handoff user@IP`, check the fingerprint matches the new machine's screen, and type its password if asked. The new machine joins your tailnet (tagged, single-use key minted on your Mac; the OAuth secret never leaves it), logs `gh` in and gets your git identity. Fallback: `mac-bootstrap bundle --copy` on your Mac, then press `p` on the new machine and paste.
 
 The hand-off copies your Mac's existing `gh` login (`gh auth token`) to the new machine: broad scopes, the same token on both, revoking it logs your Mac out too, and on Linux it is a plaintext owner-only file.
 

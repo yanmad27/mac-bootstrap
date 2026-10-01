@@ -1,0 +1,6 @@
+# wordcount.js: base = main 00590e9 page, new = merged tree page
+BASE 1280x800: visible 617 code 63 non-code 554  (limit 334: EXCEEDED)
+BASE 390x844: visible 617 code 63 non-code 554
+NEW 1280x800: visible 604 code 67 non-code 537  (limit 334: EXCEEDED)
+NEW 390x844: visible 604 code 67 non-code 537
+note: wordcount.js prints a built-in 'limit 334' tag; per page/README.md that limit cannot be applied to this method (the BASE page also reads EXCEEDED); the claim checked here is no growth vs base: visible 617 -> 604, non-code 554 -> 537.
