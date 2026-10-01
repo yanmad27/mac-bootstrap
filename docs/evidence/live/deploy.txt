@@ -1,0 +1,31 @@
+$ npx -y vercel@62.1.0 whoami
+yanmad27
+
+$ npx -y vercel@62.1.0 project ls   (before link; no mac-bootstrap existed)
+wedding-plan, yanmad27-vercel-app, vite-react, aceonline-framebreak, windows-rectangle
+
+$ npx -y vercel@62.1.0 link --yes --project mac-bootstrap
+✓ Created         yanmad27/mac-bootstrap
+> Connecting GitHub repository: https://github.com/yanmad27/mac-bootstrap
+> Connected
+(link also wrote a local .env.local with a VERCEL_OIDC_TOKEN; it was deleted, never committed, never shown)
+
+$ npx -y vercel@62.1.0 git connect
+> Connecting GitHub repository: https://github.com/yanmad27/mac-bootstrap
+> yanmad27/mac-bootstrap is already connected to your project.
+
+$ npx -y vercel@62.1.0 deploy --prod --yes
+Production      https://mac-bootstrap-nqnqtqdz7-yanmad27.vercel.app
+Production URL: https://mac-bootstrap-seven.vercel.app",
+▲ Aliased         https://mac-bootstrap-seven.vercel.app
+
+$ npx -y vercel@62.1.0 inspect mac-bootstrap-nqnqtqdz7-yanmad27.vercel.app --wait
+    ╶ https://mac-bootstrap-seven.vercel.app
+    ╶ https://mac-bootstrap-yanmad27.vercel.app
+
+$ npx -y vercel@62.1.0 ls mac-bootstrap
+mac-bootstrap-nqnqtqdz7 (CLI deploy)  Ready Production
+mac-bootstrap-cb9cxxiwf (git push of aab511a)  Ready Production
+
+$ vercel api /v13/deployments/dpl_EMcStDrUDX9qEEr5VFJCaybfcZM2 (git-triggered; selected fields)
+source=git githubCommitRef=main githubCommitSha=aab511a0fb290f1311aa330b21d74cb0c6ca8d4f githubOrg=yanmad27 githubRepo=mac-bootstrap readyState=READY target=production

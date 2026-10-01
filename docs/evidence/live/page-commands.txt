@@ -1,0 +1,32 @@
+page: https://mac-bootstrap-seven.vercel.app/
+
+c-nc:
+nc -z localhost 22 && echo "Remote Login: listening"
+nc -z localhost 5900 && echo "Screen Sharing: listening"
+
+c-dry:
+curl -fsSL "https://mac-bootstrap-seven.vercel.app/install.sh" | bash -s -- --dry-run
+
+c-run:
+curl -fsSL "https://mac-bootstrap-seven.vercel.app/install.sh" | bash
+
+c-read1:
+read -rs "TS_AUTHKEY?Tailscale auth key: "; echo
+
+c-read2:
+read -rs "GH_TOKEN?GitHub token: "; echo
+
+c-secret:
+curl -fsSL "https://mac-bootstrap-seven.vercel.app/install.sh" | TS_AUTHKEY="$TS_AUTHKEY" GH_TOKEN="$GH_TOKEN" bash
+
+c-unset:
+unset TS_AUTHKEY GH_TOKEN
+
+c-iterm-host:
+curl -fsSL "https://mac-bootstrap-seven.vercel.app/install.sh" | bash -s -- --iterm2-shell-integration
+
+c-iterm-client:
+curl -fsSL "https://mac-bootstrap-seven.vercel.app/iterm2-client.sh" | bash -s -- --host my-mac --shell-integration
+
+c-iterm-client-user:
+curl -fsSL "https://mac-bootstrap-seven.vercel.app/iterm2-client.sh" | bash -s -- --host my-mac --user your-ssh-user --shell-integration
