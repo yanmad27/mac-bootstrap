@@ -1,0 +1,14 @@
+== shellcheck --version
+ShellCheck - shell script analysis tool
+version: 0.11.0
+license: GNU General Public License, version 3
+website: https://www.shellcheck.net
+
+== shellcheck -s bash public/*.sh
+exit=0
+bash -n public/install.sh exit=0
+/bin/bash(3.2) -n public/install.sh exit=0
+bash -n public/iterm2-client.sh exit=0
+/bin/bash(3.2) -n public/iterm2-client.sh exit=0
+
+sha256 install.sh=6b41c2518bbed72c iterm2-client.sh=6bdc3dff2461b81f
