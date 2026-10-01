@@ -40,8 +40,8 @@ external URLs loaded by src/href-less tags (img/link/script src/iframe): 0
 reduced motion: .rv count=0 tube2 animation-name=none scroll-behavior=auto
 motion enabled: .rv below fold at load=5 after scrolling .rv.in=5 of 5 still opacity 0: 0 tube2 animation=flowd
 == word count (document.body.innerText, <details> collapsed, light, reduced motion) ==
-1280x800: OLD(33d3e07) visible 617 code 63 non-code 554 | NEW visible 585 code 67 non-code 518
-390x844: OLD(33d3e07) visible 617 code 63 non-code 554 | NEW visible 585 code 67 non-code 518
+1280x800: OLD(33d3e07) visible 617 code 63 non-code 554 | NEW visible 600 code 67 non-code 533
+390x844: OLD(33d3e07) visible 617 code 63 non-code 554 | NEW visible 600 code 67 non-code 533
 == contrast light (resolved CSS custom properties; same pair list as docs/evidence/apple/contrast.txt plus .fork text) ==
 16.28  (min 4.5)  body text  [#1d1d1f on #fbfbfd]
 16.83  (min 4.5)  body on card  [#1d1d1f on #fff]

@@ -79,6 +79,8 @@ figcaption{font-size:.9rem;color:var(--muted);margin:.9rem auto 0;text-align:cen
 .flow .n{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 .flow .n::before{content:"Step " counter(f)}
 .flow li:last-child .n::before{content:"Done \2713"}
+.flow li.opt .n::before{content:"Optional"}
+.flow li.cont .n::before{content:"Step 2, then"}
 .ic{flex:none;display:inline-flex;align-items:center;justify-content:center;width:3.6rem;height:3.6rem;border-radius:1.15rem;background:var(--tint);color:var(--glyph)}
 .ic svg{width:1.9rem;height:1.9rem;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .t1{--tint:var(--t1);--glyph:var(--g1)}.t2{--tint:var(--t2);--glyph:var(--g2)}.t3{--tint:var(--t3);--glyph:var(--g3)}.t4{--tint:var(--t4);--glyph:var(--g4)}.t5{--tint:var(--t5);--glyph:var(--g5)}
@@ -185,10 +187,10 @@ details{padding:.1rem .95rem}
 </header>
 <main>
 <figure class="flow-fig rv-t">
-<ol class="flow" aria-label="Process: 1 once, set up your Mac with a Tailscale OAuth client and one command, 2 on each new Mac or Linux machine run one install command, 3 hand off from your Mac with one command, 4 optionally set up iTerm2 on both Macs, then connect with ssh or Screen Sharing.">
+<ol class="flow" aria-label="Process: 1 once, set up your Mac with a Tailscale OAuth client and one command, 2 on each new Mac or Linux machine run one install command, then hand off from your Mac with one command (still step 2), optionally set up iTerm2 on both Macs (step 3, optional), then connect with ssh or Screen Sharing.">
 <li class="t1"><span class="ic"><svg aria-hidden="true"><use href="#i-key"/></svg></span><span class="tx"><span class="n"></span><b>Set up your Mac</b><span class="s">once: OAuth client</span></span></li>
 <li class="t2"><span class="ic"><svg aria-hidden="true"><use href="#i-term"/></svg></span><span class="tx"><span class="n"></span><b>New machine</b><span class="s">curl | bash install.sh</span></span></li>
-<li class="t3"><span class="ic"><svg aria-hidden="true"><use href="#i-share"/></svg></span><span class="tx"><span class="n"></span><b>Hand-off</b><span class="s">one command on your Mac</span></span></li>
+<li class="t3 cont"><span class="ic"><svg aria-hidden="true"><use href="#i-share"/></svg></span><span class="tx"><span class="n"></span><b>Hand-off</b><span class="s">one command on your Mac</span></span></li>
 <li class="t4 opt"><span class="ic"><svg aria-hidden="true"><use href="#i-iterm"/></svg></span><span class="tx"><span class="n"></span><b>iTerm2</b><span class="s">optional, both Macs</span></span></li>
 <li class="t5"><span class="ic"><svg aria-hidden="true"><use href="#i-link"/></svg></span><span class="tx"><span class="n"></span><b>Connect</b><span class="s">ssh or Screen Sharing</span></span></li>
 </ol>
@@ -254,7 +256,7 @@ details{padding:.1rem .95rem}
 <div class="sh"><span class="ic t1" aria-hidden="true"><svg aria-hidden="true"><use href="#i-key"/></svg></span><h2 id="setup-h">1. Once, on your Mac</h2></div>
 <p>Do this one time. Your Mac then hands each new machine its credentials.</p>
 <h3>In the browser</h3>
-<p>In the <a href="https://login.tailscale.com/admin/settings/keys" rel="noopener noreferrer">Tailscale admin console</a>, add <code>tagOwners</code> for <code>tag:bootstrap</code> and a grant to TCP 22 (snippet below). Create an OAuth client with only the Auth Keys (write) scope and the tag <code>tag:bootstrap</code>. Copy its secret.</p>
+<p>In the <a href="https://login.tailscale.com/admin" rel="noopener noreferrer">Tailscale admin console</a>, open Access controls and add <code>tagOwners</code> for <code>tag:bootstrap</code> and a grant to TCP 22 (snippet below). Then open Settings &rsaquo; OAuth clients (newer consoles: Trust credentials) and create an OAuth client with only the Auth Keys (write) scope and the tag <code>tag:bootstrap</code>. Copy its secret.</p>
 <h3>In Terminal</h3>
 <p>Paste the secret at the hidden prompt. It goes into your Keychain, and the <code>mac-bootstrap</code> helper is installed.</p>
 <div class="cmd"><pre><code id="c-client">curl -fsSL "&lt;your-site&gt;/install.sh" | bash -s -- --client-setup --origin "&lt;your-site&gt;"</code></pre><button type="button" data-copy="c-client" aria-label="Copy Mac one-time setup command">Copy</button></div>

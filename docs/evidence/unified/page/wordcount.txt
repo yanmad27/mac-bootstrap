@@ -1,0 +1,4 @@
+BASE 1280x800: visible 617 code 63 non-code 554  (limit 334: EXCEEDED)
+BASE 390x844: visible 617 code 63 non-code 554
+NEW 1280x800: visible 600 code 67 non-code 533  (limit 334: EXCEEDED)
+NEW 390x844: visible 600 code 67 non-code 533
