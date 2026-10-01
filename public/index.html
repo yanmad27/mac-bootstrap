@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -124,6 +124,8 @@ kbd{font:.85em ui-monospace,Menlo,monospace;background:var(--soft);border:1px so
 .keyset li{background:var(--t3);border-radius:16px;padding:.7rem .9rem;font-size:.9rem;max-width:none}
 .keyset b{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .done .sh{margin-bottom:.4rem}
+.no-js .cmd button{display:none}
+.what{max-width:40rem;margin:1.2rem auto 0}
 .rv{opacity:1}
 @media (prefers-reduced-motion:no-preference){
 html{scroll-behavior:smooth}
@@ -173,10 +175,10 @@ details{padding:.1rem .95rem}
 <header class="hero">
 <p class="eyebrow">mac-bootstrap</p>
 <h1>Bootstrap a Mac for <em>remote access</em></h1>
-<p class="lead">Four steps, in order: switch on Screen Sharing and Remote Login by hand, run one install command that brings Tailscale up (with a browser login URL, or with an auth key you generated beforehand), and optionally set up iTerm2 on both Macs.</p>
+<p class="lead">Four steps. One command. Tailscale, SSH and Screen Sharing, ready.</p>
 <div class="hero-cmd">
-<div class="cmd"><pre><code id="c-hero"></code></pre><button type="button" data-copy="c-hero" aria-label="Copy install command (hero)">Copy</button></div>
-<p class="hint">Want to look first? <a href="#install">Start with a dry run (step 2)</a>. Browser-free login? <a href="#authkey">Get an auth key first (step 3)</a>, before you run the command.</p>
+<div class="cmd"><pre><code id="c-hero">curl -fsSL "&lt;your-site&gt;/install.sh" | bash</code></pre><button type="button" data-copy="c-hero" aria-label="Copy install command (hero)">Copy</button></div>
+<p class="hint">Dry run first: <a href="#install">step 2</a>. Browser-free login: make a key (<a href="#authkey">step 3</a>), then use step 2's unattended command.</p>
 </div>
 <p id="origin-note" class="origin">Commands below are built from this page's address.</p>
 <noscript><p class="note">JavaScript is off, so commands show the literal placeholder <code>&lt;your-site&gt;</code>. Replace it with the address of this page.</p></noscript>
@@ -191,6 +193,7 @@ details{padding:.1rem .95rem}
 <li class="t5"><span class="ic"><svg aria-hidden="true"><use href="#i-link"/></svg></span><span class="tx"><span class="n"></span><b>Connect</b><span class="s">ssh or Screen Sharing</span></span></li>
 </ol>
 <figcaption>The whole process: four steps, then connect. Dashed = optional.</figcaption>
+<details class="what"><summary>What this does</summary><p>Four steps, in order: switch on Screen Sharing and Remote Login by hand, run one install command that brings Tailscale up (with a browser login URL, or with an auth key you generated beforehand), and optionally set up iTerm2 on both Macs.</p></details>
 </figure>
 <figure class="art rv-t">
 <svg class="dg dg-wide" viewBox="0 0 1040 490" role="img" aria-label="Architecture: the client Mac runs iTerm2 with shell integration, ssh and the Screen Sharing app. It reaches the bootstrapped Mac over a private Tailscale tailnet. The bootstrapped Mac runs Remote Login (SSH, port 22), Screen Sharing (port 5900), the tailscaled system daemon installed with Homebrew, git, gh and Paseo, and optionally iTerm2 shell integration; the iTerm2 integration on both Macs is optional."><title>Architecture</title>
@@ -289,9 +292,9 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 <p>Run this in Terminal (zsh) <strong>on the Mac you are bootstrapping</strong>. It installs Homebrew (if missing), Tailscale (system daemon), git, gh and Paseo, then brings Tailscale up. It is safe to re-run.</p>
 <p class="fork"><strong>Login:</strong> browser URL (default) — or, for browser-free, <a href="#authkey">get an auth key first (step 3)</a> and use the <a href="#secrets" data-open="secrets">unattended commands below</a>.</p>
 <p class="lbl">First, a dry run. Prints what it would do and changes nothing:</p>
-<div class="cmd"><pre><code id="c-dry"></code></pre><button type="button" data-copy="c-dry" aria-label="Copy dry-run command">Copy</button></div>
+<div class="cmd"><pre><code id="c-dry">curl -fsSL "&lt;your-site&gt;/install.sh" | bash -s -- --dry-run</code></pre><button type="button" data-copy="c-dry" aria-label="Copy dry-run command">Copy</button></div>
 <p class="lbl">Then the real run, all defaults: Tailscale prints a login URL you open in a browser; GitHub auth is interactive and skippable.</p>
-<div class="cmd"><pre><code id="c-run"></code></pre><button type="button" data-copy="c-run" aria-label="Copy install command">Copy</button></div>
+<div class="cmd"><pre><code id="c-run">curl -fsSL "&lt;your-site&gt;/install.sh" | bash</code></pre><button type="button" data-copy="c-run" aria-label="Copy install command">Copy</button></div>
 <p class="lbl">What it does, in order (dashed = optional / skippable):</p>
 <ol class="chips">
 <li>preflight</li><li>Homebrew</li><li>tailscale formula</li><li>tailscaled daemon</li><li class="opt">tailscale up</li><li>git · gh · Paseo</li><li class="opt">gh auth</li><li class="opt">git identity</li><li class="opt">iTerm2 integration</li><li>summary</li>
@@ -304,7 +307,7 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 </ol>
 <div class="cmd"><pre><code id="c-read1">read -rs "TS_AUTHKEY?Tailscale auth key: "; echo</code></pre><button type="button" data-copy="c-read1" aria-label="Copy Tailscale key prompt command">Copy</button></div>
 <div class="cmd"><pre><code id="c-read2">read -rs "GH_TOKEN?GitHub token: "; echo</code></pre><button type="button" data-copy="c-read2" aria-label="Copy GitHub token prompt command">Copy</button></div>
-<div class="cmd"><pre><code id="c-secret"></code></pre><button type="button" data-copy="c-secret" aria-label="Copy install command with secrets">Copy</button></div>
+<div class="cmd"><pre><code id="c-secret">curl -fsSL "&lt;your-site&gt;/install.sh" | TS_AUTHKEY="$TS_AUTHKEY" GH_TOKEN="$GH_TOKEN" bash</code></pre><button type="button" data-copy="c-secret" aria-label="Copy install command with secrets">Copy</button></div>
 <div class="cmd"><pre><code id="c-unset">unset TS_AUTHKEY GH_TOKEN</code></pre><button type="button" data-copy="c-unset" aria-label="Copy unset command">Copy</button></div>
 <p><strong>Why this shape:</strong> the hidden <code>read</code> keeps the secret out of your shell history (history records the literal <code>$TS_AUTHKEY</code>) and out of any command line (<code>ps</code> shows arguments, not variables); the variables are not exported, so only <code>bash</code> receives them, never <code>curl</code>. The script then removes them from its own environment before running anything else, so no child process (brew, curl, sudo) inherits them. This page never asks for a secret itself.</p>
 </details>
@@ -377,10 +380,10 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 <p>iTerm2 shows a hostname badge and switches profile when you SSH. It needs shell integration on <strong>every participating Mac</strong>.</p>
 <h3>On the bootstrapped Mac</h3>
 <p>Re-run the install command with shell integration:</p>
-<div class="cmd"><pre><code id="c-iterm-host"></code></pre><button type="button" data-copy="c-iterm-host" aria-label="Copy bootstrapped Mac iTerm2 command">Copy</button></div>
+<div class="cmd"><pre><code id="c-iterm-host">curl -fsSL "&lt;your-site&gt;/install.sh" | bash -s -- --iterm2-shell-integration</code></pre><button type="button" data-copy="c-iterm-host" aria-label="Copy bootstrapped Mac iTerm2 command">Copy</button></div>
 <h3>On the client Mac (the one you SSH from)</h3>
 <p>Replace <code>my-mac</code> with the short hostname that <code>install.sh</code> prints in its final summary.</p>
-<div class="cmd"><pre><code id="c-iterm-client"></code></pre><button type="button" data-copy="c-iterm-client" aria-label="Copy client Mac iTerm2 command">Copy</button></div>
+<div class="cmd"><pre><code id="c-iterm-client">curl -fsSL "&lt;your-site&gt;/iterm2-client.sh" | bash -s -- --host my-mac --shell-integration</code></pre><button type="button" data-copy="c-iterm-client" aria-label="Copy client Mac iTerm2 command">Copy</button></div>
 <details>
 <summary>Why both Macs need it</summary>
 <p>When you SSH from one Mac to the other, iTerm2 can show a hostname badge and switch profile automatically. This needs iTerm2 shell integration on <strong>every participating Mac</strong>: the remote reports its hostname to iTerm2, and the client needs it too so iTerm2 switches back to the original profile after the SSH session ends.</p>
@@ -389,7 +392,7 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 <summary>Client command details and a different SSH user</summary>
 <p>Replace <code>my-mac</code> with the short hostname that <code>install.sh</code> prints in its final summary on the bootstrapped Mac (see below). <code>--shell-integration</code> installs iTerm2 shell integration on the client as well.</p>
 <p>If your SSH user differs from your client user, add <code>--user &lt;ssh-user&gt;</code>:</p>
-<div class="cmd"><pre><code id="c-iterm-client-user"></code></pre><button type="button" data-copy="c-iterm-client-user" aria-label="Copy client Mac iTerm2 command with SSH user">Copy</button></div>
+<div class="cmd"><pre><code id="c-iterm-client-user">curl -fsSL "&lt;your-site&gt;/iterm2-client.sh" | bash -s -- --host my-mac --user your-ssh-user --shell-integration</code></pre><button type="button" data-copy="c-iterm-client-user" aria-label="Copy client Mac iTerm2 command with SSH user">Copy</button></div>
 </details>
 <details>
 <summary>Client options</summary>
@@ -417,11 +420,12 @@ nc -z localhost 5900 &amp;&amp; echo "Screen Sharing: listening"</code></pre><bu
 <section class="step done" aria-labelledby="done">
 <div class="sh"><span class="ic t5" aria-hidden="true"><svg aria-hidden="true"><use href="#i-done"/></svg></span><h2 id="done">Done</h2></div>
 <p>Check <code>tailscale status</code> on the bootstrapped Mac, then connect from your client with <code>ssh &lt;user&gt;@&lt;tailscale-hostname&gt;</code> or Screen Sharing to <code>vnc://&lt;tailscale-hostname&gt;</code>.</p>
-<p class="origin">The scripts are served as plain text: open <code id="l-install"></code> to read exactly what you will run before running it.</p>
+<p class="origin">The scripts are served as plain text: open <code id="l-install">&lt;your-site&gt;/install.sh</code> to read exactly what you will run before running it.</p>
 </section>
 </main>
 <script>
 (function () {
+  document.documentElement.classList.remove("no-js");
   var p = location.protocol;
   var real = p === "http:" || p === "https:";
   var origin = real ? location.origin : "<your-site>";
