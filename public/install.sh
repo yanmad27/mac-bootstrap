@@ -498,7 +498,7 @@ step_summary() {
     short=$(hostname -s 2>/dev/null || echo unknown)
     fqdn=$(hostname -f 2>/dev/null || echo unknown)
   fi
-  note "name iTerm2 shell integration reports for this Mac: $short (hostname -f: $fqdn); independent of the Tailscale name"
+  note "--host value for the client: $short (this Mac's 'hostname -s'); iTerm2 shell integration reports 'hostname -f' = $fqdn, which is independent of the Tailscale name and TS_HOSTNAME"
   note "on the Mac you ssh from, for automatic profile switching:"
   note "  curl -fsSL \"<origin>/iterm2-client.sh\" | bash -s -- --host $short --user <ssh-user> --shell-integration"
   note "start Paseo: open -a Paseo (desktop app), or run the paseo CLI the cask links"
